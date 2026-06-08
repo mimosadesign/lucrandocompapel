@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lucrando com Papel — Gestão e precificação para papelaria personalizada" },
+      { title: "Lucrando com Papel" },
       {
         name: "description",
         content:
@@ -97,11 +97,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "theme-color", content: "#A8B87C" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Lucrando" },
-      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "twitter:title", content: "Lucrando com Papel" },
+      { name: "description", content: "Seu novo aplicativo de Gestão e precificação para seu ateliê de papelaria personalizada." },
+      { property: "og:description", content: "Seu novo aplicativo de Gestão e precificação para seu ateliê de papelaria personalizada." },
+      { name: "twitter:description", content: "Seu novo aplicativo de Gestão e precificação para seu ateliê de papelaria personalizada." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mDVKQAqEfpMFO0UkEBjOlHl5TyD3/social-images/social-1780951335969-WhatsApp_Image_2026-06-08_at_17.33.27.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mDVKQAqEfpMFO0UkEBjOlHl5TyD3/social-images/social-1780951335969-WhatsApp_Image_2026-06-08_at_17.33.27.webp" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -111,9 +112,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", type: "image/png", href: "/app-icon-512.png" },
-      { rel: "apple-touch-icon", href: "/app-icon-512.png" },
     ],
   }),
   shellComponent: RootShell,
