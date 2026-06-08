@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PrecificacaoRouteImport } from './routes/precificacao'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as IndexRouteImport } from './routes/index'
 
 const PrecificacaoRoute = PrecificacaoRouteImport.update({
@@ -23,6 +24,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MateriaisRoute = MateriaisRouteImport.update({
+  id: '/materiais',
+  path: '/materiais',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/perfil' | '/precificacao'
+  fullPaths: '/' | '/materiais' | '/perfil' | '/precificacao'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/perfil' | '/precificacao'
-  id: '__root__' | '/' | '/perfil' | '/precificacao'
+  to: '/' | '/materiais' | '/perfil' | '/precificacao'
+  id: '__root__' | '/' | '/materiais' | '/perfil' | '/precificacao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MateriaisRoute: typeof MateriaisRoute
   PerfilRoute: typeof PerfilRoute
   PrecificacaoRoute: typeof PrecificacaoRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/materiais': {
+      id: '/materiais'
+      path: '/materiais'
+      fullPath: '/materiais'
+      preLoaderRoute: typeof MateriaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MateriaisRoute: MateriaisRoute,
   PerfilRoute: PerfilRoute,
   PrecificacaoRoute: PrecificacaoRoute,
 }
