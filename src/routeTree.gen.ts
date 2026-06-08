@@ -14,6 +14,7 @@ import { Route as PrecificacaoRouteImport } from './routes/precificacao'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MateriaisRouteImport } from './routes/materiais'
+import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as FaturamentoRouteImport } from './routes/faturamento'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,6 +44,11 @@ const MateriaisRoute = MateriaisRouteImport.update({
   path: '/materiais',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InteligenciaRoute = InteligenciaRouteImport.update({
+  id: '/inteligencia',
+  path: '/inteligencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaturamentoRoute = FaturamentoRouteImport.update({
   id: '/faturamento',
   path: '/faturamento',
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRoute
   '/faturamento': typeof FaturamentoRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
   '/pedidos': typeof PedidosRoute
   '/perfil': typeof PerfilRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRoute
   '/faturamento': typeof FaturamentoRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
   '/pedidos': typeof PedidosRoute
   '/perfil': typeof PerfilRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRoute
   '/faturamento': typeof FaturamentoRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
   '/pedidos': typeof PedidosRoute
   '/perfil': typeof PerfilRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/catalogo'
     | '/faturamento'
+    | '/inteligencia'
     | '/materiais'
     | '/pedidos'
     | '/perfil'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/catalogo'
     | '/faturamento'
+    | '/inteligencia'
     | '/materiais'
     | '/pedidos'
     | '/perfil'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/catalogo'
     | '/faturamento'
+    | '/inteligencia'
     | '/materiais'
     | '/pedidos'
     | '/perfil'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogoRoute: typeof CatalogoRoute
   FaturamentoRoute: typeof FaturamentoRoute
+  InteligenciaRoute: typeof InteligenciaRoute
   MateriaisRoute: typeof MateriaisRoute
   PedidosRoute: typeof PedidosRoute
   PerfilRoute: typeof PerfilRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MateriaisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inteligencia': {
+      id: '/inteligencia'
+      path: '/inteligencia'
+      fullPath: '/inteligencia'
+      preLoaderRoute: typeof InteligenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faturamento': {
       id: '/faturamento'
       path: '/faturamento'
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogoRoute: CatalogoRoute,
   FaturamentoRoute: FaturamentoRoute,
+  InteligenciaRoute: InteligenciaRoute,
   MateriaisRoute: MateriaisRoute,
   PedidosRoute: PedidosRoute,
   PerfilRoute: PerfilRoute,
