@@ -16,6 +16,7 @@ import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as FaturamentoRouteImport } from './routes/faturamento'
+import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -54,6 +55,11 @@ const FaturamentoRoute = FaturamentoRouteImport.update({
   path: '/faturamento',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExecutivoRoute = ExecutivoRouteImport.update({
+  id: '/executivo',
+  path: '/executivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogoRoute = CatalogoRouteImport.update({
   id: '/catalogo',
   path: '/catalogo',
@@ -68,6 +74,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRoute
+  '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRoute
+  '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/catalogo': typeof CatalogoRoute
+  '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/catalogo'
+    | '/executivo'
     | '/faturamento'
     | '/inteligencia'
     | '/materiais'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/catalogo'
+    | '/executivo'
     | '/faturamento'
     | '/inteligencia'
     | '/materiais'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/catalogo'
+    | '/executivo'
     | '/faturamento'
     | '/inteligencia'
     | '/materiais'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogoRoute: typeof CatalogoRoute
+  ExecutivoRoute: typeof ExecutivoRoute
   FaturamentoRoute: typeof FaturamentoRoute
   InteligenciaRoute: typeof InteligenciaRoute
   MateriaisRoute: typeof MateriaisRoute
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaturamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/executivo': {
+      id: '/executivo'
+      path: '/executivo'
+      fullPath: '/executivo'
+      preLoaderRoute: typeof ExecutivoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalogo': {
       id: '/catalogo'
       path: '/catalogo'
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogoRoute: CatalogoRoute,
+  ExecutivoRoute: ExecutivoRoute,
   FaturamentoRoute: FaturamentoRoute,
   InteligenciaRoute: InteligenciaRoute,
   MateriaisRoute: MateriaisRoute,
