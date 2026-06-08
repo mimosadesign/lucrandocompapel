@@ -13,6 +13,7 @@ import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PrecificacaoRouteImport } from './routes/precificacao'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MateriaisRouteImport } from './routes/materiais'
+import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ProdutosRoute = ProdutosRouteImport.update({
@@ -35,6 +36,11 @@ const MateriaisRoute = MateriaisRouteImport.update({
   path: '/materiais',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatalogoRoute = CatalogoRouteImport.update({
+  id: '/catalogo',
+  path: '/catalogo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/catalogo': typeof CatalogoRoute
   '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/catalogo': typeof CatalogoRoute
   '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/catalogo': typeof CatalogoRoute
   '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
@@ -65,12 +74,25 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/materiais' | '/perfil' | '/precificacao' | '/produtos'
+  fullPaths:
+    | '/'
+    | '/catalogo'
+    | '/materiais'
+    | '/perfil'
+    | '/precificacao'
+    | '/produtos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/materiais' | '/perfil' | '/precificacao' | '/produtos'
+  to:
+    | '/'
+    | '/catalogo'
+    | '/materiais'
+    | '/perfil'
+    | '/precificacao'
+    | '/produtos'
   id:
     | '__root__'
     | '/'
+    | '/catalogo'
     | '/materiais'
     | '/perfil'
     | '/precificacao'
@@ -79,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatalogoRoute: typeof CatalogoRoute
   MateriaisRoute: typeof MateriaisRoute
   PerfilRoute: typeof PerfilRoute
   PrecificacaoRoute: typeof PrecificacaoRoute
@@ -115,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MateriaisRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalogo': {
+      id: '/catalogo'
+      path: '/catalogo'
+      fullPath: '/catalogo'
+      preLoaderRoute: typeof CatalogoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -127,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatalogoRoute: CatalogoRoute,
   MateriaisRoute: MateriaisRoute,
   PerfilRoute: PerfilRoute,
   PrecificacaoRoute: PrecificacaoRoute,
