@@ -153,7 +153,12 @@ function PedidosPage() {
                 </span>
               </div>
               <div className="md:col-span-2 flex items-center justify-between md:justify-end gap-2">
-                <p className="font-display text-lg font-semibold">{brl(p.valor)}</p>
+                <div className="text-right">
+                  <p className="font-display text-lg font-semibold">{brl(p.valor + (p.valorEntrega || 0))}</p>
+                  {p.valorEntrega > 0 && (
+                    <p className="text-[10px] text-muted-foreground">inclui {brl(p.valorEntrega)} entrega</p>
+                  )}
+                </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" className="rounded-full" onClick={() => editar(p)}>
                     Editar
