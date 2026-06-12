@@ -227,7 +227,7 @@ function PedidosPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
-                  <Label>Valor (R$)</Label>
+                  <Label>Valor do pedido (R$)</Label>
                   <Input
                     inputMode="decimal"
                     value={editing.valor || ""}
@@ -236,19 +236,34 @@ function PedidosPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Status</Label>
-                  <Select
-                    value={editing.status}
-                    onValueChange={(v) => setEditing({ ...editing, status: v as StatusPedido })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {STATUS_LIST.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Valor da entrega (R$)</Label>
+                  <Input
+                    inputMode="decimal"
+                    value={editing.valorEntrega || ""}
+                    onChange={(e) => setEditing({ ...editing, valorEntrega: parseNum(e.target.value) })}
+                    placeholder="0,00 (se houver)"
+                  />
                 </div>
+              </div>
+              <div className="rounded-2xl bg-secondary/50 px-4 py-3 text-sm flex items-center justify-between">
+                <span className="text-muted-foreground">Total do pedido</span>
+                <span className="font-display text-base font-semibold">
+                  {brl((editing.valor || 0) + (editing.valorEntrega || 0))}
+                </span>
+              </div>
+              <div className="grid gap-2">
+                <Label>Status</Label>
+                <Select
+                  value={editing.status}
+                  onValueChange={(v) => setEditing({ ...editing, status: v as StatusPedido })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATUS_LIST.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
