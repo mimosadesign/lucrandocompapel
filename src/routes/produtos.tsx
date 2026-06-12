@@ -45,6 +45,11 @@ function ProdutosPage() {
   }
   function salvar() {
     if (!editing || !editing.nome.trim()) return;
+    const isNew = !produtos.some((x) => x.id === editing.id);
+    if (isNew && produtos.length >= 15 && !isDiamondPreview()) {
+      toast.error("Limite do plano gratuito atingido (15 produtos). Assine o Diamante para cadastrar ilimitados.");
+      return;
+    }
     setProdutos((prev) => {
       const i = prev.findIndex((x) => x.id === editing.id);
       if (i === -1) return [...prev, editing];
