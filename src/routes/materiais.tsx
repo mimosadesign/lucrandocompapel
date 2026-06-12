@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, AlertCircle, Package, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { isDiamondPreview } from "@/lib/auth";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
