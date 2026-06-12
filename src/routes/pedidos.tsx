@@ -36,6 +36,7 @@ type Pedido = {
   entrega: string;
   entregaTipo: string;
   valor: number;
+  valorEntrega: number;
   status: StatusPedido;
 };
 
