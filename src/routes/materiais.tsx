@@ -92,6 +92,11 @@ function MateriaisPage() {
   function salvar() {
     if (!editing) return;
     if (!editing.nome.trim()) return;
+    const isNew = !materiais.some((m) => m.id === editing.id);
+    if (isNew && materiais.length >= 25 && !isDiamondPreview()) {
+      toast.error("Limite do plano gratuito atingido (25 materiais). Assine o Diamante para cadastrar ilimitados.");
+      return;
+    }
     setMateriais((prev) => {
       const idx = prev.findIndex((p) => p.id === editing.id);
       if (idx === -1) return [...prev, editing];
