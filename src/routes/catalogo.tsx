@@ -65,7 +65,7 @@ function CatalogoPage() {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Catálogo digital"
-        description="Sua vitrine online — clientes escolhem produtos e finalizam direto no seu WhatsApp."
+        description="Sua vitrine online — até 15 produtos no plano gratuito, ilimitado no Diamante. Clientes finalizam pelo seu WhatsApp."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

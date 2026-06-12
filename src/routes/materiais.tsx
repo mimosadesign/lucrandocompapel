@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, AlertCircle, Package, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { isDiamondPreview } from "@/lib/auth";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -92,6 +94,11 @@ function MateriaisPage() {
   function salvar() {
     if (!editing) return;
     if (!editing.nome.trim()) return;
+    const isNew = !materiais.some((m) => m.id === editing.id);
+    if (isNew && materiais.length >= 25 && !isDiamondPreview()) {
+      toast.error("Limite do plano gratuito atingido (25 materiais). Assine o Diamante para cadastrar ilimitados.");
+      return;
+    }
     setMateriais((prev) => {
       const idx = prev.findIndex((p) => p.id === editing.id);
       if (idx === -1) return [...prev, editing];
@@ -135,7 +142,7 @@ function MateriaisPage() {
           />
         </div>
         <Badge className="rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground">
-          {materiais.length} / 45 materiais (plano gratuito)
+          {materiais.length} / 25 materiais (plano gratuito)
         </Badge>
       </div>
 
@@ -337,7 +344,7 @@ function StockBadge({ status, value }: { status: string; value: number }) {
   if (status === "baixo")
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 px-2.5 py-1 text-xs font-medium text-destructive">
-        <AlertCircle className="h-3 w-3" /> {value} un. — falta logo
+        <AlertCircle className="h-3 w-3" /> {value} un. — reponha esse item
       </span>
     );
   if (status === "alerta")

@@ -5,10 +5,14 @@ import {
   createRootRouteWithContext,
   useRouter,
   useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { useUser, trialDaysLeft, setUser } from "@/lib/auth";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -135,16 +139,41 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function AppLayout() {
+  const { user } = useUser();
+  const days = trialDaysLeft(user);
+  const navigate = useNavigate();
+  function logout() {
+    setUser(null);
+    navigate({ to: "/auth" });
+  }
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md">
+          <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border/60 bg-background/80 px-3 sm:px-4 backdrop-blur-md">
             <SidebarTrigger className="rounded-full" />
-            <DiamondButton />
+            <div className="flex items-center gap-2">
+              {user && days > 0 && (
+                <span className="hidden sm:inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-foreground">
+                  🎁 {days} {days === 1 ? "dia" : "dias"} de teste grátis
+                </span>
+              )}
+              <DiamondButton />
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={logout}
+                  aria-label="Sair"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </header>
-          <main className="flex-1 px-4 py-6 md:px-8 md:py-10">
+          <main className="flex-1 px-3 py-5 sm:px-4 sm:py-6 md:px-8 md:py-10">
             <Outlet />
           </main>
         </div>
@@ -157,10 +186,19 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAuthRoute = pathname.startsWith("/auth");
+  const { user, ready } = useUser();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!user && !isAuthRoute) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [ready, user, isAuthRoute, navigate]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAuthRoute ? <Outlet /> : <AppLayout />}
+      {isAuthRoute ? <Outlet /> : ready && user ? <AppLayout /> : <div className="min-h-screen bg-background" />}
       <Toaster />
     </QueryClientProvider>
   );
