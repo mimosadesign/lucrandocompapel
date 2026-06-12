@@ -208,17 +208,17 @@ function FaturamentoDashboard() {
               <YAxis tickFormatter={(v) => `R$${v}`} />
               <Tooltip
                 formatter={(v: number) => brl(v)}
-                contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))" }}
+                contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }}
               />
               {meta > 0 && (
                 <ReferenceLine
                   y={meta}
-                  stroke="hsl(var(--primary))"
+                  stroke="var(--primary)"
                   strokeDasharray="4 4"
-                  label={{ value: "Meta", fill: "hsl(var(--primary))", fontSize: 11 }}
+                  label={{ value: "Meta", fill: "var(--primary)", fontSize: 11 }}
                 />
               )}
-              <Bar dataKey="faturamento" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="faturamento" fill="var(--primary)" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
