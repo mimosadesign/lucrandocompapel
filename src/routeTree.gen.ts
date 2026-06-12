@@ -20,7 +20,9 @@ import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AssinarRouteImport } from './routes/assinar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
 
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
@@ -77,14 +79,25 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssinarRoute = AssinarRouteImport.update({
+  id: '/assinar',
+  path: '/assinar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssinarSucessoRoute = AssinarSucessoRouteImport.update({
+  id: '/sucesso',
+  path: '/sucesso',
+  getParentRoute: () => AssinarRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogo': typeof CatalogoRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -96,9 +109,11 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
+  '/assinar/sucesso': typeof AssinarSucessoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogo': typeof CatalogoRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -110,10 +125,12 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
+  '/assinar/sucesso': typeof AssinarSucessoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogo': typeof CatalogoRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -125,11 +142,13 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
+  '/assinar/sucesso': typeof AssinarSucessoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/assinar'
     | '/auth'
     | '/catalogo'
     | '/configuracoes'
@@ -141,9 +160,11 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/precificacao'
     | '/produtos'
+    | '/assinar/sucesso'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/assinar'
     | '/auth'
     | '/catalogo'
     | '/configuracoes'
@@ -155,9 +176,11 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/precificacao'
     | '/produtos'
+    | '/assinar/sucesso'
   id:
     | '__root__'
     | '/'
+    | '/assinar'
     | '/auth'
     | '/catalogo'
     | '/configuracoes'
@@ -169,10 +192,12 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/precificacao'
     | '/produtos'
+    | '/assinar/sucesso'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssinarRoute: typeof AssinarRouteWithChildren
   AuthRoute: typeof AuthRoute
   CatalogoRoute: typeof CatalogoRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -265,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assinar': {
+      id: '/assinar'
+      path: '/assinar'
+      fullPath: '/assinar'
+      preLoaderRoute: typeof AssinarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -272,11 +304,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assinar/sucesso': {
+      id: '/assinar/sucesso'
+      path: '/sucesso'
+      fullPath: '/assinar/sucesso'
+      preLoaderRoute: typeof AssinarSucessoRouteImport
+      parentRoute: typeof AssinarRoute
+    }
   }
 }
 
+interface AssinarRouteChildren {
+  AssinarSucessoRoute: typeof AssinarSucessoRoute
+}
+
+const AssinarRouteChildren: AssinarRouteChildren = {
+  AssinarSucessoRoute: AssinarSucessoRoute,
+}
+
+const AssinarRouteWithChildren =
+  AssinarRoute._addFileChildren(AssinarRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssinarRoute: AssinarRouteWithChildren,
   AuthRoute: AuthRoute,
   CatalogoRoute: CatalogoRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
@@ -292,3 +343,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
