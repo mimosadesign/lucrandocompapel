@@ -135,7 +135,7 @@ function MateriaisPage() {
           />
         </div>
         <Badge className="rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground">
-          {materiais.length} / 45 materiais (plano gratuito)
+          {materiais.length} / 25 materiais (plano gratuito)
         </Badge>
       </div>
 
