@@ -1,17 +1,67 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Camera, Save } from "lucide-react";
+import { Save } from "lucide-react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useUser, useEntitlement } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({ meta: [{ title: "Perfil do Ateliê — Lucrando com Papel" }] }),
   component: PerfilPage,
 });
 
+const PRESET_COLORS = ["#7C3AED", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444", "#EC4899"];
+
 function PerfilPage() {
+  const { user, refresh } = useUser();
+  const { isUnlimited } = useEntitlement();
+  const [nome, setNome] = useState("");
+  const [nomeAtelier, setNomeAtelier] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [temaCor, setTemaCor] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.profile) return;
+    const p = user.profile;
+    setNome(p.nome ?? "");
+    setNomeAtelier(p.nome_atelier ?? "");
+    setWhatsapp(p.whatsapp ?? "");
+    setCidade(p.cidade ?? "");
+    setEstado(p.estado ?? "");
+    setTemaCor(p.tema_cor ?? null);
+  }, [user?.profile?.id]);
+
+  async function salvar() {
+    if (!user) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        nome: nome.trim() || null,
+        nome_atelier: nomeAtelier.trim() || null,
+        whatsapp: whatsapp.trim() || null,
+        cidade: cidade.trim() || null,
+        estado: estado.trim() || null,
+        tema_cor: isUnlimited ? temaCor : user.profile?.tema_cor ?? null,
+      })
+      .eq("id", user.id);
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Perfil atualizado!");
+    await refresh();
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
@@ -20,38 +70,44 @@ function PerfilPage() {
       />
 
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)] md:p-8">
-        <div className="flex flex-col items-center gap-4 border-b border-border/60 pb-8 md:flex-row md:items-start md:gap-6">
-          <button className="group relative grid h-28 w-28 place-items-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-accent">
-            <Camera className="h-7 w-7" />
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
-              Trocar foto
-            </span>
-          </button>
-          <div className="text-center md:text-left">
-            <h2 className="font-display text-xl font-semibold">Foto / logo do ateliê</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Use uma imagem quadrada de pelo menos 400×400 px. PNG ou JPG.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-5 pt-8 md:grid-cols-2">
-          <Field label="Nome do ateliê" placeholder="Ex: Ateliê da Bia" />
-          <Field label="Tempo de atuação" placeholder="Ex: 2 anos e 3 meses" />
+        <div className="grid gap-5 md:grid-cols-2">
+          <Field label="Seu nome" value={nome} onChange={setNome} placeholder="Ex: Bia Souza" />
+          <Field
+            label="Nome do ateliê"
+            value={nomeAtelier}
+            onChange={setNomeAtelier}
+            placeholder="Ex: Ateliê da Bia"
+          />
           <Field
             label="WhatsApp do ateliê"
+            value={whatsapp}
+            onChange={setWhatsapp}
             placeholder="(11) 99999-9999"
             help="Usado no botão de finalização do catálogo"
           />
-          <Field label="Cidade / Estado" placeholder="Ex: São Paulo, SP" />
+          <div className="grid grid-cols-[1fr_120px] gap-3">
+            <Field label="Cidade" value={cidade} onChange={setCidade} placeholder="São Paulo" />
+            <Field label="Estado" value={estado} onChange={setEstado} placeholder="SP" />
+          </div>
         </div>
 
         <div className="mt-8 flex justify-end gap-2">
-          <Button variant="outline" className="rounded-full border-foreground/20">
+          <Button
+            variant="outline"
+            className="rounded-full border-foreground/20"
+            onClick={() => {
+              if (!user?.profile) return;
+              setNome(user.profile.nome ?? "");
+              setNomeAtelier(user.profile.nome_atelier ?? "");
+              setWhatsapp(user.profile.whatsapp ?? "");
+              setCidade(user.profile.cidade ?? "");
+              setEstado(user.profile.estado ?? "");
+            }}
+          >
             Cancelar
           </Button>
-          <Button className="rounded-full gap-2">
-            <Save className="h-4 w-4" /> Salvar perfil
+          <Button className="rounded-full gap-2" onClick={salvar} disabled={loading}>
+            <Save className="h-4 w-4" /> {loading ? "Salvando..." : "Salvar perfil"}
           </Button>
         </div>
       </Card>
@@ -64,26 +120,67 @@ function PerfilPage() {
           <h3 className="font-display text-lg font-semibold">Personalização visual</h3>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Adapte as cores do app à identidade visual do seu ateliê.
+          {isUnlimited
+            ? "Escolha uma cor de destaque para o seu app."
+            : "Disponível apenas no plano Diamante."}
         </p>
-        <div className="mt-5 grid gap-4 sm:grid-cols-4">
-          {["Fundo", "Destaque", "Texto", "Botões"].map((l) => (
-            <div key={l} className="rounded-2xl border border-border/60 bg-card p-3 opacity-60">
-              <p className="text-xs text-muted-foreground">{l}</p>
-              <div className="mt-2 h-10 rounded-xl border border-border/60 bg-secondary" />
-            </div>
+        <div className={`mt-5 flex flex-wrap gap-3 ${isUnlimited ? "" : "opacity-60 pointer-events-none"}`}>
+          {PRESET_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              aria-label={`Cor ${c}`}
+              onClick={() => setTemaCor(c)}
+              className={`h-10 w-10 rounded-full border-2 transition-all ${
+                temaCor === c ? "border-foreground scale-110" : "border-transparent"
+              }`}
+              style={{ background: c }}
+            />
           ))}
+          <button
+            type="button"
+            onClick={() => setTemaCor(null)}
+            className={`h-10 px-3 rounded-full border text-xs ${
+              temaCor === null ? "border-foreground" : "border-border"
+            }`}
+          >
+            Padrão
+          </button>
         </div>
+        {isUnlimited && (
+          <div className="mt-5 flex justify-end">
+            <Button className="rounded-full gap-2" onClick={salvar} disabled={loading}>
+              <Save className="h-4 w-4" /> Salvar cor
+            </Button>
+          </div>
+        )}
       </Card>
     </div>
   );
 }
 
-function Field({ label, placeholder, help }: { label: string; placeholder?: string; help?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  help,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  help?: string;
+}) {
   return (
     <div>
       <Label className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
-      <Input placeholder={placeholder} className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4" />
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
+      />
       {help && <p className="mt-1.5 text-xs text-muted-foreground">{help}</p>}
     </div>
   );

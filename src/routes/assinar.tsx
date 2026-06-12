@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { ArrowLeft, Gem } from "lucide-react";
+import { useEffect } from "react";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { createCheckoutSession } from "@/lib/payments.functions";
 import { useUser } from "@/lib/auth";
@@ -26,13 +27,17 @@ function TestBanner() {
 }
 
 function AssinarPage() {
-  const { user } = useUser();
+  const { user, ready } = useUser();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (ready && !user) navigate({ to: "/auth", replace: true });
+  }, [ready, user, navigate]);
 
   const fetchClientSecret = async (): Promise<string> => {
     const result = await createCheckoutSession({
       data: {
         priceId: "diamante_35_mensal",
-        customerEmail: user?.email,
         returnUrl: `${window.location.origin}/assinar/sucesso?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
       },
@@ -66,7 +71,11 @@ function AssinarPage() {
 
         {!clientToken ? (
           <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-foreground">
-            Pagamentos ainda não estão configurados para este ambiente. Tente novamente em instantes.
+            Pagamentos ainda não estão configurados para este ambiente.
+          </div>
+        ) : !user ? (
+          <div className="rounded-2xl bg-secondary/40 p-6 text-center text-sm text-muted-foreground">
+            Carregando sessão...
           </div>
         ) : (
           <div id="checkout" className="rounded-2xl overflow-hidden border border-border/60">
