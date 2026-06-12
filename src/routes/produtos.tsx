@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useLocalState, brl, parseNum } from "@/lib/storage";
-import { isDiamondPreview } from "@/lib/auth";
+import { isUnlimited } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/produtos")({
@@ -46,7 +46,7 @@ function ProdutosPage() {
   function salvar() {
     if (!editing || !editing.nome.trim()) return;
     const isNew = !produtos.some((x) => x.id === editing.id);
-    if (isNew && produtos.length >= 15 && !isDiamondPreview()) {
+    if (isNew && produtos.length >= 15 && !isUnlimited()) {
       toast.error("Limite do plano gratuito atingido (15 produtos). Assine o Diamante para cadastrar ilimitados.");
       return;
     }

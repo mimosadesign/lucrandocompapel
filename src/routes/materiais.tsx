@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, AlertCircle, Package, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { isDiamondPreview } from "@/lib/auth";
+import { isUnlimited } from "@/lib/auth";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -95,7 +95,7 @@ function MateriaisPage() {
     if (!editing) return;
     if (!editing.nome.trim()) return;
     const isNew = !materiais.some((m) => m.id === editing.id);
-    if (isNew && materiais.length >= 25 && !isDiamondPreview()) {
+    if (isNew && materiais.length >= 25 && !isUnlimited()) {
       toast.error("Limite do plano gratuito atingido (25 materiais). Assine o Diamante para cadastrar ilimitados.");
       return;
     }
