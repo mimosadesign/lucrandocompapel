@@ -81,7 +81,7 @@ function ProdutosPage() {
       />
 
       <Badge className="rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground mb-6">
-        {produtos.length} / 20 produtos (plano gratuito)
+        {produtos.length} / 15 produtos (plano gratuito · ilimitado no Diamante)
       </Badge>
 
       {produtos.length === 0 ? (
