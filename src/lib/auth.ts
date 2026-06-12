@@ -8,7 +8,6 @@ export type LocalUser = {
 };
 
 const USER_KEY = "lcp:user";
-const DIAMOND_KEY = "lcp:diamondPreview";
 const TRIAL_DAYS = 25;
 
 export function getUser(): LocalUser | null {
@@ -36,6 +35,18 @@ export function trialDaysLeft(u: LocalUser | null): number {
   return Math.max(0, Math.ceil(TRIAL_DAYS - elapsed));
 }
 
+export function isTrialActive(u: LocalUser | null): boolean {
+  return trialDaysLeft(u) > 0;
+}
+
+/**
+ * Limites do plano gratuito são removidos apenas quando o usuário
+ * está logado E com período de teste ativo (25 dias).
+ */
+export function isUnlimited(): boolean {
+  return isTrialActive(getUser());
+}
+
 export function useUser() {
   const [user, setU] = useState<LocalUser | null>(null);
   const [ready, setReady] = useState(false);
@@ -53,31 +64,9 @@ export function useUser() {
   return { user, ready };
 }
 
-export function isDiamondPreview(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(DIAMOND_KEY) === "1";
-}
-
-export function setDiamondPreview(on: boolean) {
-  if (typeof window === "undefined") return;
-  if (on) localStorage.setItem(DIAMOND_KEY, "1");
-  else localStorage.removeItem(DIAMOND_KEY);
-  window.dispatchEvent(new Event("lcp:diamond-changed"));
-}
-
-export function useDiamondPreview() {
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    setOn(isDiamondPreview());
-    const fn = () => setOn(isDiamondPreview());
-    window.addEventListener("lcp:diamond-changed", fn);
-    window.addEventListener("storage", fn);
-    return () => {
-      window.removeEventListener("lcp:diamond-changed", fn);
-      window.removeEventListener("storage", fn);
-    };
-  }, []);
-  return [on, (v: boolean) => setDiamondPreview(v)] as const;
+export function useIsUnlimited() {
+  const { user } = useUser();
+  return isTrialActive(user);
 }
 
 export function openDiamondDialog() {

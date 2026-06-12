@@ -1,7 +1,7 @@
-import { Gem, Lock, Sparkles, Eye, EyeOff } from "lucide-react";
+import { Gem, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { openDiamondDialog, useDiamondPreview } from "@/lib/auth";
+import { openDiamondDialog, useIsUnlimited } from "@/lib/auth";
 import type { ReactNode } from "react";
 
 interface DiamondLockProps {
@@ -11,35 +11,16 @@ interface DiamondLockProps {
 }
 
 export function DiamondLock({ title, description, preview }: DiamondLockProps) {
-  const [previewOn, setPreviewOn] = useDiamondPreview();
+  const unlimited = useIsUnlimited();
 
-  if (previewOn) {
+  if (unlimited) {
     return (
       <div className="mx-auto max-w-5xl">
-        <Card className="mb-4 flex items-center justify-between gap-3 rounded-2xl border-diamond/40 bg-diamond/10 p-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Eye className="h-4 w-4 text-diamond-foreground" />
-            <span>
-              <strong>Modo de teste Diamante ativo</strong> — você está pré-visualizando um recurso pago.
-            </span>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="rounded-full gap-1"
-            onClick={() => setPreviewOn(false)}
-          >
-            <EyeOff className="h-3.5 w-3.5" /> Desativar
-          </Button>
-        </Card>
         {preview ?? (
           <Card className="rounded-3xl border-border/60 p-10 text-center shadow-[var(--shadow-card)]">
             <Sparkles className="mx-auto mb-3 h-8 w-8 text-primary" />
             <h2 className="font-display text-xl font-semibold">{title}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Esta é uma pré-visualização do recurso. Os dados reais aparecerão aqui após a assinatura.
-            </p>
           </Card>
         )}
       </div>
@@ -78,15 +59,6 @@ export function DiamondLock({ title, description, preview }: DiamondLockProps) {
               onClick={openDiamondDialog}
             >
               Ver todos os benefícios
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="rounded-full gap-2"
-              onClick={() => setPreviewOn(true)}
-            >
-              <Eye className="h-4 w-4" />
-              Pré-visualizar (teste)
             </Button>
           </div>
         </div>

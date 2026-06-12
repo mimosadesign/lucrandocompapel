@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Gem, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useDiamondPreview, trialDaysLeft, useUser } from "@/lib/auth";
+import { trialDaysLeft, useUser } from "@/lib/auth";
+import { toast } from "sonner";
 
 const benefits = [
   "Materiais, produtos, pedidos e catálogo ilimitados",
@@ -29,7 +29,7 @@ const benefits = [
 
 export function DiamondButton() {
   const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useDiamondPreview();
+  const [loading, setLoading] = useState(false);
   const { user } = useUser();
   const days = trialDaysLeft(user);
 
@@ -38,6 +38,17 @@ export function DiamondButton() {
     window.addEventListener("lcp:open-diamond", onOpen);
     return () => window.removeEventListener("lcp:open-diamond", onOpen);
   }, []);
+
+  async function assinar() {
+    try {
+      setLoading(true);
+      // Redireciona para a página de checkout do plano Diamante
+      window.location.href = "/assinar";
+    } catch {
+      toast.error("Não foi possível iniciar a assinatura. Tente novamente.");
+      setLoading(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -77,20 +88,10 @@ export function DiamondButton() {
           ))}
         </ul>
 
-        <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/40 p-3">
-          <div>
-            <p className="text-sm font-medium">Modo de teste Diamante</p>
-            <p className="text-xs text-muted-foreground">
-              Pré-visualize os recursos pagos antes de publicar o projeto.
-            </p>
-          </div>
-          <Switch checked={preview} onCheckedChange={setPreview} />
-        </div>
-
         <div className="flex flex-col gap-2 pt-2">
-          <Button size="lg" className="rounded-full gap-2">
+          <Button size="lg" className="rounded-full gap-2" onClick={assinar} disabled={loading}>
             <Sparkles className="h-4 w-4" />
-            Assinar Diamante por R$ 35,00/mês
+            {loading ? "Carregando..." : "Assinar Diamante por R$ 35,00/mês"}
           </Button>
           <Button
             variant="ghost"
