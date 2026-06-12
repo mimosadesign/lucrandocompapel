@@ -1,7 +1,7 @@
 import { Gem, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { openDiamondDialog, useIsUnlimited } from "@/lib/auth";
+import { openDiamondDialog, useEntitlement } from "@/lib/auth";
 import type { ReactNode } from "react";
 
 interface DiamondLockProps {
@@ -11,7 +11,7 @@ interface DiamondLockProps {
 }
 
 export function DiamondLock({ title, description, preview }: DiamondLockProps) {
-  const unlimited = useIsUnlimited();
+  const { isUnlimited: unlimited } = useEntitlement();
 
   if (unlimited) {
     return (

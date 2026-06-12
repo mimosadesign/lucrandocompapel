@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PrecificacaoRouteImport } from './routes/precificacao'
 import { Route as PerfilRouteImport } from './routes/perfil'
@@ -23,7 +24,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssinarRouteImport } from './routes/assinar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -94,6 +101,12 @@ const AssinarSucessoRoute = AssinarSucessoRouteImport.update({
   path: '/sucesso',
   getParentRoute: () => AssinarRoute,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -109,7 +122,9 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -125,7 +140,9 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,7 +159,9 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,7 +179,9 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/precificacao'
     | '/produtos'
+    | '/reset-password'
     | '/assinar/sucesso'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -176,7 +197,9 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/precificacao'
     | '/produtos'
+    | '/reset-password'
     | '/assinar/sucesso'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -192,7 +215,9 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/precificacao'
     | '/produtos'
+    | '/reset-password'
     | '/assinar/sucesso'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -209,10 +234,19 @@ export interface RootRouteChildren {
   PerfilRoute: typeof PerfilRoute
   PrecificacaoRoute: typeof PrecificacaoRoute
   ProdutosRoute: typeof ProdutosRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produtos': {
       id: '/produtos'
       path: '/produtos'
@@ -311,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssinarSucessoRouteImport
       parentRoute: typeof AssinarRoute
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -339,6 +380,8 @@ const rootRouteChildren: RootRouteChildren = {
   PerfilRoute: PerfilRoute,
   PrecificacaoRoute: PrecificacaoRoute,
   ProdutosRoute: ProdutosRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
