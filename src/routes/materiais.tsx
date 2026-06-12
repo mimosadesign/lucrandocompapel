@@ -337,7 +337,7 @@ function StockBadge({ status, value }: { status: string; value: number }) {
   if (status === "baixo")
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 px-2.5 py-1 text-xs font-medium text-destructive">
-        <AlertCircle className="h-3 w-3" /> {value} un. — falta logo
+        <AlertCircle className="h-3 w-3" /> {value} un. — reponha esse item
       </span>
     );
   if (status === "alerta")
