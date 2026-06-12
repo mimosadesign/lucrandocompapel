@@ -74,6 +74,7 @@ function PedidosPage() {
       entrega: "",
       entregaTipo: "Retirada",
       valor: 0,
+      valorEntrega: 0,
       status: "Em aberto",
     });
     setOpen(true);
