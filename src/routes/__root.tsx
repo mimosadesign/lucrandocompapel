@@ -141,6 +141,22 @@ function AppLayout() {
   const { user } = useUser();
   const { inTrial, daysLeft, isPaid } = useEntitlement();
   const navigate = useNavigate();
+
+  // Personalização visual (Diamante) — aplica a cor escolhida em --primary.
+  useEffect(() => {
+    const root = document.documentElement;
+    const cor = isPaid ? user?.profile?.tema_cor : null;
+    if (cor) {
+      root.style.setProperty("--primary", cor);
+      root.style.setProperty("--sidebar-primary", cor);
+      root.style.setProperty("--ring", cor);
+    } else {
+      root.style.removeProperty("--primary");
+      root.style.removeProperty("--sidebar-primary");
+      root.style.removeProperty("--ring");
+    }
+  }, [user?.profile?.tema_cor, isPaid]);
+
   async function logout() {
     await signOutEverywhere();
     toast.success("Você saiu da conta.");
