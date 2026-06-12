@@ -10,7 +10,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { useUser, trialDaysLeft, setUser } from "@/lib/auth";
+import { useUser, useEntitlement, signOutEverywhere } from "@/lib/auth";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DiamondButton } from "@/components/diamond-button";
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -102,9 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Lucrando com Papel" },
-      { name: "description", content: "Seu novo aplicativo de Gestão e precificação para seu ateliê de papelaria personalizada." },
-      { property: "og:description", content: "Seu novo aplicativo de Gestão e precificação para seu ateliê de papelaria personalizada." },
-      { name: "twitter:description", content: "Seu novo aplicativo de Gestão e precificação para seu ateliê de papelaria personalizada." },
+      { name: "twitter:description", content: "Sua ferramenta completa de gestão e precificação para papelaria personalizada." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mDVKQAqEfpMFO0UkEBjOlHl5TyD3/social-images/social-1780951335969-WhatsApp_Image_2026-06-08_at_17.33.27.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mDVKQAqEfpMFO0UkEBjOlHl5TyD3/social-images/social-1780951335969-WhatsApp_Image_2026-06-08_at_17.33.27.webp" },
     ],
@@ -140,11 +139,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function AppLayout() {
   const { user } = useUser();
-  const days = trialDaysLeft(user);
+  const { inTrial, daysLeft, isPaid } = useEntitlement();
   const navigate = useNavigate();
-  function logout() {
-    setUser(null);
-    navigate({ to: "/auth" });
+  async function logout() {
+    await signOutEverywhere();
+    toast.success("Você saiu da conta.");
+    navigate({ to: "/auth", replace: true });
   }
   return (
     <SidebarProvider>
@@ -154,9 +154,14 @@ function AppLayout() {
           <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border/60 bg-background/80 px-3 sm:px-4 backdrop-blur-md">
             <SidebarTrigger className="rounded-full" />
             <div className="flex items-center gap-2">
-              {user && days > 0 && (
+              {user && isPaid && (
+                <span className="hidden sm:inline-flex items-center rounded-full bg-diamond/20 px-3 py-1 text-xs font-medium text-foreground">
+                  💎 Diamante ativo
+                </span>
+              )}
+              {user && !isPaid && inTrial && (
                 <span className="hidden sm:inline-flex items-center rounded-full bg-primary/15 px-3 py-1 text-xs font-medium text-foreground">
-                  🎁 {days} {days === 1 ? "dia" : "dias"} de teste grátis
+                  🎁 {daysLeft} {daysLeft === 1 ? "dia" : "dias"} de teste grátis
                 </span>
               )}
               <DiamondButton />
@@ -185,20 +190,20 @@ function AppLayout() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isAuthRoute = pathname.startsWith("/auth");
+  const isPublicRoute = pathname.startsWith("/auth") || pathname.startsWith("/reset-password");
   const { user, ready } = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!ready) return;
-    if (!user && !isAuthRoute) {
+    if (!user && !isPublicRoute) {
       navigate({ to: "/auth", replace: true });
     }
-  }, [ready, user, isAuthRoute, navigate]);
+  }, [ready, user, isPublicRoute, navigate]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAuthRoute ? <Outlet /> : ready && user ? <AppLayout /> : <div className="min-h-screen bg-background" />}
+      {isPublicRoute ? <Outlet /> : ready && user ? <AppLayout /> : <div className="min-h-screen bg-background" />}
       <Toaster />
     </QueryClientProvider>
   );

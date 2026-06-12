@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useLocalState, brl, parseNum } from "@/lib/storage";
-import { isUnlimited } from "@/lib/auth";
+import { useIsUnlimited } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/produtos")({
@@ -34,6 +34,7 @@ function ProdutosPage() {
   const [produtos, setProdutos] = useLocalState<Produto[]>("lcp:produtos", []);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Produto | null>(null);
+  const unlimited = useIsUnlimited();
 
   function novo() {
     setEditing({ id: crypto.randomUUID(), nome: "", custo: 0, margemPct: 0 });
@@ -46,7 +47,7 @@ function ProdutosPage() {
   function salvar() {
     if (!editing || !editing.nome.trim()) return;
     const isNew = !produtos.some((x) => x.id === editing.id);
-    if (isNew && produtos.length >= 15 && !isUnlimited()) {
+    if (isNew && produtos.length >= 15 && !unlimited) {
       toast.error("Limite do plano gratuito atingido (15 produtos). Assine o Diamante para cadastrar ilimitados.");
       return;
     }
