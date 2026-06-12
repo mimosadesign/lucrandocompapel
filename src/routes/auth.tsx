@@ -20,15 +20,19 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  function persistAndGo(u: { nome: string; email: string; provider: "google" | "email" }) {
+  function persistAndGo() {
     const existing = getUser();
     setUser({
-      nome: u.nome || existing?.nome || "Você",
-      email: u.email,
-      provider: u.provider,
+      nome: nome || existing?.nome || "Você",
+      email,
+      provider: "email",
       trialStart: existing?.trialStart ?? new Date().toISOString(),
     });
-    toast.success(mode === "signup" ? "Conta criada! Bem-vinda 💚" : "Bem-vinda de volta!");
+    toast.success(
+      mode === "signup"
+        ? "Conta criada! Seu teste grátis de 25 dias começou 💚"
+        : "Bem-vinda de volta!",
+    );
     navigate({ to: "/" });
   }
 
@@ -42,16 +46,12 @@ function AuthPage() {
       toast.error("Informe seu nome");
       return;
     }
-    persistAndGo({ nome, email, provider: "email" });
-  }
-
-  function handleGoogle() {
-    persistAndGo({ nome: nome || "Conta Google", email: email || "voce@gmail.com", provider: "google" });
+    persistAndGo();
   }
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      <div className="relative hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary/30 via-accent/40 to-diamond/20 overflow-hidden">
+      <div className="relative hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary/30 via-accent/60 to-diamond/20 overflow-hidden">
         <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-diamond/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/30 blur-3xl" />
         <div className="relative flex items-center gap-3">
@@ -65,8 +65,8 @@ function AuthPage() {
             Transforme sua paixão por papelaria em um negócio lucrativo.
           </h1>
           <p className="mt-4 max-w-md text-sm text-foreground/80">
-            Crie sua conta e teste o app por <strong>25 dias grátis</strong>.
-            Precificação, pedidos, catálogo e faturamento — tudo num só lugar.
+            Crie sua conta e teste o app por <strong>25 dias grátis</strong>, com todos
+            os recursos liberados. Precificação, pedidos, catálogo e faturamento — tudo num só lugar.
           </p>
         </div>
         <p className="relative text-xs text-foreground/60">
@@ -85,21 +85,7 @@ function AuthPage() {
               : "Bem-vinda de volta — vamos cuidar do seu lucro hoje."}
           </p>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogle}
-            className="mt-6 w-full rounded-full h-11 gap-2 border-foreground/20"
-          >
-            <span aria-hidden>🟦</span> Continuar com Google
-          </Button>
-
-          <div className="relative my-6 text-center text-xs text-muted-foreground">
-            <span className="relative z-10 bg-card px-3">ou com e-mail</span>
-            <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-border/60" />
-          </div>
-
-          <form className="space-y-4" onSubmit={handleEmail}>
+          <form className="mt-6 space-y-4" onSubmit={handleEmail}>
             {mode === "signup" && (
               <div>
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Nome</Label>
