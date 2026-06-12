@@ -15,6 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useLocalState, brl, parseNum } from "@/lib/storage";
+import { isDiamondPreview } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/produtos")({
   head: () => ({ meta: [{ title: "Produtos — Lucrando com Papel" }] }),
