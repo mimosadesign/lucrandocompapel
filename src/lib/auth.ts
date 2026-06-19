@@ -107,32 +107,37 @@ export function useUser() {
   const [user, setUser] = useState<AppUser | null>(null);
   const [ready, setReady] = useState(false);
 
-  const refresh = useCallback(async () => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) {
+  const hydrate = useCallback(async (authUser: AuthUser | null) => {
+    if (!authUser) {
       setUser(null);
       setReady(true);
       return;
     }
-    const profile = await fetchProfile(data.user.id);
-    setUser(toAppUser(data.user, profile));
+    // Set user immediately from session so route gates don't bounce to /auth
+    // while we wait for the profile fetch (which can be slow or fail under RLS).
+    setUser(toAppUser(authUser, null));
     setReady(true);
+    try {
+      const profile = await fetchProfile(authUser.id);
+      setUser((prev) =>
+        prev && prev.id === authUser.id ? toAppUser(authUser, profile) : prev,
+      );
+    } catch (e) {
+      console.error("fetchProfile failed", e);
+    }
   }, []);
+
+  const refresh = useCallback(async () => {
+    const { data } = await supabase.auth.getUser();
+    await hydrate(data.user ?? null);
+  }, [hydrate]);
 
   useEffect(() => {
     let active = true;
     void (async () => {
       const { data } = await supabase.auth.getSession();
       if (!active) return;
-      if (!data.session?.user) {
-        setUser(null);
-        setReady(true);
-        return;
-      }
-      const profile = await fetchProfile(data.session.user.id);
-      if (!active) return;
-      setUser(toAppUser(data.session.user, profile));
-      setReady(true);
+      await hydrate(data.session?.user ?? null);
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
@@ -141,17 +146,13 @@ export function useUser() {
         setReady(true);
         return;
       }
-      if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED") {
-        if (!session?.user) {
-          setUser(null);
-          setReady(true);
-          return;
-        }
-        void (async () => {
-          const profile = await fetchProfile(session.user.id);
-          setUser(toAppUser(session.user, profile));
-          setReady(true);
-        })();
+      if (
+        event === "SIGNED_IN" ||
+        event === "USER_UPDATED" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "INITIAL_SESSION"
+      ) {
+        void hydrate(session?.user ?? null);
       }
     });
 
