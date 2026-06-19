@@ -12,8 +12,8 @@ import {
   TrendingUp,
   Settings,
   Gem,
-  Sparkles,
 } from "lucide-react";
+import logoUrl from "@/assets/logo.png";
 
 import {
   Sidebar,
@@ -59,9 +59,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="px-3 py-5">
         <Link to="/" className="flex items-center gap-2.5 px-2">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <img
+            src={logoUrl}
+            alt="Lucrando com Papel"
+            width={40}
+            height={40}
+            loading="lazy"
+            className="h-10 w-10 rounded-full object-contain shadow-sm bg-background"
+          />
           {!collapsed && (
             <div className="leading-tight">
               <p className="font-display text-base font-semibold">Lucrando</p>

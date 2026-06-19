@@ -124,28 +124,48 @@ function PerfilPage() {
             ? "Escolha uma cor de destaque para o seu app."
             : "Disponível apenas no plano Diamante."}
         </p>
-        <div className={`mt-5 flex flex-wrap gap-3 ${isUnlimited ? "" : "opacity-60 pointer-events-none"}`}>
-          {PRESET_COLORS.map((c) => (
+        <div className={`mt-5 space-y-4 ${isUnlimited ? "" : "opacity-60 pointer-events-none"}`}>
+          <div className="flex flex-wrap gap-3">
+            {PRESET_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                aria-label={`Cor ${c}`}
+                onClick={() => setTemaCor(c)}
+                className={`h-10 w-10 rounded-full border-2 transition-all ${
+                  temaCor === c ? "border-foreground scale-110" : "border-transparent"
+                }`}
+                style={{ background: c }}
+              />
+            ))}
             <button
-              key={c}
               type="button"
-              aria-label={`Cor ${c}`}
-              onClick={() => setTemaCor(c)}
-              className={`h-10 w-10 rounded-full border-2 transition-all ${
-                temaCor === c ? "border-foreground scale-110" : "border-transparent"
+              onClick={() => setTemaCor(null)}
+              className={`h-10 px-3 rounded-full border text-xs ${
+                temaCor === null ? "border-foreground" : "border-border"
               }`}
-              style={{ background: c }}
+            >
+              Padrão
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Cor personalizada
+            </Label>
+            <input
+              type="color"
+              value={temaCor ?? "#A8B87C"}
+              onChange={(e) => setTemaCor(e.target.value)}
+              className="h-10 w-16 cursor-pointer rounded-lg border border-border bg-transparent p-1"
+              aria-label="Seletor de cor personalizada"
             />
-          ))}
-          <button
-            type="button"
-            onClick={() => setTemaCor(null)}
-            className={`h-10 px-3 rounded-full border text-xs ${
-              temaCor === null ? "border-foreground" : "border-border"
-            }`}
-          >
-            Padrão
-          </button>
+            <Input
+              value={temaCor ?? ""}
+              onChange={(e) => setTemaCor(e.target.value || null)}
+              placeholder="#A8B87C"
+              className="h-10 w-36 rounded-full border-border/70 bg-background px-4"
+            />
+          </div>
         </div>
         {isUnlimited && (
           <div className="mt-5 flex justify-end">
