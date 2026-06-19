@@ -17,20 +17,45 @@ export const Route = createFileRoute("/reset-password")({
 function ResetPasswordPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [senha, setSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Supabase troca o link de recovery por uma sessão temporária.
-    void (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        toast.error("Link expirado. Solicite um novo e-mail de recuperação.");
-        navigate({ to: "/auth" });
-        return;
+    let cancelled = false;
+
+    // Supabase processa o hash (#access_token=...&type=recovery) e dispara PASSWORD_RECOVERY.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if (event === "PASSWORD_RECOVERY" || (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION"))) {
+        setReady(true);
+        setChecking(false);
       }
-      setReady(true);
+    });
+
+    // Fallback: aguarda até 3s pela sessão antes de redirecionar.
+    void (async () => {
+      for (let i = 0; i < 15; i++) {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (data.session) {
+          setReady(true);
+          setChecking(false);
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      if (cancelled) return;
+      setChecking(false);
+      toast.error("Link expirado. Solicite um novo e-mail de recuperação.");
+      navigate({ to: "/auth" });
     })();
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -38,6 +63,10 @@ function ResetPasswordPage() {
     const parsed = z.string().min(8, "Mínimo 8 caracteres").max(72).safeParse(senha);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Senha inválida");
+      return;
+    }
+    if (senha !== confirmar) {
+      toast.error("As senhas não coincidem");
       return;
     }
     setLoading(true);
@@ -64,6 +93,9 @@ function ResetPasswordPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Escolha uma nova senha para acessar sua conta.
         </p>
+        {checking && !ready && (
+          <p className="mt-6 text-sm text-muted-foreground">Validando link...</p>
+        )}
         {ready && (
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
@@ -72,6 +104,17 @@ function ResetPasswordPage() {
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
+                placeholder="••••••••"
+                className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
+                autoComplete="new-password"
+              />
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">Confirmar senha</Label>
+              <Input
+                type="password"
+                value={confirmar}
+                onChange={(e) => setConfirmar(e.target.value)}
                 placeholder="••••••••"
                 className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
                 autoComplete="new-password"
