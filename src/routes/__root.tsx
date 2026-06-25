@@ -139,23 +139,25 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function AppLayout() {
   const { user } = useUser();
-  const { inTrial, daysLeft, isPaid } = useEntitlement();
+  const { inTrial, daysLeft, isPaid, isUnlimited } = useEntitlement();
   const navigate = useNavigate();
 
-  // Personalização visual (Diamante) — aplica a cor escolhida em --primary.
+  // Personalização visual (Diamante / trial) — aplica a cor escolhida.
   useEffect(() => {
     const root = document.documentElement;
-    const cor = isPaid ? user?.profile?.tema_cor : null;
+    const cor = isUnlimited ? user?.profile?.tema_cor : null;
     if (cor) {
       root.style.setProperty("--primary", cor);
       root.style.setProperty("--sidebar-primary", cor);
       root.style.setProperty("--ring", cor);
+      root.style.setProperty("--sidebar-ring", cor);
     } else {
       root.style.removeProperty("--primary");
       root.style.removeProperty("--sidebar-primary");
       root.style.removeProperty("--ring");
+      root.style.removeProperty("--sidebar-ring");
     }
-  }, [user?.profile?.tema_cor, isPaid]);
+  }, [user?.profile?.tema_cor, isUnlimited]);
 
   async function logout() {
     await signOutEverywhere();
