@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Clock, Wallet, Plus, AlertTriangle, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import { Clock, Wallet, Plus, AlertTriangle, Trash2, Save } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useLocalState } from "@/lib/storage";
 
 export const Route = createFileRoute("/precificacao")({
   head: () => ({ meta: [{ title: "Precificação e Custos — Lucrando com Papel" }] }),
