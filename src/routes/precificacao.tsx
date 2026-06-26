@@ -299,6 +299,16 @@ function PrecificacaoPage() {
           <p className="mt-2 text-xs text-muted-foreground">Sugerido entre 5% e 15%</p>
         </div>
       </Card>
+
+      <div className="flex justify-end pt-2">
+        <Button
+          size="lg"
+          className="rounded-full gap-2 px-8"
+          onClick={() => toast.success("Dados de precificação salvos!")}
+        >
+          <Save className="h-4 w-4" /> Salvar dados
+        </Button>
+      </div>
     </div>
   );
 }
