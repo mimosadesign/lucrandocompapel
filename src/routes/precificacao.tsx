@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Clock, Wallet, Plus, AlertTriangle, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import { Clock, Wallet, Plus, AlertTriangle, Trash2, Save } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useLocalState } from "@/lib/storage";
 
 export const Route = createFileRoute("/precificacao")({
   head: () => ({ meta: [{ title: "Precificação e Custos — Lucrando com Papel" }] }),
@@ -26,7 +28,7 @@ function num(v: string | undefined) {
 
 function PrecificacaoPage() {
   // 2.1 Trabalho
-  const [trabalho, setTrabalho] = useState<NumState>({
+  const [trabalho, setTrabalho] = useLocalState<NumState>("lcp:precif:trabalho", {
     horasDia: "",
     diasMes: "",
     proLabore: "",
@@ -38,7 +40,7 @@ function PrecificacaoPage() {
   });
 
   // 2.2 Faturamento
-  const [faturamento, setFaturamento] = useState<NumState>({
+  const [faturamento, setFaturamento] = useLocalState<NumState>("lcp:precif:faturamento", {
     m1: "",
     m2: "",
     m3: "",
@@ -47,10 +49,11 @@ function PrecificacaoPage() {
   });
 
   // 2.3 Minutos de produção
-  const [minutos, setMinutos] = useState("");
+  const [minutos, setMinutos] = useLocalState<string>("lcp:precif:minutos", "");
 
   // 2.4 Gastos fixos
-  const [gastos, setGastos] = useState<{ id: string; nome: string; valor: string }[]>([
+  type Gasto = { id: string; nome: string; valor: string };
+  const [gastos, setGastos] = useLocalState<Gasto[]>("lcp:precif:gastos", [
     { id: "tinta", nome: "Tinta", valor: "" },
     { id: "internet", nome: "Internet", valor: "" },
     { id: "agua", nome: "Água", valor: "" },
@@ -59,10 +62,10 @@ function PrecificacaoPage() {
     { id: "cartao", nome: "Parcela de cartão", valor: "" },
     { id: "ia", nome: "Plataformas IA / design", valor: "" },
   ]);
-  const [itensDia, setItensDia] = useState("");
+  const [itensDia, setItensDia] = useLocalState<string>("lcp:precif:itensDia", "");
 
   // 2.5 Imprevistos
-  const [imprevistos, setImprevistos] = useState(10);
+  const [imprevistos, setImprevistos] = useLocalState<number>("lcp:precif:imprevistos", 10);
 
   // ===== Cálculos =====
   const metaFaturamento = useMemo(() => {
@@ -296,6 +299,16 @@ function PrecificacaoPage() {
           <p className="mt-2 text-xs text-muted-foreground">Sugerido entre 5% e 15%</p>
         </div>
       </Card>
+
+      <div className="flex justify-end pt-2">
+        <Button
+          size="lg"
+          className="rounded-full gap-2 px-8"
+          onClick={() => toast.success("Dados de precificação salvos!")}
+        >
+          <Save className="h-4 w-4" /> Salvar dados
+        </Button>
+      </div>
     </div>
   );
 }
