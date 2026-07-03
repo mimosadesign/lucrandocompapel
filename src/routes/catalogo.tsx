@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShoppingBag, Plus, Minus, MessageCircle, Gift } from "lucide-react";
+import { Gift, Share2, Copy, Check, ExternalLink } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useLocalState, brl } from "@/lib/storage";
 import type { Produto } from "./produtos";
 
@@ -13,150 +15,178 @@ export const Route = createFileRoute("/catalogo")({
   component: CatalogoPage,
 });
 
+// Base64URL encoding (safe for URLs)
+function toBase64Url(str: string) {
+  const b64 = typeof window === "undefined"
+    ? Buffer.from(str, "utf-8").toString("base64")
+    : btoa(unescape(encodeURIComponent(str)));
+  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 function CatalogoPage() {
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
-  const [carrinho, setCarrinho] = useState<Record<string, number>>({});
-  const [nome, setNome] = useState("");
   const [whats, setWhats] = useLocalState<string>("lcp:whats", "");
+  const [nomeAtelier, setNomeAtelier] = useLocalState<string>("lcp:nomeAtelier", "");
+  const [copied, setCopied] = useState(false);
 
   const itens = useMemo(
     () =>
       produtos.map((p) => ({
-        ...p,
+        id: p.id,
+        nome: p.nome,
         preco: p.custo * (1 + p.margemPct / 100),
       })),
     [produtos],
   );
 
-  function add(id: string) {
-    setCarrinho((c) => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  }
-  function sub(id: string) {
-    setCarrinho((c) => {
-      const next = { ...c, [id]: Math.max(0, (c[id] || 0) - 1) };
-      if (next[id] === 0) delete next[id];
-      return next;
-    });
-  }
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined" || itens.length === 0) return "";
+    const payload = {
+      n: nomeAtelier || "Ateliê",
+      w: whats.replace(/\D/g, ""),
+      p: itens.map((i) => ({ n: i.nome, v: Number(i.preco.toFixed(2)) })),
+    };
+    const encoded = toBase64Url(JSON.stringify(payload));
+    return `${window.location.origin}/c/${encoded}`;
+  }, [itens, whats, nomeAtelier]);
 
-  const carrinhoLista = Object.entries(carrinho)
-    .map(([id, qtd]) => {
-      const p = itens.find((x) => x.id === id);
-      return p ? { id, nome: p.nome, qtd, preco: p.preco } : null;
-    })
-    .filter(Boolean) as { id: string; nome: string; qtd: number; preco: number }[];
-
-  const total = carrinhoLista.reduce((s, it) => s + it.preco * it.qtd, 0);
-
-  function finalizar() {
-    if (carrinhoLista.length === 0) return;
-    const linhas = carrinhoLista
-      .map((it) => `• ${it.qtd}x ${it.nome} — ${brl(it.preco * it.qtd)}`)
-      .join("\n");
-    const msg = `Olá! Meu nome é ${nome || "(cliente)"}.\nGostaria de fazer o pedido:\n${linhas}\n\nTotal: ${brl(total)}`;
-    const numero = whats.replace(/\D/g, "");
-    const url = numero
-      ? `https://wa.me/${numero}?text=${encodeURIComponent(msg)}`
-      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
+  async function copiar() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Link copiado!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
   }
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Catálogo digital"
-        description="Sua vitrine online — até 15 produtos no plano gratuito, ilimitado no Diamante. Clientes finalizam pelo seu WhatsApp."
+        description="Sua vitrine online — compartilhe um link com seus clientes. Eles escolhem os produtos e enviam o pedido direto pelo seu WhatsApp."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div>
-          {itens.length === 0 ? (
-            <Card className="rounded-3xl border-border/60 p-10 text-center text-muted-foreground shadow-[var(--shadow-card)]">
-              <Gift className="mx-auto mb-3 h-8 w-8 opacity-60" />
-              <p className="font-medium">Seu catálogo está vazio.</p>
-              <p className="text-sm">
-                Cadastre produtos em <Link to="/produtos" className="underline">Produtos</Link> e eles aparecerão aqui.
-              </p>
-            </Card>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {itens.map((p) => (
-                <Card
-                  key={p.id}
-                  className="group overflow-hidden rounded-3xl border-border/60 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)]"
-                >
-                  <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center">
-                    <Gift className="h-14 w-14 text-muted-foreground/60" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-display text-base font-semibold">{p.nome}</h3>
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="font-display text-lg font-semibold">{brl(p.preco)}</p>
-                      <Button size="sm" className="rounded-full gap-1.5 h-8" onClick={() => add(p.id)}>
-                        <Plus className="h-3.5 w-3.5" /> Adicionar
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
+      <Card className="mb-6 rounded-3xl border-primary/30 bg-primary/5 p-6 shadow-[var(--shadow-card)]">
+        <div className="flex items-center gap-2">
+          <Share2 className="h-4 w-4" />
+          <h2 className="font-display text-base font-semibold">Link do seu catálogo</h2>
         </div>
-
-        <Card className="sticky top-20 h-fit rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4" /> Carrinho
-          </h2>
-          {carrinhoLista.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">Adicione produtos para montar um pedido.</p>
-          ) : (
-            <ul className="mt-4 divide-y divide-border/60 text-sm">
-              {carrinhoLista.map((it) => (
-                <li key={it.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium">{it.nome}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Button size="icon" variant="ghost" className="h-6 w-6 rounded-full" onClick={() => sub(it.id)}>
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="text-xs">{it.qtd}</span>
-                      <Button size="icon" variant="ghost" className="h-6 w-6 rounded-full" onClick={() => add(it.id)}>
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <span className="font-display font-semibold">{brl(it.preco * it.qtd)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4 flex items-baseline justify-between border-t border-border/60 pt-4">
-            <span className="text-sm text-muted-foreground">Total</span>
-            <span className="font-display text-2xl font-semibold">{brl(total)}</span>
-          </div>
-          <div className="mt-5 space-y-2.5">
+        <p className="mt-1 text-sm text-muted-foreground">
+          Compartilhe este link com seus clientes. Ele abre apenas o catálogo e o carrinho — sem acesso ao seu app.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Nome do ateliê (aparece no link)
+            </Label>
             <Input
-              placeholder="Seu nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="h-11 rounded-full border-border/70 bg-background px-4"
+              value={nomeAtelier}
+              onChange={(e) => setNomeAtelier(e.target.value)}
+              placeholder="Ex: Ateliê da Bia"
+              className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
             />
+          </div>
+          <div>
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Seu WhatsApp (DDI+DDD+nº)
+            </Label>
             <Input
-              placeholder="WhatsApp do ateliê (DDI+DDD+nº)"
               value={whats}
               onChange={(e) => setWhats(e.target.value)}
-              className="h-11 rounded-full border-border/70 bg-background px-4"
+              placeholder="5511999999999"
+              className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
             />
-            <Button
-              className="w-full rounded-full bg-success text-primary-foreground gap-2 h-11 hover:bg-success/90"
-              onClick={finalizar}
-              disabled={carrinhoLista.length === 0}
-            >
-              <MessageCircle className="h-4 w-4" /> Finalizar no WhatsApp
-            </Button>
           </div>
+        </div>
+        {itens.length === 0 ? (
+          <p className="mt-4 rounded-2xl bg-warning/10 px-4 py-3 text-sm text-muted-foreground">
+            Cadastre produtos em{" "}
+            <Link to="/produtos" className="underline font-medium">
+              Produtos
+            </Link>{" "}
+            para gerar o link.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm">
+              <span className="flex-1 truncate text-muted-foreground">{shareUrl}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="rounded-full gap-1 shrink-0"
+                onClick={copiar}
+              >
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? "Copiado" : "Copiar"}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="rounded-full gap-1 border-foreground/20"
+              >
+                <a href={shareUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3.5 w-3.5" /> Abrir catálogo público
+                </a>
+              </Button>
+              {whats && (
+                <Button
+                  asChild
+                  size="sm"
+                  className="rounded-full gap-1 bg-success text-primary-foreground hover:bg-success/90"
+                >
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `Confira meu catálogo:\n${shareUrl}`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Compartilhar no WhatsApp
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Card>
+
+      <h2 className="mb-4 font-display text-lg font-semibold">Prévia dos produtos</h2>
+      {itens.length === 0 ? (
+        <Card className="rounded-3xl border-border/60 p-10 text-center text-muted-foreground shadow-[var(--shadow-card)]">
+          <Gift className="mx-auto mb-3 h-8 w-8 opacity-60" />
+          <p className="font-medium">Seu catálogo está vazio.</p>
+          <p className="text-sm">
+            Cadastre produtos em{" "}
+            <Link to="/produtos" className="underline">
+              Produtos
+            </Link>{" "}
+            e eles aparecerão aqui.
+          </p>
         </Card>
-      </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {itens.map((p) => (
+            <Card
+              key={p.id}
+              className="overflow-hidden rounded-3xl border-border/60 shadow-[var(--shadow-card)]"
+            >
+              <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center">
+                <Gift className="h-14 w-14 text-muted-foreground/60" />
+              </div>
+              <div className="p-4">
+                <h3 className="font-display text-base font-semibold">{p.nome}</h3>
+                <p className="mt-2 font-display text-lg font-semibold">{brl(p.preco)}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -34,7 +34,6 @@ function PrecificacaoPage() {
     proLabore: "",
     funcionario: "",
     ferias: "",
-    despesas: "",
     transporte: "",
     alimentacao: "",
   });
@@ -85,7 +84,6 @@ function PrecificacaoPage() {
       num(trabalho.proLabore) +
       num(trabalho.funcionario) +
       num(trabalho.ferias) +
-      num(trabalho.despesas) +
       num(trabalho.transporte) +
       num(trabalho.alimentacao)
     );
@@ -109,6 +107,13 @@ function PrecificacaoPage() {
   const dias = num(trabalho.diasMes) || 0;
   const custoFixoDia = dias > 0 ? totalGastoFixo / dias : 0;
   const custoFixoItem = num(itensDia) > 0 ? custoFixoDia / num(itensDia) : 0;
+
+  // Imprevistos aplicados
+  const impMult = 1 + imprevistos / 100;
+  const custoMaoDeObraComImp = custoMaoDeObra * impMult;
+  const custoFixoItemComImp = custoFixoItem * impMult;
+  const custoTotalItem = custoMaoDeObra + custoFixoItem;
+  const custoTotalItemComImp = custoTotalItem * impMult;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -152,12 +157,6 @@ function PrecificacaoPage() {
             placeholder="R$ 0,00"
             value={trabalho.ferias}
             onChange={(v) => setTrabalho({ ...trabalho, ferias: v })}
-          />
-          <Field
-            label="Despesas gerais"
-            placeholder="R$ 0,00"
-            value={trabalho.despesas}
-            onChange={(v) => setTrabalho({ ...trabalho, despesas: v })}
           />
           <Field
             label="Transporte"
@@ -213,6 +212,10 @@ function PrecificacaoPage() {
             <div className="w-full rounded-2xl bg-card p-3 text-sm">
               <p className="text-xs text-muted-foreground">Custo de mão de obra</p>
               <p className="font-display text-lg font-semibold">{BRL(custoMaoDeObra)}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Com {imprevistos}% imprevistos:{" "}
+                <span className="font-semibold text-foreground">{BRL(custoMaoDeObraComImp)}</span>
+              </p>
             </div>
           </div>
         </div>
@@ -270,6 +273,17 @@ function PrecificacaoPage() {
             value={itensDia}
             onChange={setItensDia}
           />
+        </div>
+        <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Custo total por item (mão de obra + fixo) com {imprevistos}% de imprevistos
+          </p>
+          <p className="mt-1 font-display text-2xl font-semibold">
+            {BRL(custoTotalItemComImp)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sem imprevistos: {BRL(custoTotalItem)} · Fixo por item com imprevistos: {BRL(custoFixoItemComImp)}
+          </p>
         </div>
       </Card>
 
