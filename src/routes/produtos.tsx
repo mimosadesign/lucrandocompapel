@@ -14,7 +14,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useLocalState, brl, parseNum } from "@/lib/storage";
+import { useLocalState, brl } from "@/lib/storage";
+import { MoneyInput } from "@/components/money-input";
 import { useIsUnlimited } from "@/lib/auth";
 import { toast } from "sonner";
 
