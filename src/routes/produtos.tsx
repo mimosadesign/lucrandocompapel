@@ -14,7 +14,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useLocalState, brl, parseNum } from "@/lib/storage";
+import { useLocalState, brl } from "@/lib/storage";
+import { MoneyInput } from "@/components/money-input";
 import { useIsUnlimited } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -158,19 +159,17 @@ function ProdutosPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Custo total (R$)</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.custo || ""}
-                    onChange={(e) => setEditing({ ...editing, custo: parseNum(e.target.value) })}
+                  <MoneyInput
+                    value={editing.custo}
+                    onChange={(n) => setEditing({ ...editing, custo: n })}
                     placeholder="0,00"
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label>Margem de lucro (%)</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.margemPct || ""}
-                    onChange={(e) => setEditing({ ...editing, margemPct: parseNum(e.target.value) })}
+                  <MoneyInput
+                    value={editing.margemPct}
+                    onChange={(n) => setEditing({ ...editing, margemPct: n })}
                     placeholder="0"
                   />
                 </div>

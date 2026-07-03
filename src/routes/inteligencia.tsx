@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Brain, TrendingUp, AlertTriangle, Percent } from "lucide-react";
+import { Brain, TrendingUp, AlertTriangle, Percent, Save } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DiamondLock } from "@/components/diamond-lock";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
 
 export const Route = createFileRoute("/inteligencia")({
@@ -38,7 +40,7 @@ function InteligenciaDashboard() {
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [custoFixo, setCustoFixo] = useLocalState<number>("lcp:custoFixo", 0);
-  const [custoInput, setCustoInput] = useState("");
+  
   const [descontoPct, setDescontoPct] = useState(10);
 
   const margemMedia = useMemo(() => {
@@ -114,24 +116,37 @@ function InteligenciaDashboard() {
         <p className="text-sm text-muted-foreground mt-1">
           Some seu pró-labore, contas fixas, plataformas e tudo que sai todo mês.
         </p>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div>
-            <Label className="text-xs uppercase text-muted-foreground">Custo fixo mensal</Label>
-            <Input
-              value={custoInput || (custoFixo ? String(custoFixo) : "")}
-              onChange={(e) => setCustoInput(e.target.value)}
-              onBlur={() => {
-                const v = parseFloat(custoInput.replace(",", ".")) || 0;
-                setCustoFixo(v);
-              }}
-              placeholder="Ex: 2500"
-              className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4 w-48"
+            <Label className="text-xs uppercase text-muted-foreground">Custo fixo mensal (R$)</Label>
+            <MoneyInput
+              value={custoFixo}
+              onChange={(n) => setCustoFixo(n)}
+              placeholder="Ex: 2500,00"
+              className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
             />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Inclua pró-labore, aluguel, contas, plataformas — tudo que sai todo mês.
+            </p>
           </div>
-          <div className="text-sm text-muted-foreground">
-            Com margem de <strong>{margemMedia.toFixed(0)}%</strong>, você precisa faturar{" "}
-            <strong className="text-foreground">{brl(breakEvenReais)}</strong> por mês.
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Faturamento para empatar
+            </p>
+            <p className="mt-1 font-display text-2xl font-semibold">{brl(breakEvenReais)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Com margem média de {margemMedia.toFixed(0)}%
+              {breakEvenPedidos > 0 && ` · ≈ ${breakEvenPedidos} pedidos`}
+            </p>
           </div>
+        </div>
+        <div className="mt-5 flex justify-end">
+          <Button
+            className="rounded-full gap-2"
+            onClick={() => toast.success("Custo fixo salvo!")}
+          >
+            <Save className="h-4 w-4" /> Salvar
+          </Button>
         </div>
       </Card>
 
