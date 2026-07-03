@@ -103,7 +103,7 @@ function PublicCatalog() {
       .map((it) => `• ${it.qtd}x ${it.nome} — ${brl(it.preco * it.qtd)}`)
       .join("\n");
     const msg = `Olá! Meu nome é ${nome}.\nMeu WhatsApp: ${whats}\n\nGostaria de fazer o pedido:\n${texto}\n\nTotal: ${brl(total)}`;
-    const numero = (catalog.w || "").replace(/\D/g, "");
+    const numero = (catalog!.w || "").replace(/\D/g, "");
     const url = numero
       ? `https://wa.me/${numero}?text=${encodeURIComponent(msg)}`
       : `https://wa.me/?text=${encodeURIComponent(msg)}`;
