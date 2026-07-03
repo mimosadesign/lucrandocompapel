@@ -258,29 +258,17 @@ function MateriaisPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Valor pago (R$)</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.valorPago || ""}
-                    onChange={(e) =>
-                      setEditing({
-                        ...editing,
-                        valorPago: parseFloat(e.target.value.replace(",", ".")) || 0,
-                      })
-                    }
+                  <MoneyInput
+                    value={editing.valorPago}
+                    onChange={(n) => setEditing({ ...editing, valorPago: n })}
                     placeholder="0,00"
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label>Quantidade no pacote</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.quantidade || ""}
-                    onChange={(e) =>
-                      setEditing({
-                        ...editing,
-                        quantidade: parseFloat(e.target.value.replace(",", ".")) || 0,
-                      })
-                    }
+                  <MoneyInput
+                    value={editing.quantidade}
+                    onChange={(n) => setEditing({ ...editing, quantidade: n })}
                     placeholder="0"
                   />
                 </div>
@@ -294,30 +282,17 @@ function MateriaisPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Estoque atual</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.estoque || ""}
-                    onChange={(e) =>
-                      setEditing({
-                        ...editing,
-                        estoque: parseFloat(e.target.value.replace(",", ".")) || 0,
-                      })
-                    }
+                  <MoneyInput
+                    value={editing.estoque}
+                    onChange={(n) => setEditing({ ...editing, estoque: n })}
                     placeholder="0"
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label>Estoque mínimo</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.estoqueMinimo || ""}
-                    onChange={(e) =>
-                      setEditing({
-                        ...editing,
-                        estoqueMinimo:
-                          parseFloat(e.target.value.replace(",", ".")) || 0,
-                      })
-                    }
+                  <MoneyInput
+                    value={editing.estoqueMinimo}
+                    onChange={(n) => setEditing({ ...editing, estoqueMinimo: n })}
                     placeholder="0"
                   />
                 </div>
