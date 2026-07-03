@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLocalState, brl, parseNum } from "@/lib/storage";
+import { useLocalState, brl } from "@/lib/storage";
+import { MoneyInput } from "@/components/money-input";
 
 export const Route = createFileRoute("/pedidos")({
   head: () => ({ meta: [{ title: "Pedidos — Lucrando com Papel" }] }),
