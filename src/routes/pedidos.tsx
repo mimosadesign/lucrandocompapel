@@ -229,19 +229,17 @@ function PedidosPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Valor do pedido (R$)</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.valor || ""}
-                    onChange={(e) => setEditing({ ...editing, valor: parseNum(e.target.value) })}
+                  <MoneyInput
+                    value={editing.valor}
+                    onChange={(n) => setEditing({ ...editing, valor: n })}
                     placeholder="0,00"
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label>Valor da entrega (R$)</Label>
-                  <Input
-                    inputMode="decimal"
-                    value={editing.valorEntrega || ""}
-                    onChange={(e) => setEditing({ ...editing, valorEntrega: parseNum(e.target.value) })}
+                  <MoneyInput
+                    value={editing.valorEntrega ?? 0}
+                    onChange={(n) => setEditing({ ...editing, valorEntrega: n })}
                     placeholder="0,00 (se houver)"
                   />
                 </div>
