@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { MoneyInput } from "@/components/money-input";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({ meta: [{ title: "Materiais — Lucrando com Papel" }] }),
