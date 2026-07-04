@@ -183,6 +183,19 @@ function PrecificacaoPage() {
             onChange={(v) => setTrabalho({ ...trabalho, alimentacao: v })}
           />
         </div>
+        <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/10 p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Valor da hora de trabalho (calculado automaticamente)
+          </p>
+          <p className="mt-1 font-display text-2xl font-semibold text-primary">
+            {BRL(valorHora)}
+          </p>
+          {horasMes <= 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Preencha horas por dia, dias por mês e pró-labore para ver o valor.
+            </p>
+          )}
+        </div>
       </Card>
 
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
@@ -248,7 +261,7 @@ function PrecificacaoPage() {
                   setGastos(copy);
                 }}
               />
-              {idx >= 7 && (
+              {!["aluguel","tinta","internet","agua","luz","gasolina","cartao","ia"].includes(g.id) && (
                 <button
                   type="button"
                   aria-label="Remover"
