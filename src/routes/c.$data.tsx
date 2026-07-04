@@ -92,13 +92,21 @@ function PublicCatalog() {
   const [nome, setNome] = useState("");
   const [whats, setWhats] = useState("");
 
-  if (!catalog) {
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center p-6 text-center">
+        <p className="text-sm text-muted-foreground">Carregando catálogo...</p>
+      </div>
+    );
+  }
+
+  if (!catalog || notFound) {
     return (
       <div className="min-h-screen grid place-items-center p-6 text-center">
         <div>
-          <p className="font-display text-xl font-semibold">Link inválido</p>
+          <p className="font-display text-xl font-semibold">Catálogo não encontrado</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            O catálogo compartilhado não pôde ser lido.
+            O link pode ter sido alterado ou ainda não foi publicado.
           </p>
         </div>
       </div>
