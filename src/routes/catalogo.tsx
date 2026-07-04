@@ -56,7 +56,7 @@ function CatalogoPage() {
     let alive = true;
     void (async () => {
       try {
-        const { slug } = await getMySlug({});
+        const { slug } = await getMySlug();
         if (alive && slug) setSlugSalvo(slug);
       } catch {
         /* usuário deslogado no fluxo público — ignora */
