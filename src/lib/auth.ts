@@ -5,6 +5,16 @@ import { getStripeEnvironment } from "@/lib/stripe";
 
 const TRIAL_DAYS = 25;
 
+// Contas com acesso vitalício (sem cobrança / sem expiração de trial)
+const LIFETIME_EMAILS = new Set<string>([
+  "mimosavacadesign@gmail.com",
+]);
+
+function hasLifetimeAccess(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return LIFETIME_EMAILS.has(email.trim().toLowerCase());
+}
+
 export type Profile = {
   id: string;
   nome: string | null;
@@ -206,10 +216,12 @@ export function useEntitlement() {
     };
   }, [user?.id]);
 
-  const inTrial = isTrialActive(user);
-  const daysLeft = trialDaysLeft(user);
-  const isPaid = isSubActive(sub);
-  const isUnlimited = inTrial || isPaid;
+  const lifetime = hasLifetimeAccess(user?.email);
+  const inTrial = lifetime ? true : isTrialActive(user);
+  const daysLeft = lifetime ? 9999 : trialDaysLeft(user);
+  const isPaid = lifetime ? true : isSubActive(sub);
+  const isUnlimited = lifetime || inTrial || isPaid;
+
 
   return {
     user,
