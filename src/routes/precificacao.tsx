@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Clock, Wallet, Plus, AlertTriangle, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
@@ -53,6 +53,7 @@ function PrecificacaoPage() {
   // 2.4 Gastos fixos
   type Gasto = { id: string; nome: string; valor: string };
   const [gastos, setGastos] = useLocalState<Gasto[]>("lcp:precif:gastos", [
+    { id: "aluguel", nome: "Aluguel / prestação da casa", valor: "" },
     { id: "tinta", nome: "Tinta", valor: "" },
     { id: "internet", nome: "Internet", valor: "" },
     { id: "agua", nome: "Água", valor: "" },
@@ -61,6 +62,17 @@ function PrecificacaoPage() {
     { id: "cartao", nome: "Parcela de cartão", valor: "" },
     { id: "ia", nome: "Plataformas IA / design", valor: "" },
   ]);
+  // Migração: garante que "Aluguel / prestação da casa" apareça mesmo para
+  // usuárias que já tinham a lista salva antes desse item existir.
+  useEffect(() => {
+    if (!gastos.some((g) => g.id === "aluguel")) {
+      setGastos([
+        { id: "aluguel", nome: "Aluguel / prestação da casa", valor: "" },
+        ...gastos,
+      ]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [itensDia, setItensDia] = useLocalState<string>("lcp:precif:itensDia", "");
 
   // 2.5 Imprevistos
@@ -171,6 +183,19 @@ function PrecificacaoPage() {
             onChange={(v) => setTrabalho({ ...trabalho, alimentacao: v })}
           />
         </div>
+        <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/10 p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Valor da hora de trabalho (calculado automaticamente)
+          </p>
+          <p className="mt-1 font-display text-2xl font-semibold text-primary">
+            {BRL(valorHora)}
+          </p>
+          {horasMes <= 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Preencha horas por dia, dias por mês e pró-labore para ver o valor.
+            </p>
+          )}
+        </div>
       </Card>
 
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
@@ -236,7 +261,7 @@ function PrecificacaoPage() {
                   setGastos(copy);
                 }}
               />
-              {idx >= 7 && (
+              {!["aluguel","tinta","internet","agua","luz","gasolina","cartao","ia"].includes(g.id) && (
                 <button
                   type="button"
                   aria-label="Remover"

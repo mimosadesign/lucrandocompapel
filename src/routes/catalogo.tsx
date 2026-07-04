@@ -1,13 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Gift, Share2, Copy, Check, ExternalLink } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Gift, Share2, Copy, Check, ExternalLink, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocalState, brl } from "@/lib/storage";
+import {
+  publishCatalog,
+  getMyCatalogSlug,
+} from "@/lib/catalogs.functions";
 import type { Produto } from "./produtos";
 
 export const Route = createFileRoute("/catalogo")({
@@ -15,19 +20,60 @@ export const Route = createFileRoute("/catalogo")({
   component: CatalogoPage,
 });
 
-// Base64URL encoding (safe for URLs)
+// Base64URL encoding (safe for URLs) — fallback quando não há apelido publicado
 function toBase64Url(str: string) {
-  const b64 = typeof window === "undefined"
-    ? Buffer.from(str, "utf-8").toString("base64")
-    : btoa(unescape(encodeURIComponent(str)));
+  const b64 =
+    typeof window === "undefined"
+      ? Buffer.from(str, "utf-8").toString("base64")
+      : btoa(unescape(encodeURIComponent(str)));
   return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function suggestSlug(nome: string) {
+  return nome
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
 }
 
 function CatalogoPage() {
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
   const [whats, setWhats] = useLocalState<string>("lcp:whats", "");
   const [nomeAtelier, setNomeAtelier] = useLocalState<string>("lcp:nomeAtelier", "");
+  const [slugSalvo, setSlugSalvo] = useLocalState<string>("lcp:catalogSlug", "");
+  const [slugInput, setSlugInput] = useState("");
+  const [publicando, setPublicando] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const publish = useServerFn(publishCatalog);
+  const getMySlug = useServerFn(getMyCatalogSlug);
+
+  // Ao entrar, busca o slug já publicado pelo usuário (se houver).
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const { slug } = await getMySlug();
+        if (alive && slug) setSlugSalvo(slug);
+      } catch {
+        /* usuário deslogado no fluxo público — ignora */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!slugInput && (slugSalvo || nomeAtelier)) {
+      setSlugInput(slugSalvo || suggestSlug(nomeAtelier));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slugSalvo, nomeAtelier]);
 
   const itens = useMemo(
     () =>
@@ -39,16 +85,22 @@ function CatalogoPage() {
     [produtos],
   );
 
-  const shareUrl = useMemo(() => {
-    if (typeof window === "undefined" || itens.length === 0) return "";
-    const payload = {
+  const payload = useMemo(
+    () => ({
       n: nomeAtelier || "Ateliê",
       w: whats.replace(/\D/g, ""),
       p: itens.map((i) => ({ n: i.nome, v: Number(i.preco.toFixed(2)) })),
-    };
+    }),
+    [nomeAtelier, whats, itens],
+  );
+
+  // URL "bonita" quando há apelido publicado, senão a URL base64.
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined" || itens.length === 0) return "";
+    if (slugSalvo) return `${window.location.origin}/c/${slugSalvo}`;
     const encoded = toBase64Url(JSON.stringify(payload));
     return `${window.location.origin}/c/${encoded}`;
-  }, [itens, whats, nomeAtelier]);
+  }, [payload, itens.length, slugSalvo]);
 
   async function copiar() {
     if (!shareUrl) return;
@@ -61,6 +113,36 @@ function CatalogoPage() {
       toast.error("Não foi possível copiar.");
     }
   }
+
+  async function publicar() {
+    if (itens.length === 0) {
+      toast.error("Cadastre produtos antes de publicar.");
+      return;
+    }
+    const slug = suggestSlug(slugInput);
+    if (slug.length < 3) {
+      toast.error("Escolha um apelido com pelo menos 3 letras/números.");
+      return;
+    }
+    setPublicando(true);
+    try {
+      const res = await publish({ data: { slug, data: payload } });
+      if ("error" in res && res.error) {
+        toast.error(res.error);
+      } else if ("ok" in res && res.ok) {
+        setSlugSalvo(res.slug);
+        setSlugInput(res.slug);
+        toast.success("Catálogo publicado! Seu link personalizado está pronto.");
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erro ao publicar.";
+      toast.error(msg);
+    } finally {
+      setPublicando(false);
+    }
+  }
+
+  const slugPreview = suggestSlug(slugInput);
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -101,6 +183,48 @@ function CatalogoPage() {
             />
           </div>
         </div>
+
+        {/* Apelido personalizado */}
+        <div className="mt-5 rounded-2xl border border-border/60 bg-background/60 p-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <p className="font-display text-sm font-semibold">Link personalizado</p>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Escolha um apelido único (3 a 40 letras/números). Depois de publicado, ninguém mais poderá usar o mesmo.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-1 items-center gap-1 rounded-full border border-border/70 bg-background px-4 h-11 text-sm">
+              <span className="text-muted-foreground">
+                {typeof window !== "undefined" ? `${window.location.host}/c/` : "/c/"}
+              </span>
+              <input
+                value={slugInput}
+                onChange={(e) => setSlugInput(e.target.value)}
+                placeholder="ateliedabia"
+                className="flex-1 bg-transparent outline-none"
+                maxLength={40}
+              />
+            </div>
+            <Button
+              onClick={publicar}
+              disabled={publicando || slugPreview.length < 3}
+              className="rounded-full h-11 px-5"
+            >
+              {publicando
+                ? "Publicando..."
+                : slugSalvo
+                  ? "Atualizar catálogo"
+                  : "Publicar link"}
+            </Button>
+          </div>
+          {slugSalvo && (
+            <p className="mt-2 text-xs text-success">
+              ✓ Seu apelido publicado: <b>{slugSalvo}</b>
+            </p>
+          )}
+        </div>
+
         {itens.length === 0 ? (
           <p className="mt-4 rounded-2xl bg-warning/10 px-4 py-3 text-sm text-muted-foreground">
             Cadastre produtos em{" "}
@@ -123,6 +247,11 @@ function CatalogoPage() {
                 {copied ? "Copiado" : "Copiar"}
               </Button>
             </div>
+            {!slugSalvo && (
+              <p className="text-xs text-muted-foreground">
+                Publique um apelido acima para ter um link curto e bonito.
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button
                 asChild
@@ -142,7 +271,7 @@ function CatalogoPage() {
                 >
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
-                      `Confira meu catálogo:\n${shareUrl}`,
+                      `${nomeAtelier ? `Confira o catálogo do ${nomeAtelier}:` : "Confira meu catálogo:"}\n${shareUrl}`,
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"

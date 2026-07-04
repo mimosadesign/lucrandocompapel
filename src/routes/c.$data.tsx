@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ShoppingBag, Plus, Minus, MessageCircle, Gift } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 
 type SharedItem = { n: string; v: number };
 type SharedCatalog = { n: string; w: string; p: SharedItem[] };
+
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 
 function fromBase64Url(s: string): string {
   const b64 = s.replace(/-/g, "+").replace(/_/g, "/").padEnd(
@@ -20,6 +23,14 @@ function fromBase64Url(s: string): string {
   return decodeURIComponent(escape(atob(b64)));
 }
 
+function tryDecodeBase64(param: string): SharedCatalog | null {
+  try {
+    return JSON.parse(fromBase64Url(param)) as SharedCatalog;
+  } catch {
+    return null;
+  }
+}
+
 function brl(value: number) {
   if (!isFinite(value)) return "R$ 0,00";
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -28,11 +39,10 @@ function brl(value: number) {
 export const Route = createFileRoute("/c/$data")({
   head: ({ params }) => {
     let title = "Catálogo";
-    try {
-      const decoded = JSON.parse(fromBase64Url(params.data)) as SharedCatalog;
-      title = `${decoded.n} — Catálogo`;
-    } catch {
-      /* ignore */
+    // slugs mostram um título genérico (dados vêm no cliente); base64 já traz o nome
+    if (!SLUG_RE.test(params.data)) {
+      const decoded = tryDecodeBase64(params.data);
+      if (decoded) title = `${decoded.n} — Catálogo`;
     }
     return {
       meta: [
@@ -46,25 +56,57 @@ export const Route = createFileRoute("/c/$data")({
 
 function PublicCatalog() {
   const { data } = Route.useParams();
-  const catalog = useMemo<SharedCatalog | null>(() => {
-    try {
-      return JSON.parse(fromBase64Url(data)) as SharedCatalog;
-    } catch {
-      return null;
-    }
-  }, [data]);
+  const isSlug = SLUG_RE.test(data);
+  const initial = useMemo<SharedCatalog | null>(
+    () => (isSlug ? null : tryDecodeBase64(data)),
+    [data, isSlug],
+  );
+  const [catalog, setCatalog] = useState<SharedCatalog | null>(initial);
+  const [loading, setLoading] = useState(isSlug);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!isSlug) return;
+    let alive = true;
+    void (async () => {
+      const { data: row, error } = await supabase
+        .from("public_catalogs")
+        .select("data")
+        .eq("slug", data)
+        .maybeSingle();
+      if (!alive) return;
+      if (error || !row) {
+        setNotFound(true);
+      } else {
+        setCatalog(row.data as unknown as SharedCatalog);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [data, isSlug]);
+
 
   const [cart, setCart] = useState<Record<number, number>>({});
   const [nome, setNome] = useState("");
   const [whats, setWhats] = useState("");
 
-  if (!catalog) {
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center p-6 text-center">
+        <p className="text-sm text-muted-foreground">Carregando catálogo...</p>
+      </div>
+    );
+  }
+
+  if (!catalog || notFound) {
     return (
       <div className="min-h-screen grid place-items-center p-6 text-center">
         <div>
-          <p className="font-display text-xl font-semibold">Link inválido</p>
+          <p className="font-display text-xl font-semibold">Catálogo não encontrado</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            O catálogo compartilhado não pôde ser lido.
+            O link pode ter sido alterado ou ainda não foi publicado.
           </p>
         </div>
       </div>
