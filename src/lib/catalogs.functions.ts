@@ -45,11 +45,13 @@ export const publishCatalog = createServerFn({ method: "POST" })
     }
     const { error } = await supabase
       .from("public_catalogs")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .upsert(
         {
           slug: data.slug,
           user_id: userId,
-          data: data.data as unknown as Record<string, unknown>,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data: data.data as any,
         },
         { onConflict: "slug" },
       );
