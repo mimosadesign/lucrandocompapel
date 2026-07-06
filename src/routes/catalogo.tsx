@@ -81,6 +81,7 @@ function CatalogoPage() {
         id: p.id,
         nome: p.nome,
         preco: p.custo * (1 + p.margemPct / 100),
+        foto: p.foto,
       })),
     [produtos],
   );
@@ -89,7 +90,11 @@ function CatalogoPage() {
     () => ({
       n: nomeAtelier || "Ateliê",
       w: whats.replace(/\D/g, ""),
-      p: itens.map((i) => ({ n: i.nome, v: Number(i.preco.toFixed(2)) })),
+      p: itens.map((i) => ({
+        n: i.nome,
+        v: Number(i.preco.toFixed(2)),
+        f: i.foto,
+      })),
     }),
     [nomeAtelier, whats, itens],
   );
