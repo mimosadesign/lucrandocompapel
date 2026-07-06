@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
-type SharedItem = { n: string; v: number };
+type SharedItem = { n: string; v: number; f?: string };
 type SharedCatalog = { n: string; w: string; p: SharedItem[] };
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
