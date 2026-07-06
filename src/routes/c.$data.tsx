@@ -177,8 +177,12 @@ function PublicCatalog() {
                     key={i}
                     className="overflow-hidden rounded-3xl border-border/60 shadow-[var(--shadow-card)]"
                   >
-                    <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center">
-                      <Gift className="h-14 w-14 text-muted-foreground/60" />
+                    <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center overflow-hidden">
+                      {p.f ? (
+                        <img src={p.f} alt={p.n} className="h-full w-full object-cover" />
+                      ) : (
+                        <Gift className="h-14 w-14 text-muted-foreground/60" />
+                      )}
                     </div>
                     <div className="p-4">
                       <h3 className="font-display text-base font-semibold">{p.n}</h3>
