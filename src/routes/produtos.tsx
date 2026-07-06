@@ -178,6 +178,13 @@ function ProdutosPage() {
           {editing && (
             <div className="grid gap-4">
               <div className="grid gap-2">
+                <Label>Foto do produto</Label>
+                <PhotoField
+                  value={editing.foto}
+                  onChange={(f) => setEditing({ ...editing, foto: f })}
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label>Nome do produto</Label>
                 <Input
                   value={editing.nome}
