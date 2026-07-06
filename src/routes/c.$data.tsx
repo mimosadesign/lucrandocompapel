@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
-type SharedItem = { n: string; v: number };
+type SharedItem = { n: string; v: number; f?: string };
 type SharedCatalog = { n: string; w: string; p: SharedItem[] };
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
@@ -177,8 +177,12 @@ function PublicCatalog() {
                     key={i}
                     className="overflow-hidden rounded-3xl border-border/60 shadow-[var(--shadow-card)]"
                   >
-                    <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center">
-                      <Gift className="h-14 w-14 text-muted-foreground/60" />
+                    <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center overflow-hidden">
+                      {p.f ? (
+                        <img src={p.f} alt={p.n} className="h-full w-full object-cover" />
+                      ) : (
+                        <Gift className="h-14 w-14 text-muted-foreground/60" />
+                      )}
                     </div>
                     <div className="p-4">
                       <h3 className="font-display text-base font-semibold">{p.n}</h3>

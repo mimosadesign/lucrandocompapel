@@ -81,6 +81,7 @@ function CatalogoPage() {
         id: p.id,
         nome: p.nome,
         preco: p.custo * (1 + p.margemPct / 100),
+        foto: p.foto,
       })),
     [produtos],
   );
@@ -89,7 +90,11 @@ function CatalogoPage() {
     () => ({
       n: nomeAtelier || "Ateliê",
       w: whats.replace(/\D/g, ""),
-      p: itens.map((i) => ({ n: i.nome, v: Number(i.preco.toFixed(2)) })),
+      p: itens.map((i) => ({
+        n: i.nome,
+        v: Number(i.preco.toFixed(2)),
+        f: i.foto,
+      })),
     }),
     [nomeAtelier, whats, itens],
   );
@@ -305,8 +310,12 @@ function CatalogoPage() {
               key={p.id}
               className="overflow-hidden rounded-3xl border-border/60 shadow-[var(--shadow-card)]"
             >
-              <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center">
-                <Gift className="h-14 w-14 text-muted-foreground/60" />
+              <div className="aspect-square bg-gradient-to-br from-accent/40 to-secondary grid place-items-center overflow-hidden">
+                {p.foto ? (
+                  <img src={p.foto} alt={p.nome} className="h-full w-full object-cover" />
+                ) : (
+                  <Gift className="h-14 w-14 text-muted-foreground/60" />
+                )}
               </div>
               <div className="p-4">
                 <h3 className="font-display text-base font-semibold">{p.nome}</h3>

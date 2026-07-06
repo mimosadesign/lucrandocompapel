@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Gift, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Plus, Gift, Trash2, ImagePlus, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,32 @@ export type Produto = {
   nome: string;
   custo: number;
   margemPct: number;
+  foto?: string;
 };
+
+async function resizePhoto(file: File, max = 900): Promise<string> {
+  const dataUrl: string = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result as string);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+  const img = await new Promise<HTMLImageElement>((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = dataUrl;
+  });
+  const scale = Math.min(1, max / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", 0.82);
+}
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useLocalState<Produto[]>("lcp:produtos", []);
@@ -109,8 +134,12 @@ function ProdutosPage() {
                 key={p.id}
                 className="group rounded-3xl border-border/60 overflow-hidden shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)]"
               >
-                <div className="aspect-[4/3] bg-gradient-to-br from-secondary to-accent/40 grid place-items-center">
-                  <Gift className="h-12 w-12 text-muted-foreground/60" />
+                <div className="aspect-[4/3] bg-gradient-to-br from-secondary to-accent/40 grid place-items-center overflow-hidden">
+                  {p.foto ? (
+                    <img src={p.foto} alt={p.nome} className="h-full w-full object-cover" />
+                  ) : (
+                    <Gift className="h-12 w-12 text-muted-foreground/60" />
+                  )}
                 </div>
                 <div className="p-5">
                   <h3 className="font-display text-lg font-semibold leading-tight">{p.nome}</h3>
@@ -149,6 +178,13 @@ function ProdutosPage() {
           {editing && (
             <div className="grid gap-4">
               <div className="grid gap-2">
+                <Label>Foto do produto</Label>
+                <PhotoField
+                  value={editing.foto}
+                  onChange={(f) => setEditing({ ...editing, foto: f })}
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label>Nome do produto</Label>
                 <Input
                   value={editing.nome}
@@ -186,6 +222,75 @@ function ProdutosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function PhotoField({
+  value,
+  onChange,
+}: {
+  value: string | undefined;
+  onChange: (foto: string | undefined) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const resized = await resizePhoto(file);
+      onChange(resized);
+    } catch {
+      toast.error("Não foi possível carregar essa imagem.");
+    } finally {
+      setLoading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-secondary grid place-items-center">
+        {value ? (
+          <>
+            <img src={value} alt="Prévia" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange(undefined)}
+              className="absolute right-1 top-1 rounded-full bg-background/90 p-1 shadow hover:bg-background"
+              aria-label="Remover foto"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </>
+        ) : (
+          <ImagePlus className="h-6 w-6 text-muted-foreground/60" />
+        )}
+      </div>
+      <div>
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-full"
+          onClick={() => inputRef.current?.click()}
+          disabled={loading}
+        >
+          {loading ? "Carregando..." : value ? "Trocar foto" : "Escolher foto"}
+        </Button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onFile}
+        />
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          JPG ou PNG. Redimensionamos automaticamente.
+        </p>
+      </div>
     </div>
   );
 }
