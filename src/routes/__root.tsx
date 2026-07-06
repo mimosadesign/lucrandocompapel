@@ -208,7 +208,10 @@ function AppLayout() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isPublicRoute = pathname.startsWith("/auth") || pathname.startsWith("/reset-password");
+  const isPublicRoute =
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/c/");
   const { user, ready } = useUser();
   const navigate = useNavigate();
 
