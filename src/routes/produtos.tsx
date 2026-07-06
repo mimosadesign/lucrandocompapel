@@ -134,8 +134,12 @@ function ProdutosPage() {
                 key={p.id}
                 className="group rounded-3xl border-border/60 overflow-hidden shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)]"
               >
-                <div className="aspect-[4/3] bg-gradient-to-br from-secondary to-accent/40 grid place-items-center">
-                  <Gift className="h-12 w-12 text-muted-foreground/60" />
+                <div className="aspect-[4/3] bg-gradient-to-br from-secondary to-accent/40 grid place-items-center overflow-hidden">
+                  {p.foto ? (
+                    <img src={p.foto} alt={p.nome} className="h-full w-full object-cover" />
+                  ) : (
+                    <Gift className="h-12 w-12 text-muted-foreground/60" />
+                  )}
                 </div>
                 <div className="p-5">
                   <h3 className="font-display text-lg font-semibold leading-tight">{p.nome}</h3>
