@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Gift, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Plus, Gift, Trash2, ImagePlus, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,32 @@ export type Produto = {
   nome: string;
   custo: number;
   margemPct: number;
+  foto?: string;
 };
+
+async function resizePhoto(file: File, max = 900): Promise<string> {
+  const dataUrl: string = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result as string);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+  const img = await new Promise<HTMLImageElement>((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = dataUrl;
+  });
+  const scale = Math.min(1, max / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", 0.82);
+}
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useLocalState<Produto[]>("lcp:produtos", []);
