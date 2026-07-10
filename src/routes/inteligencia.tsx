@@ -49,7 +49,34 @@ function InteligenciaDashboard() {
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [custoFixo, setCustoFixo] = useLocalState<number>("lcp:custoFixo", 0);
-  
+  const [custoFixoAuto, setCustoFixoAuto] = useLocalState<boolean>("lcp:custoFixoAuto", true);
+
+  // Dados da Precificação para somar custos fixos automaticamente
+  const [trabalho] = useLocalState<NumState>("lcp:precif:trabalho", {
+    horasDia: "", diasMes: "", proLabore: "", funcionario: "",
+    ferias: "", transporte: "", alimentacao: "",
+  });
+  const [gastos] = useLocalState<Gasto[]>("lcp:precif:gastos", []);
+
+  const custoFixoCalc = useMemo(() => {
+    const t =
+      num(trabalho.proLabore) +
+      num(trabalho.funcionario) +
+      num(trabalho.ferias) +
+      num(trabalho.transporte) +
+      num(trabalho.alimentacao);
+    const g = gastos.reduce((acc, x) => acc + num(x.valor), 0);
+    return t + g;
+  }, [trabalho, gastos]);
+
+  // Preenche automaticamente enquanto a usuária não editar manualmente
+  useEffect(() => {
+    if (custoFixoAuto && custoFixoCalc > 0 && custoFixoCalc !== custoFixo) {
+      setCustoFixo(custoFixoCalc);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [custoFixoCalc, custoFixoAuto]);
+
   const [descontoPct, setDescontoPct] = useState(10);
 
   const margemMedia = useMemo(() => {
