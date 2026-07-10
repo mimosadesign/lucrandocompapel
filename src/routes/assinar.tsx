@@ -63,7 +63,7 @@ function AssinarPage() {
           </div>
           <div>
             <h1 className="font-display text-2xl font-semibold">Plano Diamante</h1>
-            <p className="text-sm text-muted-foreground">R$ 35,00/mês · cobrança mensal recorrente</p>
+            <p className="text-sm text-muted-foreground">R$ 28,00/mês · cobrança mensal recorrente</p>
           </div>
         </div>
 
