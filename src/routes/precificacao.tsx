@@ -108,6 +108,13 @@ function PrecificacaoPage() {
     return totalCustoMensal / horasMes;
   }, [totalCustoMensal, horasMes]);
 
+  // Persiste globalmente para aparecer no Início e outras telas
+  const [, setValorHoraStored] = useLocalState<number>("lcp:valorHora", 0);
+  useEffect(() => {
+    setValorHoraStored(valorHora);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valorHora]);
+
   const custoMaoDeObra = useMemo(() => {
     return (valorHora / 60) * num(minutos);
   }, [valorHora, minutos]);
