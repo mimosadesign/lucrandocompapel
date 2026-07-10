@@ -78,65 +78,103 @@ function ExecutivoDashboard() {
     return v.reduce((s, p) => s + p.margemPct, 0) / v.length;
   }, [produtos]);
 
-  // Score 0-100: 40 produtos+margem, 30 meta, 30 evolução
+  // Score 0-100: 25 produtos, 25 margem, 25 meta, 25 evolução
   const score = useMemo(() => {
     let s = 0;
-    if (produtos.length >= 5) s += 20;
-    else s += produtos.length * 4;
-    if (margemMedia >= 50) s += 20;
-    else if (margemMedia >= 30) s += 15;
-    else if (margemMedia >= 15) s += 8;
+    // Produtos cadastrados (até 25)
+    if (produtos.length >= 5) s += 25;
+    else s += produtos.length * 5;
+    // Margem média (até 25)
+    if (margemMedia >= 50) s += 25;
+    else if (margemMedia >= 30) s += 18;
+    else if (margemMedia >= 15) s += 10;
+    else if (margemMedia > 0) s += 5;
+    // Meta atingida (até 25)
     if (meta > 0) {
       const pct = (faturamentoMes / meta) * 100;
-      if (pct >= 100) s += 30;
-      else if (pct >= 70) s += 22;
-      else if (pct >= 40) s += 12;
-      else s += 4;
-    } else s += 10;
-    if (variacao > 10) s += 30;
-    else if (variacao > 0) s += 22;
-    else if (variacao === 0) s += 15;
-    else if (variacao > -10) s += 8;
+      if (pct >= 100) s += 25;
+      else if (pct >= 70) s += 18;
+      else if (pct >= 40) s += 10;
+      else if (pct > 0) s += 4;
+    } else if (faturamentoMes > 0) {
+      s += 10;
+    }
+    // Evolução mês a mês (até 25)
+    if (faturamentoAnterior > 0) {
+      if (variacao > 10) s += 25;
+      else if (variacao > 0) s += 18;
+      else if (variacao === 0) s += 12;
+      else if (variacao > -10) s += 6;
+    } else if (faturamentoMes > 0) {
+      s += 12;
+    }
     return Math.min(100, Math.round(s));
-  }, [produtos.length, margemMedia, meta, faturamentoMes, variacao]);
+  }, [produtos.length, margemMedia, meta, faturamentoMes, faturamentoAnterior, variacao]);
 
-  // Alerts
+  // Alerts — exigem pelo menos 2 produtos cadastrados
   const alertas: { tipo: "warn" | "ok" | "info"; msg: string }[] = [];
-  if (variacao < -10 && faturamentoAnterior > 0) {
-    alertas.push({
-      tipo: "warn",
-      msg: `Seu faturamento caiu ${Math.abs(variacao).toFixed(0)}% em relação ao mês passado.`,
-    });
-  }
-  if (variacao > 10) {
-    alertas.push({
-      tipo: "ok",
-      msg: `Crescimento de ${variacao.toFixed(0)}% em relação ao mês passado. 🎉`,
-    });
-  }
-  if (margemMedia > 0 && margemMedia < 20) {
-    alertas.push({
-      tipo: "warn",
-      msg: `Sua margem média está baixa (${margemMedia.toFixed(0)}%). Revise os preços dos produtos.`,
-    });
-  }
-  if (meta > 0 && faturamentoMes >= meta) {
-    alertas.push({ tipo: "ok", msg: "Você bateu sua meta deste mês!" });
-  }
-  if (produtos.length < 3) {
+  if (produtos.length < 2) {
     alertas.push({
       tipo: "info",
-      msg: "Cadastre mais produtos para liberar análises mais precisas.",
+      msg: "Cadastre pelo menos 2 produtos para começar a receber alertas inteligentes do seu ateliê.",
     });
-  }
-  if (ativos.filter((p) => p.status === "Em aberto").length > 5) {
-    alertas.push({
-      tipo: "warn",
-      msg: `Você tem ${ativos.filter((p) => p.status === "Em aberto").length} pedidos em aberto — comece a produção.`,
-    });
-  }
-  if (!alertas.length) {
-    alertas.push({ tipo: "ok", msg: "Tudo no controle por aqui. Bom trabalho! ✨" });
+  } else {
+    if (variacao < -10 && faturamentoAnterior > 0) {
+      alertas.push({
+        tipo: "warn",
+        msg: `Seu faturamento caiu ${Math.abs(variacao).toFixed(0)}% em relação ao mês passado.`,
+      });
+    }
+    if (variacao > 10) {
+      alertas.push({
+        tipo: "ok",
+        msg: `Crescimento de ${variacao.toFixed(0)}% em relação ao mês passado. 🎉`,
+      });
+    }
+    if (margemMedia > 0 && margemMedia < 20) {
+      alertas.push({
+        tipo: "warn",
+        msg: `Sua margem média está baixa (${margemMedia.toFixed(0)}%). Revise os preços dos produtos.`,
+      });
+    }
+    if (margemMedia >= 40) {
+      alertas.push({
+        tipo: "ok",
+        msg: `Margem média saudável (${margemMedia.toFixed(0)}%). Continue assim!`,
+      });
+    }
+    const baixaMargem = produtos.filter((p) => p.margemPct > 0 && p.margemPct < 20).length;
+    if (baixaMargem > 0) {
+      alertas.push({
+        tipo: "warn",
+        msg: `${baixaMargem} produto(s) com margem abaixo de 20%. Revise a precificação.`,
+      });
+    }
+    if (meta > 0 && faturamentoMes >= meta) {
+      alertas.push({ tipo: "ok", msg: "Você bateu sua meta deste mês! 🎉" });
+    }
+    if (meta > 0 && faturamentoMes > 0 && faturamentoMes < meta * 0.5) {
+      alertas.push({
+        tipo: "warn",
+        msg: `Você está a ${((faturamentoMes / meta) * 100).toFixed(0)}% da meta — hora de acelerar as vendas.`,
+      });
+    }
+    if (produtos.length < 5) {
+      alertas.push({
+        tipo: "info",
+        msg: "Cadastre mais produtos para diversificar seu catálogo e liberar análises mais precisas.",
+      });
+    }
+    const emAberto = ativos.filter((p) => p.status === "Em aberto").length;
+    if (emAberto > 5) {
+      alertas.push({
+        tipo: "warn",
+        msg: `Você tem ${emAberto} pedidos em aberto — comece a produção.`,
+      });
+    }
+    if (!alertas.length) {
+      alertas.push({ tipo: "ok", msg: "Tudo no controle por aqui. Bom trabalho! ✨" });
+    }
   }
 
   const kanban = useMemo(() => {
