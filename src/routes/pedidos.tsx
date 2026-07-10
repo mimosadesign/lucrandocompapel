@@ -57,6 +57,41 @@ function PedidosPage() {
   const [pedidos, setPedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Pedido | null>(null);
+  const { isUnlimited } = useEntitlement();
+  const [lastReset, setLastReset] = useLocalState<string>("lcp:pedidos:lastReset", "");
+
+  // Plano gratuito: no primeiro dia do novo mês, remove pedidos de meses anteriores
+  // para liberar novamente o limite de 20 pedidos/mês.
+  useEffect(() => {
+    if (isUnlimited) return;
+    const now = new Date();
+    const chave = `${now.getFullYear()}-${now.getMonth()}`;
+    if (lastReset === chave) return;
+
+    setPedidos((prev) =>
+      prev.filter((p) => {
+        const ref = p.criadoEm || p.entrega;
+        if (!ref) return true;
+        const d = new Date(ref);
+        if (isNaN(d.getTime())) return true;
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }),
+    );
+    setLastReset(chave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUnlimited, lastReset]);
+
+  // Conta apenas pedidos do mês atual (base do limite gratuito)
+  const pedidosMesAtual = useMemo(() => {
+    const now = new Date();
+    return pedidos.filter((p) => {
+      const ref = p.criadoEm || p.entrega;
+      if (!ref) return true;
+      const d = new Date(ref);
+      if (isNaN(d.getTime())) return true;
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [pedidos]);
 
   const contagens = useMemo(() => {
     const c = { "Em aberto": 0, "Em produção": 0, Pronto: 0, Entregue: 0 };
@@ -69,7 +104,10 @@ function PedidosPage() {
     return c;
   }, [pedidos]);
 
+  const limiteAtingido = !isUnlimited && pedidosMesAtual >= 20;
+
   function novo() {
+    if (limiteAtingido) return;
     setEditing({
       id: crypto.randomUUID(),
       cliente: "",
@@ -79,6 +117,7 @@ function PedidosPage() {
       valor: 0,
       valorEntrega: 0,
       status: "Em aberto",
+      criadoEm: new Date().toISOString(),
     });
     setOpen(true);
   }
