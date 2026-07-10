@@ -195,7 +195,7 @@ function ExecutivoDashboard() {
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Score de saúde</p>
           <div className="mt-3 relative mx-auto h-32 w-32">
             <svg viewBox="0 0 100 100" className="-rotate-90">
-              <circle cx="50" cy="50" r="42" stroke="hsl(var(--muted))" strokeWidth="10" fill="none" />
+              <circle cx="50" cy="50" r="42" stroke="var(--color-muted)" strokeWidth="10" fill="none" />
               <circle
                 cx="50"
                 cy="50"
