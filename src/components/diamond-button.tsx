@@ -70,7 +70,7 @@ export function DiamondButton() {
           <DialogDescription className="text-base text-muted-foreground">
             {isPaid
               ? "Aproveite todos os recursos ilimitados."
-              : <>Plano Diamante — <span className="font-semibold text-foreground">R$ 35,00/mês</span> · todos os recursos <span className="font-semibold text-foreground">ilimitados</span></>}
+              : <>Plano Diamante — <span className="font-semibold text-foreground">R$ 28,00/mês</span> · todos os recursos <span className="font-semibold text-foreground">ilimitados</span></>}
           </DialogDescription>
           {!isPaid && inTrial && (
             <p className="text-xs rounded-full bg-primary/15 px-3 py-1 text-foreground">
