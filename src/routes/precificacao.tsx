@@ -64,15 +64,16 @@ function PrecificacaoPage() {
   ]);
   // Migração: garante que "Aluguel / prestação da casa" apareça mesmo para
   // usuárias que já tinham a lista salva antes desse item existir.
+  // Precisa rodar quando `gastos` for hidratado do localStorage.
   useEffect(() => {
-    if (!gastos.some((g) => g.id === "aluguel")) {
+    if (gastos.length > 0 && !gastos.some((g) => g.id === "aluguel")) {
       setGastos([
         { id: "aluguel", nome: "Aluguel / prestação da casa", valor: "" },
         ...gastos,
       ]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [gastos.length]);
   const [itensDia, setItensDia] = useLocalState<string>("lcp:precif:itensDia", "");
 
   // 2.5 Imprevistos
