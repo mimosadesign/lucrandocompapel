@@ -40,6 +40,7 @@ type Pedido = {
   valor: number;
   valorEntrega: number;
   status: StatusPedido;
+  criadoEm?: string; // ISO — usado no reset mensal do plano gratuito
 };
 
 const statusMap: Record<StatusPedido, string> = {
