@@ -215,7 +215,7 @@ function PedidosPage() {
         )}
       </Card>
 
-      <p className="mt-4 text-xs text-muted-foreground text-center">
+      
       {!isUnlimited && (
         <p className={`mt-4 text-xs text-center ${limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"}`}>
           {pedidosMesAtual} / 20 pedidos no mês (plano gratuito) ·
