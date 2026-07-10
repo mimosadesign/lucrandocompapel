@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Brain, TrendingUp, AlertTriangle, Percent, Save } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
@@ -10,6 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
+
+type NumState = Record<string, string>;
+type Gasto = { id: string; nome: string; valor: string };
+
+function num(v: string | undefined) {
+  if (!v) return 0;
+  const n = parseFloat(v.toString().replace(",", "."));
+  return isNaN(n) ? 0 : n;
+}
 
 export const Route = createFileRoute("/inteligencia")({
   head: () => ({ meta: [{ title: "Inteligência Financeira — Lucrando com Papel" }] }),
