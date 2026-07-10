@@ -146,7 +146,7 @@ function PedidosPage() {
         title="Pedidos"
         description="Controle prazos, pagamentos e entregas do seu ateliê."
         actions={
-          <Button className="rounded-full gap-2" onClick={novo}>
+          <Button className="rounded-full gap-2" onClick={novo} disabled={limiteAtingido}>
             <Plus className="h-4 w-4" /> Novo pedido
           </Button>
         }
