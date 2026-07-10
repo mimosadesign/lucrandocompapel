@@ -92,7 +92,7 @@ export function DiamondButton() {
           {!isPaid && (
             <Button size="lg" className="rounded-full gap-2" onClick={assinar} disabled={loading}>
               <Sparkles className="h-4 w-4" />
-              {loading ? "Carregando..." : "Assinar Diamante por R$ 35,00/mês"}
+              {loading ? "Carregando..." : "Assinar Diamante por R$ 28,00/mês"}
             </Button>
           )}
           <Button
