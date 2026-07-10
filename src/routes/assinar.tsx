@@ -37,7 +37,7 @@ function AssinarPage() {
   const fetchClientSecret = async (): Promise<string> => {
     const result = await createCheckoutSession({
       data: {
-        priceId: "diamante_35_mensal",
+        priceId: "diamante_28_mensal",
         returnUrl: `${window.location.origin}/assinar/sucesso?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
       },
