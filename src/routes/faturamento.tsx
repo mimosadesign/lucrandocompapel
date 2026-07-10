@@ -58,7 +58,27 @@ function FaturamentoDashboard() {
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
   const [meta, setMeta] = useLocalState<number>("lcp:meta", 0);
+  const [precifFat] = useLocalState<Record<string, string>>("lcp:precif:faturamento", {
+    m1: "", m2: "", m3: "", m4: "", m5: "",
+  });
   const [metaInput, setMetaInput] = useState("");
+
+  // Meta sugerida (média dos 5 meses informados em Precificação)
+  const metaSugerida = useMemo(() => {
+    const vals = ["m1","m2","m3","m4","m5"]
+      .map((k) => parseNum(precifFat[k] || ""))
+      .filter((v) => v > 0);
+    if (!vals.length) return 0;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }, [precifFat]);
+
+  // Se ainda não há meta salva, usa a sugestão automaticamente
+  useEffect(() => {
+    if (!meta && metaSugerida > 0) {
+      setMeta(metaSugerida);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metaSugerida]);
 
   useEffect(() => {
     setMetaInput(meta ? String(meta) : "");
