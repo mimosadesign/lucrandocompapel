@@ -216,8 +216,14 @@ function PedidosPage() {
       </Card>
 
       <p className="mt-4 text-xs text-muted-foreground text-center">
-        {pedidos.length} / 20 pedidos no mês (plano gratuito)
-      </p>
+      {!isUnlimited && (
+        <p className={`mt-4 text-xs text-center ${limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+          {pedidosMesAtual} / 20 pedidos no mês (plano gratuito) ·
+          {limiteAtingido
+            ? " limite atingido. Volta a zerar automaticamente no dia 1º do próximo mês."
+            : " zera automaticamente no dia 1º do próximo mês."}
+        </p>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="rounded-3xl sm:max-w-lg">
