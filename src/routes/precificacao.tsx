@@ -64,15 +64,16 @@ function PrecificacaoPage() {
   ]);
   // Migração: garante que "Aluguel / prestação da casa" apareça mesmo para
   // usuárias que já tinham a lista salva antes desse item existir.
+  // Precisa rodar quando `gastos` for hidratado do localStorage.
   useEffect(() => {
-    if (!gastos.some((g) => g.id === "aluguel")) {
+    if (gastos.length > 0 && !gastos.some((g) => g.id === "aluguel")) {
       setGastos([
         { id: "aluguel", nome: "Aluguel / prestação da casa", valor: "" },
         ...gastos,
       ]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [gastos.length]);
   const [itensDia, setItensDia] = useLocalState<string>("lcp:precif:itensDia", "");
 
   // 2.5 Imprevistos
@@ -107,6 +108,13 @@ function PrecificacaoPage() {
     if (horasMes <= 0) return 0;
     return totalCustoMensal / horasMes;
   }, [totalCustoMensal, horasMes]);
+
+  // Persiste globalmente para aparecer no Início e outras telas
+  const [, setValorHoraStored] = useLocalState<number>("lcp:valorHora", 0);
+  useEffect(() => {
+    setValorHoraStored(valorHora);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valorHora]);
 
   const custoMaoDeObra = useMemo(() => {
     return (valorHora / 60) * num(minutos);

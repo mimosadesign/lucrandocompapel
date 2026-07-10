@@ -44,7 +44,7 @@ export function DiamondLock({ title, description, preview }: DiamondLockProps) {
 
           <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-4 py-1.5 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" />
-            Recurso ilimitado do Plano Diamante — R$ 35,00/mês
+            Recurso ilimitado do Plano Diamante — R$ 28,00/mês
           </div>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">

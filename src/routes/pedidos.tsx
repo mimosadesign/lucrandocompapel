@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Calendar, Truck, Trash2, ClipboardList } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useEntitlement } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ type Pedido = {
   valor: number;
   valorEntrega: number;
   status: StatusPedido;
+  criadoEm?: string; // ISO — usado no reset mensal do plano gratuito
 };
 
 const statusMap: Record<StatusPedido, string> = {
@@ -55,6 +57,41 @@ function PedidosPage() {
   const [pedidos, setPedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Pedido | null>(null);
+  const { isUnlimited } = useEntitlement();
+  const [lastReset, setLastReset] = useLocalState<string>("lcp:pedidos:lastReset", "");
+
+  // Plano gratuito: no primeiro dia do novo mês, remove pedidos de meses anteriores
+  // para liberar novamente o limite de 20 pedidos/mês.
+  useEffect(() => {
+    if (isUnlimited) return;
+    const now = new Date();
+    const chave = `${now.getFullYear()}-${now.getMonth()}`;
+    if (lastReset === chave) return;
+
+    setPedidos((prev) =>
+      prev.filter((p) => {
+        const ref = p.criadoEm || p.entrega;
+        if (!ref) return true;
+        const d = new Date(ref);
+        if (isNaN(d.getTime())) return true;
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }),
+    );
+    setLastReset(chave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUnlimited, lastReset]);
+
+  // Conta apenas pedidos do mês atual (base do limite gratuito)
+  const pedidosMesAtual = useMemo(() => {
+    const now = new Date();
+    return pedidos.filter((p) => {
+      const ref = p.criadoEm || p.entrega;
+      if (!ref) return true;
+      const d = new Date(ref);
+      if (isNaN(d.getTime())) return true;
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [pedidos]);
 
   const contagens = useMemo(() => {
     const c = { "Em aberto": 0, "Em produção": 0, Pronto: 0, Entregue: 0 };
@@ -67,7 +104,10 @@ function PedidosPage() {
     return c;
   }, [pedidos]);
 
+  const limiteAtingido = !isUnlimited && pedidosMesAtual >= 20;
+
   function novo() {
+    if (limiteAtingido) return;
     setEditing({
       id: crypto.randomUUID(),
       cliente: "",
@@ -77,6 +117,7 @@ function PedidosPage() {
       valor: 0,
       valorEntrega: 0,
       status: "Em aberto",
+      criadoEm: new Date().toISOString(),
     });
     setOpen(true);
   }
@@ -105,7 +146,7 @@ function PedidosPage() {
         title="Pedidos"
         description="Controle prazos, pagamentos e entregas do seu ateliê."
         actions={
-          <Button className="rounded-full gap-2" onClick={novo}>
+          <Button className="rounded-full gap-2" onClick={novo} disabled={limiteAtingido}>
             <Plus className="h-4 w-4" /> Novo pedido
           </Button>
         }
@@ -174,9 +215,15 @@ function PedidosPage() {
         )}
       </Card>
 
-      <p className="mt-4 text-xs text-muted-foreground text-center">
-        {pedidos.length} / 20 pedidos no mês (plano gratuito)
-      </p>
+      
+      {!isUnlimited && (
+        <p className={`mt-4 text-xs text-center ${limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+          {pedidosMesAtual} / 20 pedidos no mês (plano gratuito) ·
+          {limiteAtingido
+            ? " limite atingido. Volta a zerar automaticamente no dia 1º do próximo mês."
+            : " zera automaticamente no dia 1º do próximo mês."}
+        </p>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="rounded-3xl sm:max-w-lg">

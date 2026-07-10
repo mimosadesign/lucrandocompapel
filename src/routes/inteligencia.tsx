@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Brain, TrendingUp, AlertTriangle, Percent, Save } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
@@ -10,6 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
+
+type NumState = Record<string, string>;
+type Gasto = { id: string; nome: string; valor: string };
+
+function num(v: string | undefined) {
+  if (!v) return 0;
+  const n = parseFloat(v.toString().replace(",", "."));
+  return isNaN(n) ? 0 : n;
+}
 
 export const Route = createFileRoute("/inteligencia")({
   head: () => ({ meta: [{ title: "Inteligência Financeira — Lucrando com Papel" }] }),
@@ -40,7 +49,34 @@ function InteligenciaDashboard() {
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [custoFixo, setCustoFixo] = useLocalState<number>("lcp:custoFixo", 0);
-  
+  const [custoFixoAuto, setCustoFixoAuto] = useLocalState<boolean>("lcp:custoFixoAuto", true);
+
+  // Dados da Precificação para somar custos fixos automaticamente
+  const [trabalho] = useLocalState<NumState>("lcp:precif:trabalho", {
+    horasDia: "", diasMes: "", proLabore: "", funcionario: "",
+    ferias: "", transporte: "", alimentacao: "",
+  });
+  const [gastos] = useLocalState<Gasto[]>("lcp:precif:gastos", []);
+
+  const custoFixoCalc = useMemo(() => {
+    const t =
+      num(trabalho.proLabore) +
+      num(trabalho.funcionario) +
+      num(trabalho.ferias) +
+      num(trabalho.transporte) +
+      num(trabalho.alimentacao);
+    const g = gastos.reduce((acc, x) => acc + num(x.valor), 0);
+    return t + g;
+  }, [trabalho, gastos]);
+
+  // Preenche automaticamente enquanto a usuária não editar manualmente
+  useEffect(() => {
+    if (custoFixoAuto && custoFixoCalc > 0 && custoFixoCalc !== custoFixo) {
+      setCustoFixo(custoFixoCalc);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [custoFixoCalc, custoFixoAuto]);
+
   const [descontoPct, setDescontoPct] = useState(10);
 
   const margemMedia = useMemo(() => {
@@ -121,13 +157,27 @@ function InteligenciaDashboard() {
             <Label className="text-xs uppercase text-muted-foreground">Custo fixo mensal (R$)</Label>
             <MoneyInput
               value={custoFixo}
-              onChange={(n) => setCustoFixo(n)}
+              onChange={(n) => {
+                setCustoFixoAuto(false);
+                setCustoFixo(n);
+              }}
               placeholder="Ex: 2500,00"
               className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              Inclua pró-labore, aluguel, contas, plataformas — tudo que sai todo mês.
+              {custoFixoAuto && custoFixoCalc > 0
+                ? <>Calculado automaticamente com base em Precificação: pró-labore, funcionário, férias, transporte, alimentação e todos os gastos fixos ({brl(custoFixoCalc)}).</>
+                : <>Inclua pró-labore, aluguel, contas, plataformas — tudo que sai todo mês.</>}
             </p>
+            {!custoFixoAuto && custoFixoCalc > 0 && (
+              <button
+                type="button"
+                onClick={() => { setCustoFixoAuto(true); setCustoFixo(custoFixoCalc); }}
+                className="mt-2 text-xs text-primary underline"
+              >
+                Usar cálculo automático ({brl(custoFixoCalc)})
+              </button>
+            )}
           </div>
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">

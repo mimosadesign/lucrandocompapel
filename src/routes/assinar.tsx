@@ -37,7 +37,7 @@ function AssinarPage() {
   const fetchClientSecret = async (): Promise<string> => {
     const result = await createCheckoutSession({
       data: {
-        priceId: "diamante_35_mensal",
+        priceId: "diamante_28_mensal",
         returnUrl: `${window.location.origin}/assinar/sucesso?session_id={CHECKOUT_SESSION_ID}`,
         environment: getStripeEnvironment(),
       },
@@ -63,7 +63,7 @@ function AssinarPage() {
           </div>
           <div>
             <h1 className="font-display text-2xl font-semibold">Plano Diamante</h1>
-            <p className="text-sm text-muted-foreground">R$ 35,00/mês · cobrança mensal recorrente</p>
+            <p className="text-sm text-muted-foreground">R$ 28,00/mês · cobrança mensal recorrente</p>
           </div>
         </div>
 
