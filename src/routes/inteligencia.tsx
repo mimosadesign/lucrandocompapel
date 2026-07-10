@@ -157,13 +157,27 @@ function InteligenciaDashboard() {
             <Label className="text-xs uppercase text-muted-foreground">Custo fixo mensal (R$)</Label>
             <MoneyInput
               value={custoFixo}
-              onChange={(n) => setCustoFixo(n)}
+              onChange={(n) => {
+                setCustoFixoAuto(false);
+                setCustoFixo(n);
+              }}
               placeholder="Ex: 2500,00"
               className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              Inclua pró-labore, aluguel, contas, plataformas — tudo que sai todo mês.
+              {custoFixoAuto && custoFixoCalc > 0
+                ? <>Calculado automaticamente com base em Precificação: pró-labore, funcionário, férias, transporte, alimentação e todos os gastos fixos ({brl(custoFixoCalc)}).</>
+                : <>Inclua pró-labore, aluguel, contas, plataformas — tudo que sai todo mês.</>}
             </p>
+            {!custoFixoAuto && custoFixoCalc > 0 && (
+              <button
+                type="button"
+                onClick={() => { setCustoFixoAuto(true); setCustoFixo(custoFixoCalc); }}
+                className="mt-2 text-xs text-primary underline"
+              >
+                Usar cálculo automático ({brl(custoFixoCalc)})
+              </button>
+            )}
           </div>
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
