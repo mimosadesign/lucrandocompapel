@@ -68,7 +68,7 @@ function OrcamentosPage() {
   );
 
   // Plano gratuito: no dia 1º do novo mês, remove orçamentos de meses anteriores
-  // para liberar novamente o limite de 20/mês.
+  // para liberar novamente o limite de 36/mês.
   useEffect(() => {
     if (isUnlimited) return;
     const now = new Date();
@@ -94,7 +94,7 @@ function OrcamentosPage() {
     }).length;
   }, [salvos]);
 
-  const limiteAtingido = !isUnlimited && orcamentosMesAtual >= 20;
+  const limiteAtingido = !isUnlimited && orcamentosMesAtual >= 36;
 
   const numeroSugerido = useMemo(
     () => String(1000 + salvos.length + 1),
@@ -150,7 +150,7 @@ function OrcamentosPage() {
     const isNovo = idx === -1;
     if (isNovo && limiteAtingido) {
       toast.error(
-        "Limite de 20 orçamentos no mês (plano gratuito). Reseta automaticamente no dia 1º do próximo mês. Assine o Diamante para ilimitado.",
+        "Limite de 36 orçamentos no mês (plano gratuito). Reseta automaticamente no dia 1º do próximo mês. Assine o Diamante para ilimitado.",
       );
       return;
     }
@@ -354,7 +354,7 @@ function OrcamentosPage() {
             limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"
           }`}
         >
-          {orcamentosMesAtual} / 20 orçamentos no mês (plano gratuito) ·{" "}
+          {orcamentosMesAtual} / 36 orçamentos no mês (plano gratuito) ·{" "}
           {limiteAtingido
             ? "limite atingido. Zera automaticamente no dia 1º do próximo mês."
             : "zera automaticamente no dia 1º do próximo mês."}
