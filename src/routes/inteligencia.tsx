@@ -147,6 +147,41 @@ function InteligenciaDashboard() {
         </Card>
       </div>
 
+      <Card className="rounded-3xl p-6 border-primary/30 bg-primary/5">
+        <p className="font-display text-base font-semibold">O que é o Break-even (ponto de empate)?</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          É o valor que você precisa faturar no mês para <strong>empatar</strong> —
+          nem lucro, nem prejuízo. Tudo que entrar acima disso é lucro de verdade.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3 text-sm">
+          <div className="rounded-2xl bg-background/70 p-3">
+            <p className="font-medium">1. Some seus custos fixos</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Tudo que sai todo mês mesmo sem vender: pró-labore, aluguel, internet,
+              contador, plataformas, transporte, alimentação.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-background/70 p-3">
+            <p className="font-medium">2. Divida pela sua margem</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Sua margem média é <strong>{margemMedia.toFixed(0)}%</strong>. Só essa
+              parte de cada venda sobra para pagar os custos fixos.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-background/70 p-3">
+            <p className="font-medium">3. Esse é o seu alvo</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Faturando <strong>{brl(breakEvenReais)}</strong> no mês, você paga
+              todas as contas. Vender mais que isso já é lucro.
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-4">
+          Exemplo simples: se seus custos fixos são R$ 2.000 e a margem média é 40%,
+          você precisa faturar R$ 5.000 no mês (2.000 ÷ 0,40) para empatar.
+        </p>
+      </Card>
+
       <Card className="rounded-3xl p-6">
         <p className="font-display text-base font-semibold">Quanto você precisa faturar para empatar?</p>
         <p className="text-sm text-muted-foreground mt-1">
