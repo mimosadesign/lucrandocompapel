@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Settings,
   Gem,
+  Scissors,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 
@@ -33,6 +34,7 @@ const mainItems = [
   { title: "Perfil do Ateliê", url: "/perfil", icon: User },
   { title: "Precificação e Custos", url: "/precificacao", icon: Calculator },
   { title: "Materiais", url: "/materiais", icon: Package },
+  { title: "Precificar Item", url: "/precificar-item", icon: Scissors },
   { title: "Produtos", url: "/produtos", icon: Gift },
   { title: "Catálogo", url: "/catalogo", icon: ShoppingBag },
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },

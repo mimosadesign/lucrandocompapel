@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as PrecificarItemRouteImport } from './routes/precificar-item'
 import { Route as PrecificacaoRouteImport } from './routes/precificacao'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PedidosRouteImport } from './routes/pedidos'
@@ -35,6 +36,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecificarItemRoute = PrecificarItemRouteImport.update({
+  id: '/precificar-item',
+  path: '/precificar-item',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrecificacaoRoute = PrecificacaoRouteImport.update({
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/pedidos': typeof PedidosRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
+  '/precificar-item': typeof PrecificarItemRoute
   '/produtos': typeof ProdutosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/pedidos': typeof PedidosRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
+  '/precificar-item': typeof PrecificarItemRoute
   '/produtos': typeof ProdutosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/pedidos': typeof PedidosRoute
   '/perfil': typeof PerfilRoute
   '/precificacao': typeof PrecificacaoRoute
+  '/precificar-item': typeof PrecificarItemRoute
   '/produtos': typeof ProdutosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/precificacao'
+    | '/precificar-item'
     | '/produtos'
     | '/reset-password'
     | '/assinar/sucesso'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/precificacao'
+    | '/precificar-item'
     | '/produtos'
     | '/reset-password'
     | '/assinar/sucesso'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/precificacao'
+    | '/precificar-item'
     | '/produtos'
     | '/reset-password'
     | '/assinar/sucesso'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   PedidosRoute: typeof PedidosRoute
   PerfilRoute: typeof PerfilRoute
   PrecificacaoRoute: typeof PrecificacaoRoute
+  PrecificarItemRoute: typeof PrecificarItemRoute
   ProdutosRoute: typeof ProdutosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   CDataRoute: typeof CDataRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precificar-item': {
+      id: '/precificar-item'
+      path: '/precificar-item'
+      fullPath: '/precificar-item'
+      preLoaderRoute: typeof PrecificarItemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/precificacao': {
@@ -399,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   PedidosRoute: PedidosRoute,
   PerfilRoute: PerfilRoute,
   PrecificacaoRoute: PrecificacaoRoute,
+  PrecificarItemRoute: PrecificarItemRoute,
   ProdutosRoute: ProdutosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   CDataRoute: CDataRoute,
