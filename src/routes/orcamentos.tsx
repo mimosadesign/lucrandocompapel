@@ -216,7 +216,7 @@ function OrcamentosPage() {
 
     // Tabela de itens
     doc.setFont("helvetica", "bold");
-    doc.setFillColor(240);
+    doc.setFillColor(240, 240, 240);
     doc.rect(marginX, y, pageW - marginX * 2, 22, "F");
     doc.text("Descrição", marginX + 8, y + 15);
     doc.text("Qtd", pageW - marginX - 210, y + 15, { align: "right" });
