@@ -13,6 +13,7 @@ import {
   Settings,
   Gem,
   Scissors,
+  FileText,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 
@@ -38,6 +39,7 @@ const mainItems = [
   { title: "Produtos", url: "/produtos", icon: Gift },
   { title: "Catálogo", url: "/catalogo", icon: ShoppingBag },
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },
+  { title: "Orçamentos", url: "/orcamentos", icon: FileText },
 ];
 
 const diamondItems = [
