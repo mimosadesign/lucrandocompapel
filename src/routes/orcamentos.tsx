@@ -348,6 +348,19 @@ function OrcamentosPage() {
         }
       />
 
+      {!isUnlimited && (
+        <p
+          className={`-mt-2 text-xs ${
+            limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"
+          }`}
+        >
+          {orcamentosMesAtual} / 20 orçamentos no mês (plano gratuito) ·{" "}
+          {limiteAtingido
+            ? "limite atingido. Zera automaticamente no dia 1º do próximo mês."
+            : "zera automaticamente no dia 1º do próximo mês."}
+        </p>
+      )}
+
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
         <div className="mb-5 flex items-center gap-2">
           <FileText className="h-4 w-4" />
