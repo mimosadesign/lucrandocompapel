@@ -14,8 +14,10 @@ import {
   Gem,
   Scissors,
   FileText,
+  ShieldCheck,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
+import { useIsAdmin } from "@/lib/auth";
 
 import {
   Sidebar,
@@ -58,6 +60,7 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
+  const isAdmin = useIsAdmin();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -133,6 +136,20 @@ export function AppSidebar() {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/admin")}
+                    className="rounded-full"
+                  >
+                    <Link to="/admin">
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>Admin</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {bottomItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton

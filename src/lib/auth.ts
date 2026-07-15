@@ -8,11 +8,27 @@ const TRIAL_DAYS = 25;
 // Contas com acesso vitalício (sem cobrança / sem expiração de trial)
 const LIFETIME_EMAILS = new Set<string>([
   "mimosavacadesign@gmail.com",
+  "marcelle.s.lima1@gmail.com",
+]);
+
+// Contas com acesso ao painel administrativo (métricas, lista de usuários)
+const ADMIN_EMAILS = new Set<string>([
+  "mimosavacadesign@gmail.com",
 ]);
 
 function hasLifetimeAccess(email: string | null | undefined): boolean {
   if (!email) return false;
   return LIFETIME_EMAILS.has(email.trim().toLowerCase());
+}
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.has(email.trim().toLowerCase());
+}
+
+export function useIsAdmin() {
+  const { user } = useUser();
+  return isAdminEmail(user?.email);
 }
 
 export type Profile = {
