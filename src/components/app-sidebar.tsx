@@ -14,8 +14,10 @@ import {
   Gem,
   Scissors,
   FileText,
+  ShieldCheck,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
+import { useIsAdmin } from "@/lib/auth";
 
 import {
   Sidebar,
