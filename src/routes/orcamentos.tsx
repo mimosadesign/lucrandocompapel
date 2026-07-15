@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
-import { useUser } from "@/lib/auth";
+import { useUser, useEntitlement } from "@/lib/auth";
 
 export const Route = createFileRoute("/orcamentos")({
   head: () => ({ meta: [{ title: "Orçamentos — Lucrando com Papel" }] }),
@@ -55,12 +55,46 @@ function novoOrcamento(chavePixPadrao: string, numeroSugerido: string): Orcament
 
 function OrcamentosPage() {
   const { user } = useUser();
+  const { isUnlimited } = useEntitlement();
   const [chavePixPadrao, setChavePixPadrao] = useLocalState<string>(
     "lcp:chavePix",
     "",
   );
   const [logo] = useLocalState<string>("lcp:logo", "");
   const [salvos, setSalvos] = useLocalState<Orcamento[]>("lcp:orcamentos", []);
+  const [lastReset, setLastReset] = useLocalState<string>(
+    "lcp:orcamentos:lastReset",
+    "",
+  );
+
+  // Plano gratuito: no dia 1º do novo mês, remove orçamentos de meses anteriores
+  // para liberar novamente o limite de 20/mês.
+  useEffect(() => {
+    if (isUnlimited) return;
+    const now = new Date();
+    const chave = `${now.getFullYear()}-${now.getMonth()}`;
+    if (lastReset === chave) return;
+    setSalvos((prev) =>
+      prev.filter((o) => {
+        const d = new Date(o.criadoEm);
+        if (isNaN(d.getTime())) return true;
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }),
+    );
+    setLastReset(chave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUnlimited, lastReset]);
+
+  const orcamentosMesAtual = useMemo(() => {
+    const now = new Date();
+    return salvos.filter((o) => {
+      const d = new Date(o.criadoEm);
+      if (isNaN(d.getTime())) return false;
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [salvos]);
+
+  const limiteAtingido = !isUnlimited && orcamentosMesAtual >= 20;
 
   const numeroSugerido = useMemo(
     () => String(1000 + salvos.length + 1),
@@ -113,8 +147,15 @@ function OrcamentosPage() {
       return;
     }
     const idx = salvos.findIndex((s) => s.id === orc.id);
+    const isNovo = idx === -1;
+    if (isNovo && limiteAtingido) {
+      toast.error(
+        "Limite de 20 orçamentos no mês (plano gratuito). Reseta automaticamente no dia 1º do próximo mês. Assine o Diamante para ilimitado.",
+      );
+      return;
+    }
     const prox = [...salvos];
-    if (idx === -1) prox.unshift(orc);
+    if (isNovo) prox.unshift(orc);
     else prox[idx] = orc;
     setSalvos(prox);
     if (orc.chavePix && orc.chavePix !== chavePixPadrao) {
@@ -306,6 +347,19 @@ function OrcamentosPage() {
           </div>
         }
       />
+
+      {!isUnlimited && (
+        <p
+          className={`-mt-2 text-xs ${
+            limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"
+          }`}
+        >
+          {orcamentosMesAtual} / 20 orçamentos no mês (plano gratuito) ·{" "}
+          {limiteAtingido
+            ? "limite atingido. Zera automaticamente no dia 1º do próximo mês."
+            : "zera automaticamente no dia 1º do próximo mês."}
+        </p>
+      )}
 
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
         <div className="mb-5 flex items-center gap-2">
