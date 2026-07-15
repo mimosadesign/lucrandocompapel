@@ -60,6 +60,7 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
+  const isAdmin = useIsAdmin();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
