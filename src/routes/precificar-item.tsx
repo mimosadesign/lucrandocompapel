@@ -234,7 +234,9 @@ function PrecificarItemPage() {
     if (existe === -1) proximo.push(item);
     else proximo[existe] = item;
     setSalvos(proximo);
-    toast.success("Precificação salva!");
+    toast.success("Precificação salva! Comece um novo item ou abra um da lista abaixo.");
+    // libera o formulário para o próximo item (evita a impressão de que só cabe um)
+    setItem(novoItem());
   }
   function reset() {
     setItem(novoItem());
