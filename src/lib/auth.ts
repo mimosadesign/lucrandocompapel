@@ -256,7 +256,9 @@ export function useEntitlement() {
     inTrial,
     daysLeft,
     isPaid,
+    isLifetime: lifetime,
     isUnlimited,
+    trialExpired,
     ready: ready && subReady,
   };
 }
