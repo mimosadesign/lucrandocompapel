@@ -38,6 +38,27 @@ export type Database = {
         }
         Relationships: []
       }
+      lifetime_emails: {
+        Row: {
+          created_at: string
+          email: string
+          granted_by: string | null
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          granted_by?: string | null
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          granted_by?: string | null
+          note?: string | null
+        }
+        Relationships: []
+      }
       materiais: {
         Row: {
           created_at: string
