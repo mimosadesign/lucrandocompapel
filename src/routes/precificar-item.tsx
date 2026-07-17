@@ -186,9 +186,7 @@ function PrecificarItemPage() {
   const custoMaquinaTotal = custoBaseCorte + custoLaminaItem;
 
   const custoImpressaoItem = custoTintaPagina * item.paginasImpressas;
-  const custoTesouraItem = item.usaTesoura
-    ? custoTesouraPorCorte * item.cortesManuais
-    : 0;
+  const custoTesouraItem = custoTesouraPorCorte * item.cortesManuais;
 
   const custoTotal =
     custoMateriais +
