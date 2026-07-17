@@ -59,6 +59,41 @@ function AdminPage() {
     staleTime: 60_000,
   });
 
+  const grantFn = useServerFn(grantLifetimeAccess);
+  const revokeFn = useServerFn(revokeLifetimeAccess);
+  const [giftEmail, setGiftEmail] = useState("");
+  const [giftLoading, setGiftLoading] = useState(false);
+
+  async function handleGrant(email: string) {
+    const target = email.trim().toLowerCase();
+    if (!target || !target.includes("@")) {
+      toast.error("Digite um e-mail válido");
+      return;
+    }
+    setGiftLoading(true);
+    try {
+      await grantFn({ data: { email: target } });
+      toast.success(`Acesso vitalício presenteado para ${target}`);
+      setGiftEmail("");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao conceder acesso");
+    } finally {
+      setGiftLoading(false);
+    }
+  }
+
+  async function handleRevoke(email: string) {
+    if (!confirm(`Remover acesso vitalício de ${email}?`)) return;
+    try {
+      await revokeFn({ data: { email } });
+      toast.success("Acesso vitalício removido");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao remover acesso");
+    }
+  }
+
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"todos" | "diamante" | "trial">("todos");
 
