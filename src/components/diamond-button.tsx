@@ -90,10 +90,15 @@ export function DiamondButton() {
 
         <div className="flex flex-col gap-2 pt-2">
           {!isPaid && (
-            <Button size="lg" className="rounded-full gap-2" onClick={assinar} disabled={loading}>
-              <Sparkles className="h-4 w-4" />
-              {loading ? "Carregando..." : "Assinar Diamante por R$ 18,00/mês"}
-            </Button>
+            <>
+              <Button size="lg" className="rounded-full gap-2" onClick={assinar} disabled={loading}>
+                <Sparkles className="h-4 w-4" />
+                {loading ? "Carregando..." : "Assinar Diamante — R$ 18,00/mês"}
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">
+                Só <span className="font-semibold text-foreground">R$ 0,60 por dia</span> para ter tudo liberado.
+              </p>
+            </>
           )}
           <Button
             variant="ghost"
@@ -101,7 +106,7 @@ export function DiamondButton() {
             className="rounded-full text-muted-foreground"
             onClick={() => setOpen(false)}
           >
-            Fechar
+            Talvez mais tarde
           </Button>
         </div>
       </DialogContent>
