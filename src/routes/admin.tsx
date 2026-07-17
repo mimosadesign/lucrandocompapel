@@ -259,6 +259,7 @@ function AdminPage() {
                     <th className="py-2 pr-3">Plano</th>
                     <th className="py-2 pr-3">Cadastro</th>
                     <th className="py-2 pr-3">Último login</th>
+                    <th className="py-2 pr-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -285,7 +286,9 @@ function AdminPage() {
                         {[u.cidade, u.estado].filter(Boolean).join("/") || "—"}
                       </td>
                       <td className="py-2 pr-3">
-                        {u.is_diamante ? (
+                        {u.is_lifetime ? (
+                          <Badge className="bg-diamond/30 text-foreground hover:bg-diamond/30">🎁 Vitalício</Badge>
+                        ) : u.is_diamante ? (
                           <Badge className="bg-diamond/20 text-foreground hover:bg-diamond/20">💎 Diamante</Badge>
                         ) : (
                           <Badge variant="outline">Gratuito</Badge>
@@ -297,11 +300,32 @@ function AdminPage() {
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
                         {u.last_sign_in_at ? formatDate(u.last_sign_in_at) : "nunca"}
                       </td>
+                      <td className="py-2 pr-3">
+                        {u.is_lifetime ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleRevoke(u.email)}
+                            className="text-xs text-muted-foreground hover:text-destructive"
+                          >
+                            Remover vitalício
+                          </Button>
+                        ) : u.email ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleGrant(u.email)}
+                            className="text-xs gap-1"
+                          >
+                            <Gift className="h-3 w-3" /> Presentear
+                          </Button>
+                        ) : null}
+                      </td>
                     </tr>
                   ))}
                   {!filtered.length && (
                     <tr>
-                      <td colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
+                      <td colSpan={9} className="py-6 text-center text-sm text-muted-foreground">
                         Nenhum cadastro encontrado.
                       </td>
                     </tr>
