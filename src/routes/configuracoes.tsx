@@ -21,7 +21,7 @@ export const Route = createFileRoute("/configuracoes")({
 function ConfigPage() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { isPaid, sub, daysLeft, inTrial } = useEntitlement();
+  const { isPaid, sub, daysLeft, inTrial, isLifetime } = useEntitlement();
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loadingEmail, setLoadingEmail] = useState(false);
