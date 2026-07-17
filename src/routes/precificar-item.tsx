@@ -725,7 +725,7 @@ function PrecificarItemPage() {
           />
           <Linha label="Máquina (base + lâmina)" value={brl(custoMaquinaTotal)} />
           <Linha label="Impressão" value={brl(custoImpressaoItem)} />
-          {item.usaTesoura && (
+          {item.cortesManuais > 0 && (
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
         </div>
