@@ -2,14 +2,20 @@ import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-r
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminMetrics, type AdminUserRow } from "@/lib/admin.functions";
+import {
+  getAdminMetrics,
+  grantLifetimeAccess,
+  revokeLifetimeAccess,
+  type AdminUserRow,
+} from "@/lib/admin.functions";
 import { useUser, isAdminEmail } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Gem, TrendingUp, UserPlus, Download, Search } from "lucide-react";
+import { Users, Gem, TrendingUp, UserPlus, Download, Search, Gift, X } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
