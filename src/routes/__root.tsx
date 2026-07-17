@@ -137,6 +137,40 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function TrialExpiredDialog() {
+  const { trialExpired } = useEntitlement();
+  const navigate = useNavigate();
+  if (!trialExpired) return null;
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-3xl bg-card p-6 shadow-2xl text-center">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-diamond/25">
+          <span className="text-2xl">💎</span>
+        </div>
+        <h2 className="mt-4 font-display text-xl font-semibold">
+          Seus 25 dias de teste grátis acabaram
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Continue crescendo com o Plano Diamante por apenas
+          <span className="font-semibold text-foreground"> R$ 18,00/mês</span> —
+          menos de <span className="font-semibold text-foreground">R$ 0,60 por dia</span> para
+          desbloquear tudo de novo.
+        </p>
+        <Button
+          size="lg"
+          className="mt-5 w-full rounded-full gap-2"
+          onClick={() => navigate({ to: "/assinar" })}
+        >
+          Assinar Diamante agora
+        </Button>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Enquanto isso, os recursos Pró ficam bloqueados. Você pode revisar seus dados básicos normalmente.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function AppLayout() {
   const { user } = useUser();
   const { inTrial, daysLeft, isPaid, isUnlimited } = useEntitlement();
@@ -201,6 +235,7 @@ function AppLayout() {
           </main>
         </div>
       </div>
+      <TrialExpiredDialog />
     </SidebarProvider>
   );
 }

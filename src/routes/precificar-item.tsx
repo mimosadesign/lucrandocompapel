@@ -186,9 +186,7 @@ function PrecificarItemPage() {
   const custoMaquinaTotal = custoBaseCorte + custoLaminaItem;
 
   const custoImpressaoItem = custoTintaPagina * item.paginasImpressas;
-  const custoTesouraItem = item.usaTesoura
-    ? custoTesouraPorCorte * item.cortesManuais
-    : 0;
+  const custoTesouraItem = custoTesouraPorCorte * item.cortesManuais;
 
   const custoTotal =
     custoMateriais +
@@ -289,7 +287,7 @@ function PrecificarItemPage() {
         brl(custoImpressaoItem),
       ],
     ];
-    if (item.usaTesoura) {
+    if (item.cortesManuais > 0) {
       linhas.push([
         `Tesoura / corte manual (${item.cortesManuais} cortes)`,
         brl(custoTesouraItem),
@@ -644,31 +642,24 @@ function PrecificarItemPage() {
             </div>
 
             <div className="border-t border-border/60 pt-5 space-y-4">
-              <label className="flex items-center gap-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={item.usaTesoura}
-                  onChange={(e) => setItem({ ...item, usaTesoura: e.target.checked })}
-                  className="h-4 w-4 rounded border-border"
-                />
-                Este item usa corte manual (tesoura)
-              </label>
-              {item.usaTesoura && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-1.5">
-                    <Label>Quantidade de cortes manuais neste item</Label>
-                    <MoneyInput
-                      value={item.cortesManuais}
-                      onChange={(n) => setItem({ ...item, cortesManuais: n })}
-                    />
-                  </div>
-                  <Linha
-                    label="Custo tesoura neste item"
-                    value={brl(custoTesouraItem)}
-                    highlight
+              <p className="text-sm text-muted-foreground">
+                Se este item tem cortes manuais, informe a quantidade — o custo é calculado
+                automaticamente com base nos dados acima.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-1.5">
+                  <Label>Quantidade de cortes manuais neste item</Label>
+                  <MoneyInput
+                    value={item.cortesManuais}
+                    onChange={(n) => setItem({ ...item, cortesManuais: n })}
                   />
                 </div>
-              )}
+                <Linha
+                  label="Custo tesoura neste item"
+                  value={brl(custoTesouraItem)}
+                  highlight
+                />
+              </div>
             </div>
           </TabsContent>
         </Tabs>
@@ -734,7 +725,7 @@ function PrecificarItemPage() {
           />
           <Linha label="Máquina (base + lâmina)" value={brl(custoMaquinaTotal)} />
           <Linha label="Impressão" value={brl(custoImpressaoItem)} />
-          {item.usaTesoura && (
+          {item.cortesManuais > 0 && (
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
         </div>

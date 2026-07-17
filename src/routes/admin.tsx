@@ -2,14 +2,20 @@ import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-r
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminMetrics, type AdminUserRow } from "@/lib/admin.functions";
+import {
+  getAdminMetrics,
+  grantLifetimeAccess,
+  revokeLifetimeAccess,
+  type AdminUserRow,
+} from "@/lib/admin.functions";
 import { useUser, isAdminEmail } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Gem, TrendingUp, UserPlus, Download, Search } from "lucide-react";
+import { Users, Gem, TrendingUp, UserPlus, Download, Search, Gift, X } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -52,6 +58,41 @@ function AdminPage() {
     enabled: ready && !!user && isAdmin,
     staleTime: 60_000,
   });
+
+  const grantFn = useServerFn(grantLifetimeAccess);
+  const revokeFn = useServerFn(revokeLifetimeAccess);
+  const [giftEmail, setGiftEmail] = useState("");
+  const [giftLoading, setGiftLoading] = useState(false);
+
+  async function handleGrant(email: string) {
+    const target = email.trim().toLowerCase();
+    if (!target || !target.includes("@")) {
+      toast.error("Digite um e-mail válido");
+      return;
+    }
+    setGiftLoading(true);
+    try {
+      await grantFn({ data: { email: target } });
+      toast.success(`Acesso vitalício presenteado para ${target}`);
+      setGiftEmail("");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao conceder acesso");
+    } finally {
+      setGiftLoading(false);
+    }
+  }
+
+  async function handleRevoke(email: string) {
+    if (!confirm(`Remover acesso vitalício de ${email}?`)) return;
+    try {
+      await revokeFn({ data: { email } });
+      toast.success("Acesso vitalício removido");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao remover acesso");
+    }
+  }
 
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"todos" | "diamante" | "trial">("todos");
@@ -96,6 +137,62 @@ function AdminPage() {
         <MetricCard icon={<TrendingUp className="h-4 w-4" />} label="Ativos (30 dias)" value={data?.activeLast30d ?? "—"} sub={`${data?.activeLast7d ?? "—"} nos últimos 7 dias`} />
         <MetricCard icon={<Gem className="h-4 w-4 text-diamond" />} label="Assinantes Diamante" value={data?.diamanteCount ?? "—"} sub={`${data?.trialCount ?? "—"} em período de teste`} />
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Gift className="h-4 w-4 text-diamond" />
+            <CardTitle className="text-base">Presentear acesso vitalício</CardTitle>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Cadastre o e-mail (pode ser antes mesmo da pessoa se cadastrar). Ela terá
+            todos os recursos Diamante liberados para sempre, sem cobrança.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              value={giftEmail}
+              onChange={(e) => setGiftEmail(e.target.value)}
+              placeholder="email@exemplo.com"
+              className="w-80"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleGrant(giftEmail);
+              }}
+            />
+            <Button
+              onClick={() => void handleGrant(giftEmail)}
+              disabled={giftLoading || !giftEmail.trim()}
+              className="gap-2"
+            >
+              <Gift className="h-4 w-4" />
+              {giftLoading ? "Presenteando…" : "Presentear vitalício"}
+            </Button>
+          </div>
+          {data?.lifetime && data.lifetime.length > 0 && (
+            <div className="rounded-2xl border border-border/60 p-3">
+              <p className="mb-2 text-xs uppercase text-muted-foreground">
+                Acessos vitalícios ativos ({data.lifetime.length})
+              </p>
+              <ul className="space-y-1">
+                {data.lifetime.map((l) => (
+                  <li key={l.email} className="flex items-center justify-between text-sm">
+                    <span>💎 {l.email}</span>
+                    <button
+                      onClick={() => void handleRevoke(l.email)}
+                      className="rounded-full p-1 text-muted-foreground hover:text-destructive"
+                      aria-label={`Remover ${l.email}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -162,6 +259,7 @@ function AdminPage() {
                     <th className="py-2 pr-3">Plano</th>
                     <th className="py-2 pr-3">Cadastro</th>
                     <th className="py-2 pr-3">Último login</th>
+                    <th className="py-2 pr-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -188,7 +286,9 @@ function AdminPage() {
                         {[u.cidade, u.estado].filter(Boolean).join("/") || "—"}
                       </td>
                       <td className="py-2 pr-3">
-                        {u.is_diamante ? (
+                        {u.is_lifetime ? (
+                          <Badge className="bg-diamond/30 text-foreground hover:bg-diamond/30">🎁 Vitalício</Badge>
+                        ) : u.is_diamante ? (
                           <Badge className="bg-diamond/20 text-foreground hover:bg-diamond/20">💎 Diamante</Badge>
                         ) : (
                           <Badge variant="outline">Gratuito</Badge>
@@ -200,11 +300,32 @@ function AdminPage() {
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
                         {u.last_sign_in_at ? formatDate(u.last_sign_in_at) : "nunca"}
                       </td>
+                      <td className="py-2 pr-3">
+                        {u.is_lifetime ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleRevoke(u.email)}
+                            className="text-xs text-muted-foreground hover:text-destructive"
+                          >
+                            Remover vitalício
+                          </Button>
+                        ) : u.email ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleGrant(u.email)}
+                            className="text-xs gap-1"
+                          >
+                            <Gift className="h-3 w-3" /> Presentear
+                          </Button>
+                        ) : null}
+                      </td>
                     </tr>
                   ))}
                   {!filtered.length && (
                     <tr>
-                      <td colSpan={8} className="py-6 text-center text-sm text-muted-foreground">
+                      <td colSpan={9} className="py-6 text-center text-sm text-muted-foreground">
                         Nenhum cadastro encontrado.
                       </td>
                     </tr>

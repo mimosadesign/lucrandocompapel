@@ -21,7 +21,7 @@ export const Route = createFileRoute("/configuracoes")({
 function ConfigPage() {
   const navigate = useNavigate();
   const { user } = useUser();
-  const { isPaid, sub, daysLeft, inTrial } = useEntitlement();
+  const { isPaid, sub, daysLeft, inTrial, isLifetime } = useEntitlement();
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loadingEmail, setLoadingEmail] = useState(false);
@@ -108,7 +108,11 @@ function ConfigPage() {
           </div>
           <div className="flex-1">
             <p className="font-medium">Plano Diamante</p>
-            {isPaid ? (
+            {isLifetime ? (
+              <p className="text-sm text-muted-foreground">
+                💎 Acesso vitalício ativo — você não paga assinatura e tem todos os recursos liberados para sempre.
+              </p>
+            ) : isPaid ? (
               <p className="text-sm text-muted-foreground">
                 Ativo
                 {sub?.cancel_at_period_end ? " (cancelamento agendado)" : ""}
@@ -124,7 +128,7 @@ function ConfigPage() {
               </p>
             )}
           </div>
-          {isPaid ? (
+          {isLifetime ? null : isPaid ? (
             <Button
               variant="outline"
               className="rounded-full border-foreground/20 gap-2"

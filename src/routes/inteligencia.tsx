@@ -78,12 +78,15 @@ function InteligenciaDashboard() {
   }, [custoFixoCalc, custoFixoAuto]);
 
   const [descontoPct, setDescontoPct] = useState(10);
+  const [margemManual, setMargemManual] = useLocalState<number>("lcp:breakeven:margemManual", 0);
 
-  const margemMedia = useMemo(() => {
+  const margemMediaProdutos = useMemo(() => {
     const validos = produtos.filter((p) => p.margemPct > 0);
     if (!validos.length) return 0;
     return validos.reduce((s, p) => s + p.margemPct, 0) / validos.length;
   }, [produtos]);
+  // Se ainda não há produtos com margem, usa a margem informada manualmente
+  const margemMedia = margemMediaProdutos > 0 ? margemMediaProdutos : margemManual;
 
   const ticketMedio = useMemo(() => {
     const ativos = pedidos.filter((p) => p.status !== "Cancelado");
@@ -212,6 +215,23 @@ function InteligenciaDashboard() {
               >
                 Usar cálculo automático ({brl(custoFixoCalc)})
               </button>
+            )}
+            {margemMediaProdutos <= 0 && (
+              <div className="mt-4">
+                <Label className="text-xs uppercase text-muted-foreground">
+                  Margem média que você usa (%)
+                </Label>
+                <MoneyInput
+                  value={margemManual}
+                  onChange={setMargemManual}
+                  placeholder="Ex: 40"
+                  className="mt-1.5 h-11 rounded-full border-border/70 bg-background px-4"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Assim que você cadastrar produtos com margem, esse campo é substituído
+                  automaticamente pela média deles.
+                </p>
+              </div>
             )}
           </div>
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">

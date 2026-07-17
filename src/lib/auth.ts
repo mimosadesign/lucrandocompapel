@@ -192,17 +192,19 @@ export function useUser() {
 }
 
 /**
- * Hook de entitlement: combina trial + assinatura ativa.
+ * Hook de entitlement: combina trial + assinatura ativa + acesso vitalício.
  */
 export function useEntitlement() {
   const { user, ready } = useUser();
   const [sub, setSub] = useState<SubscriptionRow | null>(null);
   const [subReady, setSubReady] = useState(false);
+  const [dbLifetime, setDbLifetime] = useState(false);
 
   useEffect(() => {
     if (!user) {
       setSub(null);
       setSubReady(true);
+      setDbLifetime(false);
       return;
     }
     let active = true;
@@ -212,7 +214,15 @@ export function useEntitlement() {
       setSub(s);
       setSubReady(true);
     })();
-    // realtime: refresh on any change to user's subscription
+    void (async () => {
+      if (!user.email) return;
+      const { data } = await supabase
+        .from("lifetime_emails")
+        .select("email")
+        .eq("email", user.email.toLowerCase())
+        .maybeSingle();
+      if (active) setDbLifetime(!!data);
+    })();
     const channel = supabase
       .channel(`sub-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on(
@@ -230,13 +240,14 @@ export function useEntitlement() {
       active = false;
       void supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
-  const lifetime = hasLifetimeAccess(user?.email);
+  const lifetime = hasLifetimeAccess(user?.email) || dbLifetime;
   const inTrial = lifetime ? true : isTrialActive(user);
   const daysLeft = lifetime ? 9999 : trialDaysLeft(user);
   const isPaid = lifetime ? true : isSubActive(sub);
   const isUnlimited = lifetime || inTrial || isPaid;
+  const trialExpired = !!user && !lifetime && !isPaid && !inTrial && !!user.trialStart;
 
 
   return {
@@ -245,7 +256,9 @@ export function useEntitlement() {
     inTrial,
     daysLeft,
     isPaid,
+    isLifetime: lifetime,
     isUnlimited,
+    trialExpired,
     ready: ready && subReady,
   };
 }
