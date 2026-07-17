@@ -78,12 +78,15 @@ function InteligenciaDashboard() {
   }, [custoFixoCalc, custoFixoAuto]);
 
   const [descontoPct, setDescontoPct] = useState(10);
+  const [margemManual, setMargemManual] = useLocalState<number>("lcp:breakeven:margemManual", 0);
 
-  const margemMedia = useMemo(() => {
+  const margemMediaProdutos = useMemo(() => {
     const validos = produtos.filter((p) => p.margemPct > 0);
     if (!validos.length) return 0;
     return validos.reduce((s, p) => s + p.margemPct, 0) / validos.length;
   }, [produtos]);
+  // Se ainda não há produtos com margem, usa a margem informada manualmente
+  const margemMedia = margemMediaProdutos > 0 ? margemMediaProdutos : margemManual;
 
   const ticketMedio = useMemo(() => {
     const ativos = pedidos.filter((p) => p.status !== "Cancelado");
