@@ -287,7 +287,7 @@ function PrecificarItemPage() {
         brl(custoImpressaoItem),
       ],
     ];
-    if (item.usaTesoura) {
+    if (item.cortesManuais > 0) {
       linhas.push([
         `Tesoura / corte manual (${item.cortesManuais} cortes)`,
         brl(custoTesouraItem),
