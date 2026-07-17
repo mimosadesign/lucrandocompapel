@@ -5,6 +5,13 @@ const ADMIN_EMAILS = new Set<string>([
   "mimosavacadesign@gmail.com",
 ]);
 
+function assertAdmin(email: string | undefined) {
+  const e = email?.toLowerCase();
+  if (!e || !ADMIN_EMAILS.has(e)) {
+    throw new Response("Forbidden", { status: 403 });
+  }
+}
+
 export type AdminUserRow = {
   id: string;
   email: string;
@@ -17,8 +24,15 @@ export type AdminUserRow = {
   last_sign_in_at: string | null;
   trial_start: string | null;
   is_diamante: boolean;
+  is_lifetime: boolean;
   subscription_status: string | null;
   current_period_end: string | null;
+};
+
+export type LifetimeGrant = {
+  email: string;
+  note: string | null;
+  created_at: string;
 };
 
 export type AdminMetrics = {
@@ -29,19 +43,16 @@ export type AdminMetrics = {
   diamanteCount: number;
   trialCount: number;
   users: AdminUserRow[];
+  lifetime: LifetimeGrant[];
 };
 
 export const getAdminMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminMetrics> => {
-    const callerEmail = (context.claims?.email as string | undefined)?.toLowerCase();
-    if (!callerEmail || !ADMIN_EMAILS.has(callerEmail)) {
-      throw new Response("Forbidden", { status: 403 });
-    }
+    assertAdmin(context.claims?.email as string | undefined);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // List all auth users (paginated)
     const authUsers: Array<{
       id: string;
       email: string | null;
@@ -87,12 +98,19 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
       });
     }
 
+    const { data: lifetimeRows } = await supabaseAdmin
+      .from("lifetime_emails")
+      .select("email, note, created_at")
+      .order("created_at", { ascending: false });
+    const lifetimeSet = new Set((lifetimeRows ?? []).map((r) => r.email.toLowerCase()));
+
     const now = Date.now();
     const day = 24 * 60 * 60 * 1000;
 
     const rows: AdminUserRow[] = authUsers.map((u) => {
       const p = profMap.get(u.id);
       const s = subMap.get(u.id);
+      const isLifetime = !!u.email && lifetimeSet.has(u.email.toLowerCase());
       const active =
         !!s &&
         ["active", "trialing", "past_due"].includes(s.status) &&
@@ -108,7 +126,8 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at,
         trial_start: p?.trial_start ?? null,
-        is_diamante: active,
+        is_diamante: active || isLifetime,
+        is_lifetime: isLifetime,
         subscription_status: s?.status ?? null,
         current_period_end: s?.current_period_end ?? null,
       };
@@ -132,5 +151,41 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
         return elapsed <= 25;
       }).length,
       users: rows,
+      lifetime: (lifetimeRows ?? []) as LifetimeGrant[],
     };
+  });
+
+export const grantLifetimeAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { email: string; note?: string }) => {
+    const email = String(data?.email ?? "").trim().toLowerCase();
+    if (!email || !email.includes("@")) throw new Error("E-mail inválido");
+    return { email, note: data.note?.trim() || null };
+  })
+  .handler(async ({ context, data }) => {
+    assertAdmin(context.claims?.email as string | undefined);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("lifetime_emails")
+      .upsert({ email: data.email, note: data.note, granted_by: context.userId }, { onConflict: "email" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const revokeLifetimeAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { email: string }) => {
+    const email = String(data?.email ?? "").trim().toLowerCase();
+    if (!email) throw new Error("E-mail inválido");
+    return { email };
+  })
+  .handler(async ({ context, data }) => {
+    assertAdmin(context.claims?.email as string | undefined);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("lifetime_emails")
+      .delete()
+      .eq("email", data.email);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
