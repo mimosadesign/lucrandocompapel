@@ -139,6 +139,62 @@ function AdminPage() {
       </div>
 
       <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Gift className="h-4 w-4 text-diamond" />
+            <CardTitle className="text-base">Presentear acesso vitalício</CardTitle>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Cadastre o e-mail (pode ser antes mesmo da pessoa se cadastrar). Ela terá
+            todos os recursos Diamante liberados para sempre, sem cobrança.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              value={giftEmail}
+              onChange={(e) => setGiftEmail(e.target.value)}
+              placeholder="email@exemplo.com"
+              className="w-80"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleGrant(giftEmail);
+              }}
+            />
+            <Button
+              onClick={() => void handleGrant(giftEmail)}
+              disabled={giftLoading || !giftEmail.trim()}
+              className="gap-2"
+            >
+              <Gift className="h-4 w-4" />
+              {giftLoading ? "Presenteando…" : "Presentear vitalício"}
+            </Button>
+          </div>
+          {data?.lifetime && data.lifetime.length > 0 && (
+            <div className="rounded-2xl border border-border/60 p-3">
+              <p className="mb-2 text-xs uppercase text-muted-foreground">
+                Acessos vitalícios ativos ({data.lifetime.length})
+              </p>
+              <ul className="space-y-1">
+                {data.lifetime.map((l) => (
+                  <li key={l.email} className="flex items-center justify-between text-sm">
+                    <span>💎 {l.email}</span>
+                    <button
+                      onClick={() => void handleRevoke(l.email)}
+                      className="rounded-full p-1 text-muted-foreground hover:text-destructive"
+                      aria-label={`Remover ${l.email}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
+      <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Cadastros</CardTitle>
