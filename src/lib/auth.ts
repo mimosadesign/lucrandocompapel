@@ -212,10 +212,16 @@ export function useEntitlement() {
       if (!user.email) return;
       const { data } = await supabase
         .from("lifetime_emails")
-        .select("email")
+        .select("email, duration, expires_at")
         .eq("email", user.email.toLowerCase())
         .maybeSingle();
-      if (active) setDbLifetime(!!data);
+      if (!active) return;
+      if (!data) return setDbLifetime(false);
+      const row = data as { duration?: string; expires_at?: string | null };
+      const dur = row.duration ?? "lifetime";
+      if (dur === "lifetime") return setDbLifetime(true);
+      const exp = row.expires_at ? new Date(row.expires_at).getTime() : 0;
+      setDbLifetime(exp > Date.now());
     })();
     const channel = supabase
       .channel(`sub-${user.id}-${Math.random().toString(36).slice(2)}`)
