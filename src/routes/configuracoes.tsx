@@ -24,7 +24,6 @@ function ConfigPage() {
   const [newPassword, setNewPassword] = useState("");
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPass, setLoadingPass] = useState(false);
-  const [loadingPortal, setLoadingPortal] = useState(false);
 
   async function handleLogout() {
     await signOutEverywhere();
@@ -64,27 +63,6 @@ function ConfigPage() {
     }
     toast.success("Senha atualizada!");
     setNewPassword("");
-  }
-
-  async function handleOpenPortal() {
-    setLoadingPortal(true);
-    try {
-      const result = await createPortalSession({
-        data: {
-          returnUrl: `${window.location.origin}/configuracoes`,
-          environment: getStripeEnvironment(),
-        },
-      });
-      if ("error" in result) {
-        toast.error(result.error);
-        return;
-      }
-      window.open(result.url, "_blank");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao abrir portal");
-    } finally {
-      setLoadingPortal(false);
-    }
   }
 
   const renewDate = sub?.current_period_end
