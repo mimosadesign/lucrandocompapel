@@ -322,11 +322,22 @@ function AdminPage() {
                       </td>
                       <td className="py-2 pr-3">
                         {u.is_lifetime ? (
-                          <Badge className="bg-diamond/30 text-foreground hover:bg-diamond/30">🎁 Vitalício</Badge>
+                          <Badge className="bg-diamond/30 text-foreground hover:bg-diamond/30">
+                            {u.grant_duration === "lifetime"
+                              ? "🎁 Vitalício"
+                              : u.grant_duration === "3m"
+                                ? "📅 3 meses"
+                                : "📅 1 mês"}
+                          </Badge>
                         ) : u.is_diamante ? (
                           <Badge className="bg-diamond/20 text-foreground hover:bg-diamond/20">💎 Diamante</Badge>
                         ) : (
                           <Badge variant="outline">Gratuito</Badge>
+                        )}
+                        {u.is_lifetime && u.grant_expires_at && (
+                          <p className="mt-0.5 text-[10px] text-muted-foreground">
+                            até {new Date(u.grant_expires_at).toLocaleDateString("pt-BR")}
+                          </p>
                         )}
                       </td>
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
@@ -343,17 +354,35 @@ function AdminPage() {
                             onClick={() => void handleRevoke(u.email)}
                             className="text-xs text-muted-foreground hover:text-destructive"
                           >
-                            Remover vitalício
+                            Remover
                           </Button>
                         ) : u.email ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => void handleGrant(u.email)}
-                            className="text-xs gap-1"
-                          >
-                            <Gift className="h-3 w-3" /> Presentear
-                          </Button>
+                          <div className="flex flex-wrap gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleGrant(u.email, "1m")}
+                              className="h-7 px-2 text-xs"
+                            >
+                              +1m
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleGrant(u.email, "3m")}
+                              className="h-7 px-2 text-xs"
+                            >
+                              +3m
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleGrant(u.email, "lifetime")}
+                              className="h-7 gap-1 px-2 text-xs"
+                            >
+                              <Gift className="h-3 w-3" /> Vitalício
+                            </Button>
+                          </div>
                         ) : null}
                       </td>
                     </tr>
