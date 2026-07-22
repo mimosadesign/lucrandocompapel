@@ -68,9 +68,15 @@ export function DiamondButton() {
             {isPaid ? "Você está no Plano Diamante 💎" : "Desbloqueie todo o potencial do seu ateliê"}
           </DialogTitle>
           <DialogDescription className="text-base text-muted-foreground">
-            {isPaid
-              ? "Aproveite todos os recursos ilimitados."
-              : <>Plano Diamante — <span className="font-semibold text-foreground">R$ 18,00/mês</span> · todos os recursos <span className="font-semibold text-foreground">ilimitados</span></>}
+            {isPaid ? (
+              "Aproveite todos os recursos ilimitados."
+            ) : (
+              <>
+                Plano Diamante — <span className="font-semibold text-foreground">R$ 18/mês</span>,{" "}
+                <span className="font-semibold text-foreground">R$ 36 por 3 meses</span> ou{" "}
+                <span className="font-semibold text-foreground">R$ 160 vitalício</span>
+              </>
+            )}
           </DialogDescription>
           {!isPaid && inTrial && (
             <p className="text-xs rounded-full bg-primary/15 px-3 py-1 text-foreground">
@@ -93,10 +99,10 @@ export function DiamondButton() {
             <>
               <Button size="lg" className="rounded-full gap-2" onClick={assinar} disabled={loading}>
                 <Sparkles className="h-4 w-4" />
-                {loading ? "Carregando..." : "Assinar Diamante — R$ 18,00/mês"}
+                {loading ? "Carregando..." : "Ver planos"}
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Só <span className="font-semibold text-foreground">R$ 0,60 por dia</span> para ter tudo liberado.
+                A partir de <span className="font-semibold text-foreground">R$ 0,60 por dia</span>.
               </p>
             </>
           )}

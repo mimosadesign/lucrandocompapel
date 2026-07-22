@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CreditCard, Lock, LogOut, Mail, KeyRound, Gem } from "lucide-react";
+import { Lock, LogOut, Mail, KeyRound, Gem, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { PageHeader } from "@/components/page-header";
@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser, useEntitlement, signOutEverywhere } from "@/lib/auth";
-import { createPortalSession } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -26,7 +24,6 @@ function ConfigPage() {
   const [newPassword, setNewPassword] = useState("");
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPass, setLoadingPass] = useState(false);
-  const [loadingPortal, setLoadingPortal] = useState(false);
 
   async function handleLogout() {
     await signOutEverywhere();
@@ -66,27 +63,6 @@ function ConfigPage() {
     }
     toast.success("Senha atualizada!");
     setNewPassword("");
-  }
-
-  async function handleOpenPortal() {
-    setLoadingPortal(true);
-    try {
-      const result = await createPortalSession({
-        data: {
-          returnUrl: `${window.location.origin}/configuracoes`,
-          environment: getStripeEnvironment(),
-        },
-      });
-      if ("error" in result) {
-        toast.error(result.error);
-        return;
-      }
-      window.open(result.url, "_blank");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao abrir portal");
-    } finally {
-      setLoadingPortal(false);
-    }
   }
 
   const renewDate = sub?.current_period_end
@@ -132,11 +108,10 @@ function ConfigPage() {
             <Button
               variant="outline"
               className="rounded-full border-foreground/20 gap-2"
-              onClick={handleOpenPortal}
-              disabled={loadingPortal}
+              onClick={() => navigate({ to: "/assinar" })}
             >
-              <CreditCard className="h-4 w-4" />
-              {loadingPortal ? "Abrindo..." : "Gerenciar assinatura"}
+              <MessageCircle className="h-4 w-4" />
+              Renovar / trocar plano
             </Button>
           ) : (
             <Button

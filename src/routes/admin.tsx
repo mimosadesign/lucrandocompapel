@@ -7,6 +7,7 @@ import {
   grantLifetimeAccess,
   revokeLifetimeAccess,
   type AdminUserRow,
+  type GrantDuration,
 } from "@/lib/admin.functions";
 import { useUser, isAdminEmail } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
@@ -64,7 +65,7 @@ function AdminPage() {
   const [giftEmail, setGiftEmail] = useState("");
   const [giftLoading, setGiftLoading] = useState(false);
 
-  async function handleGrant(email: string) {
+  async function handleGrant(email: string, duration: GrantDuration = "lifetime") {
     const target = email.trim().toLowerCase();
     if (!target || !target.includes("@")) {
       toast.error("Digite um e-mail válido");
@@ -72,8 +73,10 @@ function AdminPage() {
     }
     setGiftLoading(true);
     try {
-      await grantFn({ data: { email: target } });
-      toast.success(`Acesso vitalício presenteado para ${target}`);
+      await grantFn({ data: { email: target, duration } });
+      const label =
+        duration === "lifetime" ? "vitalício" : duration === "3m" ? "3 meses" : "1 mês";
+      toast.success(`Acesso ${label} presenteado para ${target}`);
       setGiftEmail("");
       refetch();
     } catch (e) {
@@ -84,10 +87,10 @@ function AdminPage() {
   }
 
   async function handleRevoke(email: string) {
-    if (!confirm(`Remover acesso vitalício de ${email}?`)) return;
+    if (!confirm(`Remover acesso presenteado de ${email}?`)) return;
     try {
       await revokeFn({ data: { email } });
-      toast.success("Acesso vitalício removido");
+      toast.success("Acesso removido");
       refetch();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao remover acesso");
@@ -142,11 +145,11 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Gift className="h-4 w-4 text-diamond" />
-            <CardTitle className="text-base">Presentear acesso vitalício</CardTitle>
+            <CardTitle className="text-base">Presentear acesso Diamante</CardTitle>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Cadastre o e-mail (pode ser antes mesmo da pessoa se cadastrar). Ela terá
-            todos os recursos Diamante liberados para sempre, sem cobrança.
+            Cadastre o e-mail e escolha a duração. Vale mesmo que a pessoa ainda não
+            tenha se cadastrado — o acesso é aplicado assim que ela entra.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -157,36 +160,68 @@ function AdminPage() {
               placeholder="email@exemplo.com"
               className="w-80"
               onKeyDown={(e) => {
-                if (e.key === "Enter") void handleGrant(giftEmail);
+                if (e.key === "Enter") void handleGrant(giftEmail, "lifetime");
               }}
             />
             <Button
-              onClick={() => void handleGrant(giftEmail)}
+              size="sm"
+              variant="outline"
+              onClick={() => void handleGrant(giftEmail, "1m")}
               disabled={giftLoading || !giftEmail.trim()}
-              className="gap-2"
+              className="gap-1"
             >
-              <Gift className="h-4 w-4" />
-              {giftLoading ? "Presenteando…" : "Presentear vitalício"}
+              <Gift className="h-3.5 w-3.5" /> 1 mês
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleGrant(giftEmail, "3m")}
+              disabled={giftLoading || !giftEmail.trim()}
+              className="gap-1"
+            >
+              <Gift className="h-3.5 w-3.5" /> 3 meses
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void handleGrant(giftEmail, "lifetime")}
+              disabled={giftLoading || !giftEmail.trim()}
+              className="gap-1"
+            >
+              <Gift className="h-3.5 w-3.5" /> Vitalício
             </Button>
           </div>
           {data?.lifetime && data.lifetime.length > 0 && (
             <div className="rounded-2xl border border-border/60 p-3">
               <p className="mb-2 text-xs uppercase text-muted-foreground">
-                Acessos vitalícios ativos ({data.lifetime.length})
+                Acessos presenteados ativos ({data.lifetime.length})
               </p>
               <ul className="space-y-1">
-                {data.lifetime.map((l) => (
-                  <li key={l.email} className="flex items-center justify-between text-sm">
-                    <span>💎 {l.email}</span>
-                    <button
-                      onClick={() => void handleRevoke(l.email)}
-                      className="rounded-full p-1 text-muted-foreground hover:text-destructive"
-                      aria-label={`Remover ${l.email}`}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
+                {data.lifetime.map((l) => {
+                  const label =
+                    l.duration === "lifetime"
+                      ? "💎 Vitalício"
+                      : l.duration === "3m"
+                        ? "📅 3 meses"
+                        : "📅 1 mês";
+                  const exp = l.expires_at
+                    ? ` · até ${new Date(l.expires_at).toLocaleDateString("pt-BR")}`
+                    : "";
+                  return (
+                    <li key={l.email} className="flex items-center justify-between text-sm">
+                      <span>
+                        {label} — {l.email}
+                        <span className="text-xs text-muted-foreground">{exp}</span>
+                      </span>
+                      <button
+                        onClick={() => void handleRevoke(l.email)}
+                        className="rounded-full p-1 text-muted-foreground hover:text-destructive"
+                        aria-label={`Remover ${l.email}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -287,11 +322,22 @@ function AdminPage() {
                       </td>
                       <td className="py-2 pr-3">
                         {u.is_lifetime ? (
-                          <Badge className="bg-diamond/30 text-foreground hover:bg-diamond/30">🎁 Vitalício</Badge>
+                          <Badge className="bg-diamond/30 text-foreground hover:bg-diamond/30">
+                            {u.grant_duration === "lifetime"
+                              ? "🎁 Vitalício"
+                              : u.grant_duration === "3m"
+                                ? "📅 3 meses"
+                                : "📅 1 mês"}
+                          </Badge>
                         ) : u.is_diamante ? (
                           <Badge className="bg-diamond/20 text-foreground hover:bg-diamond/20">💎 Diamante</Badge>
                         ) : (
                           <Badge variant="outline">Gratuito</Badge>
+                        )}
+                        {u.is_lifetime && u.grant_expires_at && (
+                          <p className="mt-0.5 text-[10px] text-muted-foreground">
+                            até {new Date(u.grant_expires_at).toLocaleDateString("pt-BR")}
+                          </p>
                         )}
                       </td>
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
@@ -308,17 +354,35 @@ function AdminPage() {
                             onClick={() => void handleRevoke(u.email)}
                             className="text-xs text-muted-foreground hover:text-destructive"
                           >
-                            Remover vitalício
+                            Remover
                           </Button>
                         ) : u.email ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => void handleGrant(u.email)}
-                            className="text-xs gap-1"
-                          >
-                            <Gift className="h-3 w-3" /> Presentear
-                          </Button>
+                          <div className="flex flex-wrap gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleGrant(u.email, "1m")}
+                              className="h-7 px-2 text-xs"
+                            >
+                              +1m
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleGrant(u.email, "3m")}
+                              className="h-7 px-2 text-xs"
+                            >
+                              +3m
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void handleGrant(u.email, "lifetime")}
+                              className="h-7 gap-1 px-2 text-xs"
+                            >
+                              <Gift className="h-3 w-3" /> Vitalício
+                            </Button>
+                          </div>
                         ) : null}
                       </td>
                     </tr>

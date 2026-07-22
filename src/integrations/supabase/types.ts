@@ -41,19 +41,25 @@ export type Database = {
       lifetime_emails: {
         Row: {
           created_at: string
+          duration: string
           email: string
+          expires_at: string | null
           granted_by: string | null
           note: string | null
         }
         Insert: {
           created_at?: string
+          duration?: string
           email: string
+          expires_at?: string | null
           granted_by?: string | null
           note?: string | null
         }
         Update: {
           created_at?: string
+          duration?: string
           email?: string
+          expires_at?: string | null
           granted_by?: string | null
           note?: string | null
         }
