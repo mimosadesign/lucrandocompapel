@@ -145,11 +145,11 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Gift className="h-4 w-4 text-diamond" />
-            <CardTitle className="text-base">Presentear acesso vitalício</CardTitle>
+            <CardTitle className="text-base">Presentear acesso Diamante</CardTitle>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Cadastre o e-mail (pode ser antes mesmo da pessoa se cadastrar). Ela terá
-            todos os recursos Diamante liberados para sempre, sem cobrança.
+            Cadastre o e-mail e escolha a duração. Vale mesmo que a pessoa ainda não
+            tenha se cadastrado — o acesso é aplicado assim que ela entra.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -160,36 +160,68 @@ function AdminPage() {
               placeholder="email@exemplo.com"
               className="w-80"
               onKeyDown={(e) => {
-                if (e.key === "Enter") void handleGrant(giftEmail);
+                if (e.key === "Enter") void handleGrant(giftEmail, "lifetime");
               }}
             />
             <Button
-              onClick={() => void handleGrant(giftEmail)}
+              size="sm"
+              variant="outline"
+              onClick={() => void handleGrant(giftEmail, "1m")}
               disabled={giftLoading || !giftEmail.trim()}
-              className="gap-2"
+              className="gap-1"
             >
-              <Gift className="h-4 w-4" />
-              {giftLoading ? "Presenteando…" : "Presentear vitalício"}
+              <Gift className="h-3.5 w-3.5" /> 1 mês
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleGrant(giftEmail, "3m")}
+              disabled={giftLoading || !giftEmail.trim()}
+              className="gap-1"
+            >
+              <Gift className="h-3.5 w-3.5" /> 3 meses
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void handleGrant(giftEmail, "lifetime")}
+              disabled={giftLoading || !giftEmail.trim()}
+              className="gap-1"
+            >
+              <Gift className="h-3.5 w-3.5" /> Vitalício
             </Button>
           </div>
           {data?.lifetime && data.lifetime.length > 0 && (
             <div className="rounded-2xl border border-border/60 p-3">
               <p className="mb-2 text-xs uppercase text-muted-foreground">
-                Acessos vitalícios ativos ({data.lifetime.length})
+                Acessos presenteados ativos ({data.lifetime.length})
               </p>
               <ul className="space-y-1">
-                {data.lifetime.map((l) => (
-                  <li key={l.email} className="flex items-center justify-between text-sm">
-                    <span>💎 {l.email}</span>
-                    <button
-                      onClick={() => void handleRevoke(l.email)}
-                      className="rounded-full p-1 text-muted-foreground hover:text-destructive"
-                      aria-label={`Remover ${l.email}`}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
+                {data.lifetime.map((l) => {
+                  const label =
+                    l.duration === "lifetime"
+                      ? "💎 Vitalício"
+                      : l.duration === "3m"
+                        ? "📅 3 meses"
+                        : "📅 1 mês";
+                  const exp = l.expires_at
+                    ? ` · até ${new Date(l.expires_at).toLocaleDateString("pt-BR")}`
+                    : "";
+                  return (
+                    <li key={l.email} className="flex items-center justify-between text-sm">
+                      <span>
+                        {label} — {l.email}
+                        <span className="text-xs text-muted-foreground">{exp}</span>
+                      </span>
+                      <button
+                        onClick={() => void handleRevoke(l.email)}
+                        className="rounded-full p-1 text-muted-foreground hover:text-destructive"
+                        aria-label={`Remover ${l.email}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
