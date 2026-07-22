@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CreditCard, Lock, LogOut, Mail, KeyRound, Gem } from "lucide-react";
+import { Lock, LogOut, Mail, KeyRound, Gem, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { PageHeader } from "@/components/page-header";
@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser, useEntitlement, signOutEverywhere } from "@/lib/auth";
-import { createPortalSession } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/configuracoes")({
