@@ -7,6 +7,7 @@ import {
   grantLifetimeAccess,
   revokeLifetimeAccess,
   type AdminUserRow,
+  type GrantDuration,
 } from "@/lib/admin.functions";
 import { useUser, isAdminEmail } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
