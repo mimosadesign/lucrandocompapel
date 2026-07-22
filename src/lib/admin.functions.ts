@@ -12,6 +12,8 @@ function assertAdmin(email: string | undefined) {
   }
 }
 
+export type GrantDuration = "1m" | "3m" | "lifetime";
+
 export type AdminUserRow = {
   id: string;
   email: string;
@@ -25,6 +27,8 @@ export type AdminUserRow = {
   trial_start: string | null;
   is_diamante: boolean;
   is_lifetime: boolean;
+  grant_duration: GrantDuration | null;
+  grant_expires_at: string | null;
   subscription_status: string | null;
   current_period_end: string | null;
 };
@@ -33,6 +37,8 @@ export type LifetimeGrant = {
   email: string;
   note: string | null;
   created_at: string;
+  duration: GrantDuration;
+  expires_at: string | null;
 };
 
 export type AdminMetrics = {
@@ -45,6 +51,14 @@ export type AdminMetrics = {
   users: AdminUserRow[];
   lifetime: LifetimeGrant[];
 };
+
+function computeExpiresAt(duration: GrantDuration): string | null {
+  if (duration === "lifetime") return null;
+  const d = new Date();
+  const days = duration === "1m" ? 30 : 90;
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
 
 export const getAdminMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -100,17 +114,25 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
 
     const { data: lifetimeRows } = await supabaseAdmin
       .from("lifetime_emails")
-      .select("email, note, created_at")
+      .select("email, note, created_at, duration, expires_at")
       .order("created_at", { ascending: false });
-    const lifetimeSet = new Set((lifetimeRows ?? []).map((r) => r.email.toLowerCase()));
-
     const now = Date.now();
+    const grantMap = new Map<string, { duration: GrantDuration; expires_at: string | null }>();
+    for (const r of lifetimeRows ?? []) {
+      const dur = ((r as { duration?: string }).duration ?? "lifetime") as GrantDuration;
+      const exp = (r as { expires_at?: string | null }).expires_at ?? null;
+      // Active if lifetime or expires in future
+      if (dur === "lifetime" || (exp && new Date(exp).getTime() > now)) {
+        grantMap.set(r.email.toLowerCase(), { duration: dur, expires_at: exp });
+      }
+    }
+
     const day = 24 * 60 * 60 * 1000;
 
     const rows: AdminUserRow[] = authUsers.map((u) => {
       const p = profMap.get(u.id);
       const s = subMap.get(u.id);
-      const isLifetime = !!u.email && lifetimeSet.has(u.email.toLowerCase());
+      const grant = u.email ? grantMap.get(u.email.toLowerCase()) : undefined;
       const active =
         !!s &&
         ["active", "trialing", "past_due"].includes(s.status) &&
@@ -126,8 +148,10 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
         created_at: u.created_at,
         last_sign_in_at: u.last_sign_in_at,
         trial_start: p?.trial_start ?? null,
-        is_diamante: active || isLifetime,
-        is_lifetime: isLifetime,
+        is_diamante: active || !!grant,
+        is_lifetime: !!grant,
+        grant_duration: grant?.duration ?? null,
+        grant_expires_at: grant?.expires_at ?? null,
         subscription_status: s?.status ?? null,
         current_period_end: s?.current_period_end ?? null,
       };
@@ -151,23 +175,41 @@ export const getAdminMetrics = createServerFn({ method: "GET" })
         return elapsed <= 25;
       }).length,
       users: rows,
-      lifetime: (lifetimeRows ?? []) as LifetimeGrant[],
+      lifetime: (lifetimeRows ?? []).map((r) => ({
+        email: r.email,
+        note: r.note,
+        created_at: r.created_at,
+        duration: ((r as { duration?: string }).duration ?? "lifetime") as GrantDuration,
+        expires_at: (r as { expires_at?: string | null }).expires_at ?? null,
+      })),
     };
   });
 
 export const grantLifetimeAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { email: string; note?: string }) => {
+  .inputValidator((data: { email: string; note?: string; duration?: GrantDuration }) => {
     const email = String(data?.email ?? "").trim().toLowerCase();
     if (!email || !email.includes("@")) throw new Error("E-mail inválido");
-    return { email, note: data.note?.trim() || null };
+    const duration = (data.duration ?? "lifetime") as GrantDuration;
+    if (!["1m", "3m", "lifetime"].includes(duration)) throw new Error("Duração inválida");
+    return { email, note: data.note?.trim() || null, duration };
   })
   .handler(async ({ context, data }) => {
     assertAdmin(context.claims?.email as string | undefined);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const expires_at = computeExpiresAt(data.duration);
     const { error } = await supabaseAdmin
       .from("lifetime_emails")
-      .upsert({ email: data.email, note: data.note, granted_by: context.userId }, { onConflict: "email" });
+      .upsert(
+        {
+          email: data.email,
+          note: data.note,
+          granted_by: context.userId,
+          duration: data.duration,
+          expires_at,
+        },
+        { onConflict: "email" },
+      );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
