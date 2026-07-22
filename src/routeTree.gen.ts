@@ -28,7 +28,6 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CDataRouteImport } from './routes/c.$data'
 import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
-import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -125,12 +124,6 @@ const AssinarSucessoRoute = AssinarSucessoRouteImport.update({
   path: '/sucesso',
   getParentRoute: () => AssinarRoute,
 } as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments/webhook',
-    path: '/api/public/payments/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -152,7 +145,6 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,7 +166,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,7 +188,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,7 +211,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/assinar/sucesso'
     | '/c/$data'
-    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -243,7 +232,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/assinar/sucesso'
     | '/c/$data'
-    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -265,7 +253,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/assinar/sucesso'
     | '/c/$data'
-    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -287,7 +274,6 @@ export interface RootRouteChildren {
   ProdutosRoute: typeof ProdutosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   CDataRoute: typeof CDataRoute
-  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -425,13 +411,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssinarSucessoRouteImport
       parentRoute: typeof AssinarRoute
     }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -465,7 +444,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutosRoute: ProdutosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   CDataRoute: CDataRoute,
-  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
