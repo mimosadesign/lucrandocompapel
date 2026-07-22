@@ -107,17 +107,12 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
 }
 
 async function fetchSubscription(userId: string): Promise<SubscriptionRow | null> {
-  let env: "sandbox" | "live" = "sandbox";
-  try {
-    env = getStripeEnvironment();
-  } catch {
-    env = "sandbox";
-  }
+  // Legacy: keep reading old Stripe sandbox rows to preserve historical Diamante
+  // status for anyone who paid before we moved to WhatsApp-manual billing.
   const { data } = await supabase
     .from("subscriptions")
     .select("status,current_period_end,cancel_at_period_end,price_id")
     .eq("user_id", userId)
-    .eq("environment", env)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
