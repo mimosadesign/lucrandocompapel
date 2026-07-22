@@ -108,11 +108,10 @@ function ConfigPage() {
             <Button
               variant="outline"
               className="rounded-full border-foreground/20 gap-2"
-              onClick={handleOpenPortal}
-              disabled={loadingPortal}
+              onClick={() => navigate({ to: "/assinar" })}
             >
-              <CreditCard className="h-4 w-4" />
-              {loadingPortal ? "Abrindo..." : "Gerenciar assinatura"}
+              <MessageCircle className="h-4 w-4" />
+              Renovar / trocar plano
             </Button>
           ) : (
             <Button
