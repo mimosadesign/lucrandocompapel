@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as AuthUser } from "@supabase/supabase-js";
-import { getStripeEnvironment } from "@/lib/stripe";
 
 const TRIAL_DAYS = 25;
 
