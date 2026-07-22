@@ -1,66 +1,113 @@
-# Plano: tirar o app do modo protótipo e ligar tudo de verdade
+# Plano de implementação
 
-Vou consertar os 15 gaps do auditoria em 5 fases. No final, login, pagamento, limites de plano, perfil e cancelamento funcionam de ponta a ponta.
+Escopo confirmado: **nada de integrações externas pagas**. Toda cobrança acontece via WhatsApp manual e você libera pelo admin. Todas as features que exigiriam WhatsApp Business API, Twilio, OpenAI, mapas pagos, push notifications nativos, etc. **saem da lista** ou viram versão manual (link `wa.me`, cálculo local, sem IA de verdade).
 
-## Fase 1 — Autenticação real (Lovable Cloud)
+Vou fazer em **4 ondas**. Cada onda é um deploy testável. Você aprova esta rodada = eu executo a Onda 1 agora e as próximas ondas em mensagens seguintes.
 
-- Criar tabelas no backend: `profiles` (nome, nome_atelier, whatsapp, cidade, estado, trial_start, tema_cor) ligada a `auth.users`, com trigger que cria o perfil no signup.
-- Reescrever `/auth` para usar `supabase.auth.signUp` / `signInWithPassword` (e-mail + senha de verdade, com validação Zod).
-- Substituir `src/lib/auth.ts` (que usa localStorage) por um hook `useUser()` baseado em `supabase.auth.getUser()` + `onAuthStateChange`.
-- Mover rotas privadas para `src/routes/_authenticated/` para que o gate gerenciado do Cloud bloqueie acesso sem sessão (em vez do guard manual no `__root.tsx`).
-- "Sair da conta" em Configurações chama `supabase.auth.signOut()` e redireciona para `/auth`.
-- Página `/reset-password` para recuperação de senha.
+---
 
-## Fase 2 — Dados sincronizados no backend
+## Onda 1 — Cobrança manual + limites + mensagens (AGORA)
 
-Tabelas com RLS por `user_id` (cada usuário só vê os próprios dados) + GRANTs corretos:
+### 1. Substituir Stripe por cobrança manual via WhatsApp
+- Remover fluxo Stripe checkout do app (rota `/assinar`, componentes de embed, webhook, `payments.functions.ts`, `stripe.ts`, `stripe.server.ts`, dependências `@stripe/*`).
+- Criar nova página `/assinar` com 3 cards de plano:
+  - **1 mês — R$ 18,00** (só R$ 0,60/dia)
+  - **3 meses — R$ 36,00** (R$ 12,00/mês — economize 33%)
+  - **Vitalício — R$ 160,00** (paga uma vez, usa pra sempre)
+- Cada card tem botão "Quero este plano" que abre WhatsApp seu (`5511...`) com mensagem pré-pronta: "Olá! Quero assinar o plano [X] do Lucrando com Papel. Meu e-mail cadastrado é: [email]"
+- Configurável: número WhatsApp da dona (você) em constante no código, ou campo no admin.
 
-- `materiais` (nome, unidade, quantidade, preço, etc.)
-- `produtos` (nome, materiais usados, tempo, margem, preço final)
-- `pedidos` (cliente, itens, status, datas)
-- `configuracoes_usuario` (valor_hora, tema_cor, preferências)
+### 2. Admin: presentear qualquer duração
+- Migração: adicionar `expires_at timestamptz` na tabela `lifetime_emails` (renomear conceito internamente para "granted_access", mantendo compatibilidade).
+- Server functions novas: `grantAccess(email, duration: '1m' | '3m' | 'lifetime', note)`, mantém `revokeLifetimeAccess`.
+- UI admin: 3 botões "Presentear 1 mês", "Presentear 3 meses", "Presentear vitalício" (por linha do usuário e na seção de gift avulso).
+- Lista de presenteados mostra vencimento (ou "Vitalício").
+- `useEntitlement` passa a considerar grants com vencimento futuro.
 
-Migrar `materiais.tsx`, `produtos.tsx`, `pedidos.tsx`, `faturamento.tsx`, etc. para ler/escrever via TanStack Query + server functions com `requireSupabaseAuth`. Dados passam a sincronizar entre dispositivos.
+### 3. Mensagens de limite claras
+- Em **Orçamentos**: banner topo — "Grátis: 36 orçamentos/mês (renovam dia 1º). PDF ilimitado. Diamante: tudo ilimitado."
+- Em **Precificar item**: mesmo banner — 36/mês grátis, ilimitado Diamante.
+- Em **Pedidos**: banner — "Grátis: 20 pedidos/mês (renovam dia 1º). Diamante: ilimitado."
+- Contador visível de "X de Y usados este mês" em cada tela.
+- Bloqueio real no submit quando estoura o limite (já existe pra pedidos, replicar padrão nos outros).
 
-## Fase 3 — Pagamento real (webhook + entitlement seguro)
+### 4. Limpeza
+- Remover env vars Stripe do `.env.development` e `.env.production`.
+- Remover banner de "modo teste Stripe".
+- Página `/assinar/sucesso` vira página simples de "pagamento em análise — assim que confirmarmos, liberamos seu acesso".
 
-- Criar tabela `subscriptions` (padrão Stripe: `stripe_subscription_id`, `status`, `current_period_end`, `cancel_at_period_end`, `environment`).
-- Criar webhook em `src/routes/api/public/payments/webhook.ts` que recebe `customer.subscription.created/updated/deleted` e grava/atualiza a `subscriptions` ligada ao `userId` (passado via metadata no checkout).
-- Atualizar `createCheckoutSession` para incluir `metadata.userId` e `subscription_data.metadata.userId`, usar `customer_email` do usuário logado, e ativar tax/compliance handling.
-- Criar hook `useSubscription()` que lê a tabela `subscriptions` filtrada por `user_id` + `environment`.
-- Reescrever `isUnlimited` / `useIsUnlimited` para retornar `true` quando: trial ativo (25 dias) **OU** `subscription.status in ['active','trialing','past_due']` com `current_period_end` no futuro **OU** `canceled` mas ainda dentro do período pago. Assim trial expirado já não derruba quem pagou.
-- Server function `getPlanGuard` que valida limites de plano no servidor (não só no cliente) — `materiais.tsx` e `produtos.tsx` deixam de ser burláveis via DevTools.
-- `/assinar/sucesso` espera o webhook gravar a subscription e mostra "ativado" com base em dado real, não texto fixo.
+---
 
-## Fase 4 — Portal do Stripe + Perfil/Configurações funcionais
+## Onda 2 — Duplicar, tags, cliente, dashboards existentes turbinados
 
-- Server function `createPortalSession` que abre o portal oficial do Stripe (cancelar, trocar cartão, ver faturas). Botão "Gerenciar assinatura" em Configurações abre o portal em nova aba.
-- `/perfil` vira um formulário real ligado à tabela `profiles`: nome, nome do ateliê, WhatsApp, cidade, estado. Botão "Salvar" persiste no backend.
-- Subseção "Segurança da conta": alterar e-mail (`supabase.auth.updateUser({ email })`) e alterar senha (`updateUser({ password })`).
-- "Personalização visual (cor)" fica visível para todos mas só fica **editável** quando `useSubscription().isActive` é `true` — bloqueio com `DiamondLock`.
-- "Sair da conta" finalmente funciona (Fase 1).
+- Duplicar produto, orçamento, pedido (botão em cada item).
+- Ficha do cliente: histórico completo, total gasto, cliente VIP automático (>R$500), inativo há X dias, aniversariantes do mês.
+- Etiquetas personalizadas para clientes.
+- Pedidos: adicionar cidade + estado por cliente (para mapa manual futuro).
+- Cofre de fórmulas (salvar receitas de produto e aplicar).
+- Cronômetro de produção (start/stop, salva tempo real, usa na próxima precificação).
+- Histórico de preços dos produtos.
+- Ranking de categorias mais lucrativas, melhor dia/mês pra vender, lucro líquido vs bruto, meta diária, evolução anual.
+- Datas comemorativas + agenda de datas dos clientes (calendário local).
+- Sistema de conquistas + níveis Bronze/Prata/Ouro/Diamante.
+- Modo escuro.
+- Modo férias.
 
-## Fase 5 — Limpezas
+## Onda 3 — Estoque, planejamento, calculadoras
 
-- Remover `src/lib/storage.ts` localStorage (substituído pelas server functions).
-- Remover Google login (já tinha sido pedido antes) e qualquer referência ao "modo teste Diamante" pré-visualizar.
-- Garantir que badge "Teste 25 dias" só aparece para usuário em trial sem assinatura ativa; assinantes veem "Plano Diamante ativo" + dias até a próxima cobrança.
+- Estoque inteligente: sugestão de compra, "quanto ainda consigo produzir", custo médio automático, histórico de variação, alertas de aumento.
+- Baixa automática no estoque conforme pedido avança.
+- Centro de Produção: gera lista de materiais, ordem de corte, checklist de montagem, tempo estimado.
+- Planejamento inteligente de produção (cronograma automático baseado em pedidos + horário de trabalho).
+- Calculadoras: parcelamento (Mercado Pago), caixa (PIX/dinheiro/cartão/fiado), reajuste em massa, simulador de meta, simulador de kits, "Vale a pena?", modo feirão.
+- Lista de compras compartilhável (link `wa.me` com texto pronto).
+- Painel Saúde do Ateliê (nota 0-100 baseada em indicadores locais).
+- "Posso aceitar esse pedido?" — análise 100% local (estoque, prazo, margem, agenda).
+- Calculadora de risco de pedido.
+- Índice de dependência (produto/cliente que concentra faturamento).
 
-## Detalhes técnicos (para registro)
+## Onda 4 — Exportação, gamificação, "IA" local, extras
 
-- Auth: Cloud (Supabase) email+senha. `requireSupabaseAuth` em todas as server functions de dados. `attachSupabaseAuth` já está em `start.ts`.
-- Stripe: continua via gateway (`createStripeClient` do `stripe.server.ts`), checkout embedded já implementado. Adiciona webhook + portal.
-- RLS: `auth.uid() = user_id` em todas as tabelas de dados; `subscriptions` policy SELECT em `user_id`, INSERT/UPDATE só via `service_role` (webhook).
-- Entitlement gate: hook único `useEntitlement()` que devolve `{ inTrial, isPaid, isUnlimited, daysLeft, plan }` e é a única fonte de verdade para gates de UI; servidor revalida em escritas sensíveis.
+- Exportação Excel, CSV, PDF completo. Backup/restore JSON local.
+- Multiusuário e permissões (dentro do mesmo login, perfis internos: Dona, Funcionária, Vendedora — permissão por tela).
+- Comissão por vendedor.
+- Registro de atividades.
+- "IA" heurística (sem API paga): auditoria de produtos mal precificados, sugestão de reajuste, produtos encalhados, sugestão de kits por co-ocorrência, radar de oportunidades, "Copiloto do Ateliê" (resumo diário calculado localmente ao abrir o app), Consultora semanal.
+- Currículo do ateliê + Antes/Depois.
+- Clube VIP + Clube de Clientes.
+- Lista de desejos com metas de economia.
+- Dinheiro perdido, quanto custa ficar parado.
+- Alerta de cliente arriscado.
 
-## Como você testa no preview
+### O que sai da lista (exige integração paga)
+- Envio automático real de WhatsApp (só faremos link `wa.me` clicável).
+- Push/lembretes fora do app (widget de celular, notificações nativas).
+- IA de verdade (OpenAI/Anthropic). O que chamamos de "IA" acima são regras heurísticas em cima dos dados locais.
+- Mapa de clientes/entregas com mapa visual (só lista agrupada por cidade/bairro).
+- Comparação com concorrência.
+- Backup na nuvem "de verdade" (fica como export/import JSON).
 
-1. **Cadastro**: criar conta nova em `/auth` com e-mail/senha. Confirma que é redirecionado para o dashboard e que o trial mostra 25 dias.
-2. **Limites grátis**: cadastrar 25 materiais; o 26º deve bloquear com o pop-up Diamante.
-3. **Pagamento (modo teste)**: clicar em "Assinar Diamante" → na tela do Stripe usar **`4242 4242 4242 4242`**, validade qualquer data futura (ex: `12/30`), CVC `123`, CEP qualquer.
-4. **Desbloqueio**: voltar ao app — limite de materiais sumiu, páginas `/faturamento`, `/inteligencia`, `/executivo` abrem sem bloqueio. O badge no header passa a mostrar "Diamante ativo".
-5. **Perfil**: editar nome do ateliê e WhatsApp; recarregar a página — valores persistem. Mudar e-mail/senha em Segurança.
-6. **Cancelar**: Configurações → "Gerenciar assinatura" abre o portal do Stripe em outra aba. Cancelar lá. Voltar ao app — você continua tendo acesso até a data de fim do período (mostrada no banner).
-7. **Sair**: botão "Sair da conta" desloga e leva para `/auth`. Logar em outro navegador mostra os mesmos dados (sincronização).
+---
 
-Aprove para eu começar pela Fase 1 (auth + tabelas base). As fases seguintes vou implementando em sequência, mostrando o que mudou em cada passo.
+## Como testar a Onda 1 no preview
+
+1. **Nova cobrança WhatsApp**
+   - Abra `/assinar` → clique em cada um dos 3 planos → deve abrir WhatsApp com mensagem pronta.
+2. **Admin presenteia**
+   - Logue com `mimosavacadesign@gmail.com` → `/admin` → digite um email cadastrado no sistema → botão "Presentear 1 mês" → sair, logar com aquele email → deve ter Diamante liberado por 30 dias.
+   - Repita com "3 meses" e "Vitalício" pra confirmar que cada duração respeita a data de expiração.
+3. **Limites**
+   - Em conta grátis (sem trial), crie 20 pedidos → o 21º deve ser bloqueado com mensagem "Limite mensal atingido. Renova dia 1º ou assine Diamante."
+   - Idem para 36 orçamentos e 36 precificações.
+4. **Banners**
+   - Confirme que os banners de limite aparecem no topo de Orçamentos, Precificar item e Pedidos.
+
+---
+
+## Notas técnicas
+- Enquanto Stripe estava ativo, o Lovable Cloud gerou tabela `subscriptions` com dados. Vou **manter a tabela** (não drop) pra não perder histórico, mas o app deixa de escrever nela. `useEntitlement` passa a olhar só `lifetime_emails` (agora com `expires_at`) + trial de 25 dias.
+- Remoção de pacotes: `@stripe/stripe-js`, `@stripe/react-stripe-js`, `stripe` (do server).
+- Migração SQL: `alter table lifetime_emails add column expires_at timestamptz null; add column duration text not null default 'lifetime';`
+- Feature-flag interna `PAYMENT_MODE = 'whatsapp'` pra deixar reversível.
+
+Confirma que posso executar a **Onda 1 agora**? Assim que você aprovar, mando as próximas ondas em sequência.
