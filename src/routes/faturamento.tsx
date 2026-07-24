@@ -216,7 +216,29 @@ function FaturamentoDashboard() {
             <Progress value={pctMeta} className="h-3" />
           </div>
         )}
+        {meta > 0 && (() => {
+          const hoje = new Date();
+          const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+          const diasRestantes = Math.max(1, ultimoDia - hoje.getDate() + 1);
+          const falta = Math.max(0, meta - faturamentoMes);
+          const metaDiaria = falta / diasRestantes;
+          return (
+            <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 grid gap-2 sm:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">Meta diária p/ bater o mês</p>
+                <p className="font-display text-xl font-semibold">{brl(metaDiaria)}</p>
+              </div>
+              <div className="sm:text-right">
+                <p className="text-xs uppercase text-muted-foreground">Falta faturar</p>
+                <p className="font-display text-xl font-semibold">{brl(falta)} em {diasRestantes} dia(s)</p>
+              </div>
+            </div>
+          );
+        })()}
       </Card>
+
+      <EvolucaoAnual pedidos={pedidos} />
+
 
       <Card className="rounded-3xl p-6">
         <p className="font-display text-base font-semibold mb-4">Últimos 6 meses</p>
@@ -357,3 +379,47 @@ function Kpi({
     </Card>
   );
 }
+
+function EvolucaoAnual({ pedidos }: { pedidos: Pedido[] }) {
+  const data = useMemo(() => {
+    const now = new Date();
+    const buckets: { mes: string; faturamento: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      buckets.push({ mes: `${MESES[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`, faturamento: 0 });
+    }
+    for (const p of pedidos) {
+      if (!p.entrega || p.status === "Cancelado") continue;
+      const d = new Date(p.entrega);
+      if (isNaN(d.getTime())) continue;
+      const diff = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+      if (diff < 0 || diff > 11) continue;
+      buckets[11 - diff].faturamento += (p.valor || 0) + (p.valorEntrega || 0);
+    }
+    return buckets;
+  }, [pedidos]);
+  const total = data.reduce((s, b) => s + b.faturamento, 0);
+  return (
+    <Card className="rounded-3xl p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+        <p className="font-display text-base font-semibold">Evolução anual (12 meses)</p>
+        <p className="text-sm text-muted-foreground">Total: <strong>{brl(total)}</strong></p>
+      </div>
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis dataKey="mes" fontSize={11} />
+            <YAxis tickFormatter={(v) => `R$${v}`} />
+            <Tooltip
+              formatter={(v: number) => brl(v)}
+              contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }}
+            />
+            <Bar dataKey="faturamento" fill="var(--primary)" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}
+

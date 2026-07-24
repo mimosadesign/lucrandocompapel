@@ -15,6 +15,7 @@ import {
   Scissors,
   FileText,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
@@ -42,6 +43,7 @@ const mainItems = [
   { title: "Catálogo", url: "/catalogo", icon: ShoppingBag },
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
+  { title: "Clientes", url: "/clientes", icon: Users },
 ];
 
 const diamondItems = [

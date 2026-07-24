@@ -21,6 +21,7 @@ import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as FaturamentoRouteImport } from './routes/faturamento'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssinarRouteImport } from './routes/assinar'
@@ -89,6 +90,11 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogoRoute = CatalogoRouteImport.update({
   id: '/catalogo',
   path: '/catalogo',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogo': typeof CatalogoRoute
+  '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogo': typeof CatalogoRoute
+  '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogo': typeof CatalogoRoute
+  '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/assinar'
     | '/auth'
     | '/catalogo'
+    | '/clientes'
     | '/configuracoes'
     | '/executivo'
     | '/faturamento'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/assinar'
     | '/auth'
     | '/catalogo'
+    | '/clientes'
     | '/configuracoes'
     | '/executivo'
     | '/faturamento'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/assinar'
     | '/auth'
     | '/catalogo'
+    | '/clientes'
     | '/configuracoes'
     | '/executivo'
     | '/faturamento'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   AssinarRoute: typeof AssinarRouteWithChildren
   AuthRoute: typeof AuthRoute
   CatalogoRoute: typeof CatalogoRoute
+  ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ExecutivoRoute: typeof ExecutivoRoute
   FaturamentoRoute: typeof FaturamentoRoute
@@ -362,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalogo': {
       id: '/catalogo'
       path: '/catalogo'
@@ -431,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssinarRoute: AssinarRouteWithChildren,
   AuthRoute: AuthRoute,
   CatalogoRoute: CatalogoRoute,
+  ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ExecutivoRoute: ExecutivoRoute,
   FaturamentoRoute: FaturamentoRoute,
