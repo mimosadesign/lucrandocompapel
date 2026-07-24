@@ -249,7 +249,7 @@ function FaturamentoDashboard() {
           <p className="text-sm text-muted-foreground">Já recebido este mês</p>
           <p className="font-display text-2xl font-semibold mt-1">{brl(recebidoMes)}</p>
           <p className="text-xs text-muted-foreground mt-2">
-            Soma dos pedidos com status “Entregue”.
+            Soma dos pedidos com status "Entregue".
           </p>
         </Card>
         <Card className="rounded-3xl p-6">
@@ -260,7 +260,76 @@ function FaturamentoDashboard() {
           </p>
         </Card>
       </div>
+
+      <BestPeriods pedidos={pedidos} />
+
+      <LucroBrutoVsLiquido faturamento={faturamentoMes} margem={margemMedia} />
     </div>
+  );
+}
+
+function BestPeriods({ pedidos }: { pedidos: Pedido[] }) {
+  const { dia, mes } = useMemo(() => {
+    const dias = [0, 0, 0, 0, 0, 0, 0];
+    const meses = new Array(12).fill(0);
+    for (const p of pedidos) {
+      if (!p.entrega || p.status === "Cancelado") continue;
+      const d = new Date(p.entrega);
+      if (isNaN(d.getTime())) continue;
+      const v = (p.valor || 0) + (p.valorEntrega || 0);
+      dias[d.getDay()] += v;
+      meses[d.getMonth()] += v;
+    }
+    const nomesDias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const iDia = dias.indexOf(Math.max(...dias));
+    const iMes = meses.indexOf(Math.max(...meses));
+    return {
+      dia: dias[iDia] > 0 ? { nome: nomesDias[iDia], valor: dias[iDia] } : null,
+      mes: meses[iMes] > 0 ? { nome: MESES[iMes], valor: meses[iMes] } : null,
+    };
+  }, [pedidos]);
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card className="rounded-3xl p-6">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Melhor dia da semana</p>
+        <p className="font-display text-2xl font-semibold mt-2">{dia ? dia.nome : "—"}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {dia ? `${brl(dia.valor)} faturados historicamente` : "Cadastre pedidos para descobrir"}
+        </p>
+      </Card>
+      <Card className="rounded-3xl p-6">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Melhor mês do ano</p>
+        <p className="font-display text-2xl font-semibold mt-2">{mes ? mes.nome : "—"}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {mes ? `${brl(mes.valor)} no total` : "Cadastre pedidos para descobrir"}
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+function LucroBrutoVsLiquido({ faturamento, margem }: { faturamento: number; margem: number }) {
+  const bruto = faturamento;
+  const liquido = faturamento * (margem / 100);
+  return (
+    <Card className="rounded-3xl p-6">
+      <p className="font-display text-base font-semibold">Lucro estimado × Lucro bruto (mês)</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Bruto = todo dinheiro que entrou. Estimado = o que sobra depois dos custos, aplicando sua margem média.
+      </p>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl border border-border p-4">
+          <p className="text-xs uppercase text-muted-foreground">Lucro bruto</p>
+          <p className="font-display text-2xl font-semibold mt-1">{brl(bruto)}</p>
+        </div>
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+          <p className="text-xs uppercase text-muted-foreground">Lucro estimado (líquido)</p>
+          <p className="font-display text-2xl font-semibold mt-1 text-primary">{brl(liquido)}</p>
+          <p className="text-[11px] text-muted-foreground mt-1">Margem média {margem.toFixed(0)}%</p>
+        </div>
+      </div>
+    </Card>
   );
 }
 

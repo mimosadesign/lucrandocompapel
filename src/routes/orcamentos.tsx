@@ -36,6 +36,7 @@ type Orcamento = {
   itens: OrcItem[];
   chavePix: string;
   criadoEm: string;
+  aceito?: boolean;
 };
 
 function novoOrcamento(chavePixPadrao: string, numeroSugerido: string): Orcamento {
@@ -515,47 +516,75 @@ function OrcamentosPage() {
         </div>
       </Card>
 
-      {salvos.length > 0 && (
-        <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
-          <h2 className="mb-4 font-display text-lg font-semibold">
-            Orçamentos salvos
-          </h2>
-          <div className="space-y-2">
-            {salvos.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between rounded-2xl border border-border/60 px-4 py-3"
-              >
-                <div>
-                  <p className="font-medium">
-                    #{s.numero} · {s.cliente || "Sem cliente"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {s.itens.length} itens ·{" "}
-                    {new Date(s.criadoEm).toLocaleDateString("pt-BR")}
-                  </p>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => carregar(s)}>
-                    Abrir
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => duplicar(s)}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive"
-                    onClick={() => excluir(s.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+      {salvos.length > 0 && (() => {
+        const aceitos = salvos.filter((s) => s.aceito).length;
+        const conv = salvos.length > 0 ? (aceitos / salvos.length) * 100 : 0;
+        return (
+          <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-semibold">Orçamentos salvos</h2>
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
+                <span className="text-muted-foreground">Taxa de conversão: </span>
+                <span className="font-display text-base font-semibold text-primary">
+                  {conv.toFixed(0)}%
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  ({aceitos} de {salvos.length} aceito{aceitos === 1 ? "" : "s"})
+                </span>
               </div>
-            ))}
-          </div>
-        </Card>
-      )}
+            </div>
+            <div className="space-y-2">
+              {salvos.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/60 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">
+                      #{s.numero} · {s.cliente || "Sem cliente"}
+                      {s.aceito && (
+                        <span className="ml-2 inline-flex rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-medium">
+                          Aceito
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {s.itens.length} itens ·{" "}
+                      {new Date(s.criadoEm).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant={s.aceito ? "default" : "outline"}
+                      size="sm"
+                      className="rounded-full h-8 text-xs"
+                      onClick={() =>
+                        setSalvos(salvos.map((x) => (x.id === s.id ? { ...x, aceito: !x.aceito } : x)))
+                      }
+                    >
+                      {s.aceito ? "✓ Aceito" : "Marcar aceito"}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => carregar(s)}>
+                      Abrir
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => duplicar(s)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      onClick={() => excluir(s.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        );
+      })()}
     </div>
   );
 }

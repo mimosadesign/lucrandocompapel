@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Calendar, Truck, Trash2, ClipboardList } from "lucide-react";
+import { Plus, Calendar, Truck, Trash2, ClipboardList, Copy, AlertCircle, Repeat } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useEntitlement } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { useLocalState, brl } from "@/lib/storage";
 import { MoneyInput } from "@/components/money-input";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/pedidos")({
   head: () => ({ meta: [{ title: "Pedidos — Lucrando com Papel" }] }),
@@ -35,12 +37,16 @@ type Pedido = {
   id: string;
   cliente: string;
   produto: string;
+  categoria?: string;
   entrega: string;
   entregaTipo: string;
   valor: number;
   valorEntrega: number;
   status: StatusPedido;
-  criadoEm?: string; // ISO — usado no reset mensal do plano gratuito
+  criadoEm?: string;
+  recorrente?: boolean;
+  recorrenteOrigem?: string; // id do pedido pai
+  ultimaGeracaoRecorrente?: string; // YYYY-MM da última cópia gerada
 };
 
 const statusMap: Record<StatusPedido, string> = {
@@ -60,14 +66,12 @@ function PedidosPage() {
   const { isUnlimited } = useEntitlement();
   const [lastReset, setLastReset] = useLocalState<string>("lcp:pedidos:lastReset", "");
 
-  // Plano gratuito: no primeiro dia do novo mês, remove pedidos de meses anteriores
-  // para liberar novamente o limite de 20 pedidos/mês.
+  // Reset mensal (plano gratuito)
   useEffect(() => {
     if (isUnlimited) return;
     const now = new Date();
     const chave = `${now.getFullYear()}-${now.getMonth()}`;
     if (lastReset === chave) return;
-
     setPedidos((prev) =>
       prev.filter((p) => {
         const ref = p.criadoEm || p.entrega;
@@ -81,7 +85,44 @@ function PedidosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isUnlimited, lastReset]);
 
-  // Conta apenas pedidos do mês atual (base do limite gratuito)
+  // Gera automaticamente pedidos recorrentes mensais no dia 1º
+  useEffect(() => {
+    const now = new Date();
+    const chaveMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const recorrentes = pedidos.filter(
+      (p) => p.recorrente && p.ultimaGeracaoRecorrente !== chaveMes && p.status !== "Cancelado",
+    );
+    if (recorrentes.length === 0) return;
+    setPedidos((prev) => {
+      const copias: Pedido[] = [];
+      const atualizados = prev.map((p) => {
+        if (!p.recorrente || p.ultimaGeracaoRecorrente === chaveMes || p.status === "Cancelado") return p;
+        // cria cópia para o mês atual
+        const novaEntrega = p.entrega
+          ? (() => {
+              const d = new Date(p.entrega);
+              if (isNaN(d.getTime())) return "";
+              const nova = new Date(now.getFullYear(), now.getMonth(), d.getDate());
+              return nova.toISOString().slice(0, 10);
+            })()
+          : "";
+        copias.push({
+          ...p,
+          id: crypto.randomUUID(),
+          entrega: novaEntrega,
+          status: "Em aberto",
+          criadoEm: now.toISOString(),
+          recorrente: false,
+          recorrenteOrigem: p.id,
+          ultimaGeracaoRecorrente: undefined,
+        });
+        return { ...p, ultimaGeracaoRecorrente: chaveMes };
+      });
+      return [...copias, ...atualizados];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const pedidosMesAtual = useMemo(() => {
     const now = new Date();
     return pedidos.filter((p) => {
@@ -104,6 +145,21 @@ function PedidosPage() {
     return c;
   }, [pedidos]);
 
+  // Lembretes: pedidos com entrega nos próximos 3 dias e não entregues
+  const lembretes = useMemo(() => {
+    const now = new Date();
+    const hoje = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return pedidos
+      .filter((p) => {
+        if (!p.entrega || p.status === "Entregue" || p.status === "Cancelado") return false;
+        const d = new Date(p.entrega);
+        if (isNaN(d.getTime())) return false;
+        const diff = Math.round((d.getTime() - hoje) / (24 * 60 * 60 * 1000));
+        return diff <= 3;
+      })
+      .sort((a, b) => new Date(a.entrega).getTime() - new Date(b.entrega).getTime());
+  }, [pedidos]);
+
   const limiteAtingido = !isUnlimited && pedidosMesAtual >= 20;
 
   function novo() {
@@ -112,6 +168,7 @@ function PedidosPage() {
       id: crypto.randomUUID(),
       cliente: "",
       produto: "",
+      categoria: "",
       entrega: "",
       entregaTipo: "Retirada",
       valor: 0,
@@ -124,6 +181,22 @@ function PedidosPage() {
   function editar(p: Pedido) {
     setEditing({ ...p });
     setOpen(true);
+  }
+  function duplicar(p: Pedido) {
+    if (limiteAtingido) {
+      toast.error("Limite mensal atingido. Assine o Diamante para pedidos ilimitados.");
+      return;
+    }
+    const copia: Pedido = {
+      ...p,
+      id: crypto.randomUUID(),
+      status: "Em aberto",
+      criadoEm: new Date().toISOString(),
+      recorrente: false,
+      ultimaGeracaoRecorrente: undefined,
+    };
+    setPedidos((prev) => [copia, ...prev]);
+    toast.success("Pedido duplicado!");
   }
   function salvar() {
     if (!editing || !editing.cliente.trim()) return;
@@ -151,6 +224,27 @@ function PedidosPage() {
           </Button>
         }
       />
+
+      {lembretes.length > 0 && (
+        <Card className="mb-6 rounded-2xl border-warning/40 bg-warning/10 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="h-4 w-4 text-warning-foreground" />
+            <p className="font-medium text-sm">Prazos de entrega chegando</p>
+          </div>
+          <div className="space-y-1">
+            {lembretes.slice(0, 5).map((p) => {
+              const d = new Date(p.entrega);
+              const dias = Math.round((d.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+              const txt = dias < 0 ? `atrasado ${Math.abs(dias)}d` : dias === 0 ? "hoje" : dias === 1 ? "amanhã" : `em ${dias} dias`;
+              return (
+                <p key={p.id} className="text-xs">
+                  <strong>{p.cliente}</strong> — {p.produto || "—"} · <span className={dias < 0 ? "text-destructive font-medium" : ""}>{txt}</span>
+                </p>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-4 mb-6">
         {[
@@ -180,8 +274,13 @@ function PedidosPage() {
               className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center px-6 py-4 border-b border-border/40 last:border-0 hover:bg-secondary/30 transition-colors"
             >
               <div className="md:col-span-3">
-                <p className="font-medium">{p.cliente}</p>
-                <p className="text-xs text-muted-foreground">{p.produto}</p>
+                <p className="font-medium flex items-center gap-1.5">
+                  {p.cliente}
+                  {p.recorrente && <Repeat className="h-3 w-3 text-primary" />}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {p.produto}{p.categoria ? ` · ${p.categoria}` : ""}
+                </p>
               </div>
               <div className="md:col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" /> {p.entrega || "—"}
@@ -194,7 +293,7 @@ function PedidosPage() {
                   {p.status}
                 </span>
               </div>
-              <div className="md:col-span-2 flex items-center justify-between md:justify-end gap-2">
+              <div className="md:col-span-3 flex items-center justify-between md:justify-end gap-2">
                 <div className="text-right">
                   <p className="font-display text-lg font-semibold">{brl(p.valor + (p.valorEntrega || 0))}</p>
                   {p.valorEntrega > 0 && (
@@ -204,6 +303,9 @@ function PedidosPage() {
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" className="rounded-full" onClick={() => editar(p)}>
                     Editar
+                  </Button>
+                  <Button variant="ghost" size="icon" className="rounded-full" onClick={() => duplicar(p)} title="Duplicar">
+                    <Copy className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" className="rounded-full text-destructive" onClick={() => excluir(p.id)}>
                     <Trash2 className="h-4 w-4" />
@@ -215,7 +317,6 @@ function PedidosPage() {
         )}
       </Card>
 
-      
       {!isUnlimited && (
         <p className={`mt-4 text-xs text-center ${limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"}`}>
           {pedidosMesAtual} / 20 pedidos no mês (plano gratuito) ·
@@ -226,7 +327,7 @@ function PedidosPage() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl sm:max-w-lg">
+        <DialogContent className="rounded-3xl sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing && pedidos.some((x) => x.id === editing.id) ? "Editar pedido" : "Novo pedido"}</DialogTitle>
           </DialogHeader>
@@ -247,6 +348,15 @@ function PedidosPage() {
                   onChange={(e) => setEditing({ ...editing, produto: e.target.value })}
                   placeholder="Descrição do pedido"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label>Categoria (opcional)</Label>
+                <Input
+                  value={editing.categoria || ""}
+                  onChange={(e) => setEditing({ ...editing, categoria: e.target.value })}
+                  placeholder="Ex.: Convites, Caixas, Topos"
+                />
+                <p className="text-[11px] text-muted-foreground">Usada para o ranking de categorias mais lucrativas.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
@@ -311,6 +421,20 @@ function PedidosPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <label className="flex items-start gap-3 rounded-2xl border border-border/60 p-3 cursor-pointer">
+                <Checkbox
+                  checked={!!editing.recorrente}
+                  onCheckedChange={(c) => setEditing({ ...editing, recorrente: c === true })}
+                />
+                <div>
+                  <p className="text-sm font-medium flex items-center gap-1.5">
+                    <Repeat className="h-3.5 w-3.5" /> Pedido recorrente mensal
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Todo mês, no dia 1º, o app cria automaticamente uma cópia deste pedido para você (Em aberto).
+                  </p>
+                </div>
+              </label>
             </div>
           )}
           <DialogFooter>

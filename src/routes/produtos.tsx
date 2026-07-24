@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Gift, Trash2, ImagePlus, X } from "lucide-react";
+import { Plus, Gift, Trash2, ImagePlus, X, Copy } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
@@ -89,6 +89,14 @@ function ProdutosPage() {
   function excluir(id: string) {
     setProdutos((p) => p.filter((x) => x.id !== id));
   }
+  function duplicar(p: Produto) {
+    if (produtos.length >= 15 && !unlimited) {
+      toast.error("Limite do plano gratuito atingido (15 produtos). Assine o Diamante para ilimitados.");
+      return;
+    }
+    setProdutos((prev) => [...prev, { ...p, id: crypto.randomUUID(), nome: `${p.nome} (cópia)` }]);
+    toast.success("Produto duplicado!");
+  }
 
   const precoEditing = useMemo(() => {
     if (!editing) return 0;
@@ -157,6 +165,9 @@ function ProdutosPage() {
                     <div className="flex gap-1">
                       <Button variant="ghost" size="sm" className="rounded-full" onClick={() => editar(p)}>
                         Editar
+                      </Button>
+                      <Button variant="ghost" size="icon" className="rounded-full" onClick={() => duplicar(p)} title="Duplicar">
+                        <Copy className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="rounded-full text-destructive" onClick={() => excluir(p.id)}>
                         <Trash2 className="h-4 w-4" />
