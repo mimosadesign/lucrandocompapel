@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search, AlertCircle, Package, Trash2 } from "lucide-react";
+import { Plus, Search, AlertCircle, Package, Trash2, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { useIsUnlimited } from "@/lib/auth";
 import { useEffect, useMemo, useState } from "react";
@@ -132,6 +132,10 @@ function MateriaisPage() {
           </Button>
         }
       />
+
+      <EstoqueInteligente materiais={materiais} />
+
+
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="relative flex-1 min-w-[240px]">
@@ -336,3 +340,68 @@ function StockBadge({ status, value }: { status: string; value: number }) {
     </span>
   );
 }
+
+function EstoqueInteligente({ materiais }: { materiais: Material[] }) {
+  const criticos = materiais.filter((m) => m.estoque <= 0);
+  const alertas = materiais.filter(
+    (m) => m.estoqueMinimo > 0 && m.estoque > 0 && m.estoque <= m.estoqueMinimo,
+  );
+  const lista = [
+    ...criticos.map((m) => ({ ...m, tipo: "crítico" as const })),
+    ...alertas.map((m) => ({ ...m, tipo: "alerta" as const })),
+  ];
+  if (lista.length === 0) return null;
+
+  const total = lista.reduce((s, m) => {
+    const unit = m.quantidade > 0 ? m.valorPago / m.quantidade : 0;
+    const alvo = Math.max(m.estoqueMinimo || 1, 1);
+    const compra = Math.max(alvo - m.estoque, 1);
+    return s + unit * compra;
+  }, 0);
+
+  const linhas = lista.map((m) => {
+    const alvo = Math.max(m.estoqueMinimo || 1, 1);
+    const sugerido = Math.max(alvo - m.estoque, 1);
+    return `• ${m.nome} — comprar ${sugerido} un.`;
+  }).join("\n");
+  const mensagem = encodeURIComponent(`Lista de compras do ateliê:\n\n${linhas}`);
+
+  return (
+    <Card className="mb-6 rounded-3xl border-primary/30 bg-primary/5 p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Brain className="h-4 w-4 text-primary" />
+        <p className="font-display text-base font-semibold">Estoque inteligente</p>
+      </div>
+      <p className="text-sm text-muted-foreground mb-3">
+        Sugestão automática de compra baseada no seu estoque atual e mínimo.
+        {total > 0 && <> Investimento estimado: <strong>{brl(total)}</strong>.</>}
+      </p>
+      <div className="space-y-1.5 mb-3">
+        {lista.slice(0, 8).map((m) => {
+          const alvo = Math.max(m.estoqueMinimo || 1, 1);
+          const sugerido = Math.max(alvo - m.estoque, 1);
+          return (
+            <div key={m.id} className="flex items-center justify-between text-sm">
+              <span className="truncate">
+                <strong>{m.nome}</strong>
+                <span className="text-muted-foreground"> · atual {m.estoque}{m.estoqueMinimo > 0 ? ` / mín ${m.estoqueMinimo}` : ""}</span>
+              </span>
+              <span className={`font-medium ${m.tipo === "crítico" ? "text-destructive" : ""}`}>
+                comprar {sugerido}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <a
+        href={`https://wa.me/?text=${mensagem}`}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+      >
+        Compartilhar lista no WhatsApp
+      </a>
+    </Card>
+  );
+}
+
