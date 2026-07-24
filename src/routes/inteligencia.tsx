@@ -25,7 +25,7 @@ export const Route = createFileRoute("/inteligencia")({
   component: InteligenciaPage,
 });
 
-type Pedido = { id: string; valor: number; valorEntrega?: number; status: string; entrega?: string; produto?: string };
+type Pedido = { id: string; valor: number; valorEntrega?: number; status: string; entrega?: string; produto?: string; categoria?: string };
 type Produto = { id: string; nome: string; custo: number; margemPct: number };
 
 function InteligenciaPage() {
@@ -102,6 +102,18 @@ function InteligenciaDashboard() {
     for (const p of pedidos) {
       if (p.status === "Cancelado") continue;
       const nome = p.produto || "Sem produto";
+      if (!counts[nome]) counts[nome] = { nome, vendas: 0, faturamento: 0 };
+      counts[nome].vendas += 1;
+      counts[nome].faturamento += (p.valor || 0) + (p.valorEntrega || 0);
+    }
+    return Object.values(counts).sort((a, b) => b.faturamento - a.faturamento).slice(0, 5);
+  }, [pedidos]);
+
+  const topCategorias = useMemo(() => {
+    const counts: Record<string, { nome: string; vendas: number; faturamento: number }> = {};
+    for (const p of pedidos) {
+      if (p.status === "Cancelado") continue;
+      const nome = (p.categoria && p.categoria.trim()) || p.produto || "Sem categoria";
       if (!counts[nome]) counts[nome] = { nome, vendas: 0, faturamento: 0 };
       counts[nome].vendas += 1;
       counts[nome].faturamento += (p.valor || 0) + (p.valorEntrega || 0);
@@ -315,6 +327,33 @@ function InteligenciaDashboard() {
                   <p className="text-xs text-muted-foreground">{p.vendas} venda(s)</p>
                 </div>
                 <p className="font-semibold">{brl(p.faturamento)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Card className="rounded-3xl p-6">
+        <p className="font-display text-base font-semibold">Ranking de categorias mais lucrativas</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Agrupado pela categoria de cada pedido (ou pelo nome do produto quando não houver categoria).
+        </p>
+        {topCategorias.length === 0 ? (
+          <p className="text-sm text-muted-foreground mt-3">
+            Adicione categorias aos seus pedidos para ver o ranking.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {topCategorias.map((c, i) => (
+              <div key={c.nome} className="flex items-center gap-3">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 text-primary font-semibold text-sm">
+                  {i + 1}
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{c.nome}</p>
+                  <p className="text-xs text-muted-foreground">{c.vendas} venda(s)</p>
+                </div>
+                <p className="font-semibold">{brl(c.faturamento)}</p>
               </div>
             ))}
           </div>
