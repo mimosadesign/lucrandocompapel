@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Calendar, Truck, Trash2, ClipboardList, Copy, AlertCircle, Repeat } from "lucide-react";
+import { Plus, Calendar, Truck, Trash2, ClipboardList, Copy, AlertCircle, Repeat, ListChecks } from "lucide-react";
+import { ProducaoDialog, type Producao } from "@/components/producao-dialog";
 import { useEffect, useMemo, useState } from "react";
 import { useEntitlement } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
@@ -47,6 +48,8 @@ type Pedido = {
   recorrente?: boolean;
   recorrenteOrigem?: string; // id do pedido pai
   ultimaGeracaoRecorrente?: string; // YYYY-MM da última cópia gerada
+  producao?: Producao;
+
 };
 
 const statusMap: Record<StatusPedido, string> = {
@@ -63,6 +66,7 @@ function PedidosPage() {
   const [pedidos, setPedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Pedido | null>(null);
+  const [producaoPedidoId, setProducaoPedidoId] = useState<string | null>(null);
   const { isUnlimited } = useEntitlement();
   const [lastReset, setLastReset] = useLocalState<string>("lcp:pedidos:lastReset", "");
 
@@ -301,6 +305,15 @@ function PedidosPage() {
                   )}
                 </div>
                 <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`rounded-full ${p.producao ? "text-primary" : ""}`}
+                    onClick={() => setProducaoPedidoId(p.id)}
+                    title="Ficha de produção"
+                  >
+                    <ListChecks className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" size="sm" className="rounded-full" onClick={() => editar(p)}>
                     Editar
                   </Button>
@@ -443,6 +456,24 @@ function PedidosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {(() => {
+        const pedido = pedidos.find((x) => x.id === producaoPedidoId);
+        if (!pedido) return null;
+        return (
+          <ProducaoDialog
+            open={!!producaoPedidoId}
+            onOpenChange={(v) => !v && setProducaoPedidoId(null)}
+            pedidoTitulo={`${pedido.cliente} — ${pedido.produto || "sem descrição"}`}
+            value={pedido.producao}
+            onChange={(prod) =>
+              setPedidos((prev) =>
+                prev.map((x) => (x.id === pedido.id ? { ...x, producao: prod } : x)),
+              )
+            }
+          />
+        );
+      })()}
     </div>
   );
 }
