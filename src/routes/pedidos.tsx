@@ -66,6 +66,7 @@ function PedidosPage() {
   const [pedidos, setPedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Pedido | null>(null);
+  const [producaoPedidoId, setProducaoPedidoId] = useState<string | null>(null);
   const { isUnlimited } = useEntitlement();
   const [lastReset, setLastReset] = useLocalState<string>("lcp:pedidos:lastReset", "");
 
