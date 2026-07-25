@@ -305,6 +305,15 @@ function PedidosPage() {
                   )}
                 </div>
                 <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`rounded-full ${p.producao ? "text-primary" : ""}`}
+                    onClick={() => setProducaoPedidoId(p.id)}
+                    title="Ficha de produção"
+                  >
+                    <ListChecks className="h-4 w-4" />
+                  </Button>
                   <Button variant="ghost" size="sm" className="rounded-full" onClick={() => editar(p)}>
                     Editar
                   </Button>
