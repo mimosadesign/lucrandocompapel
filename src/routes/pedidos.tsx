@@ -456,6 +456,24 @@ function PedidosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {(() => {
+        const pedido = pedidos.find((x) => x.id === producaoPedidoId);
+        if (!pedido) return null;
+        return (
+          <ProducaoDialog
+            open={!!producaoPedidoId}
+            onOpenChange={(v) => !v && setProducaoPedidoId(null)}
+            pedidoTitulo={`${pedido.cliente} — ${pedido.produto || "sem descrição"}`}
+            value={pedido.producao}
+            onChange={(prod) =>
+              setPedidos((prev) =>
+                prev.map((x) => (x.id === pedido.id ? { ...x, producao: prod } : x)),
+              )
+            }
+          />
+        );
+      })()}
     </div>
   );
 }
