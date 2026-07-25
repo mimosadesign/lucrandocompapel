@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Calendar, Truck, Trash2, ClipboardList, Copy, AlertCircle, Repeat } from "lucide-react";
+import { Plus, Calendar, Truck, Trash2, ClipboardList, Copy, AlertCircle, Repeat, ListChecks } from "lucide-react";
+import { ProducaoDialog, type Producao } from "@/components/producao-dialog";
 import { useEffect, useMemo, useState } from "react";
 import { useEntitlement } from "@/lib/auth";
 import { PageHeader } from "@/components/page-header";
