@@ -48,6 +48,8 @@ type Pedido = {
   recorrente?: boolean;
   recorrenteOrigem?: string; // id do pedido pai
   ultimaGeracaoRecorrente?: string; // YYYY-MM da última cópia gerada
+  producao?: Producao;
+
 };
 
 const statusMap: Record<StatusPedido, string> = {
