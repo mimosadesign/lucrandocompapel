@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser, useEntitlement, signOutEverywhere } from "@/lib/auth";
+import { FerramentasCard } from "@/components/ferramentas-card";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -182,6 +183,10 @@ function ConfigPage() {
           </Button>
         </div>
       </Card>
+
+      <FerramentasCard />
+
+
 
       <div className="flex justify-end">
         <Button

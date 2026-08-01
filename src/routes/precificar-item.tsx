@@ -69,7 +69,7 @@ type PrecItem = {
   paginasImpressas: number;
   // tesoura (corte manual)
   usaTesoura: boolean;
-  cortesManuais: number;
+  minutosCorteManual: number;
 };
 
 type MaquinaCfg = {
@@ -87,9 +87,9 @@ type ImpressaoCfg = {
 
 type TesouraCfg = {
   valorTesoura: number;
-  vidaUtilCortes: number; // quantidade de cortes até trocar
+  vidaUtilHoras: number; // horas de corte até trocar a tesoura
   custoAfiacao: number;
-  cortesEntreAfiacoes: number;
+  horasEntreAfiacoes: number;
 };
 
 function loadMateriais(): Material[] {
@@ -112,7 +112,7 @@ function novoItem(): PrecItem {
     minutosCorte: 0,
     paginasImpressas: 0,
     usaTesoura: false,
-    cortesManuais: 0,
+    minutosCorteManual: 0,
   };
 }
 
@@ -142,11 +142,11 @@ function PrecificarItemPage() {
     paginasPorKit: 0,
   });
 
-  const [tesoura, setTesoura] = useLocalState<TesouraCfg>("lcp:tesoura", {
+  const [tesoura, setTesoura] = useLocalState<TesouraCfg>("lcp:tesouraTempo", {
     valorTesoura: 0,
-    vidaUtilCortes: 0,
+    vidaUtilHoras: 0,
     custoAfiacao: 0,
-    cortesEntreAfiacoes: 0,
+    horasEntreAfiacoes: 0,
   });
 
   const [item, setItem] = useLocalState<PrecItem>("lcp:precItem:atual", novoItem());
@@ -163,13 +163,15 @@ function PrecificarItemPage() {
   const custoTintaPagina =
     impressao.paginasPorKit > 0 ? impressao.valorKit / impressao.paginasPorKit : 0;
 
-  const custoTrocaTesouraPorCorte =
-    tesoura.vidaUtilCortes > 0 ? tesoura.valorTesoura / tesoura.vidaUtilCortes : 0;
-  const custoAfiacaoPorCorte =
-    tesoura.cortesEntreAfiacoes > 0
-      ? tesoura.custoAfiacao / tesoura.cortesEntreAfiacoes
+  // Custo da tesoura rateado por HORA de corte manual
+  const custoTrocaTesouraPorHora =
+    (tesoura.vidaUtilHoras ?? 0) > 0 ? tesoura.valorTesoura / tesoura.vidaUtilHoras : 0;
+  const custoAfiacaoPorHora =
+    (tesoura.horasEntreAfiacoes ?? 0) > 0
+      ? tesoura.custoAfiacao / tesoura.horasEntreAfiacoes
       : 0;
-  const custoTesouraPorCorte = custoTrocaTesouraPorCorte + custoAfiacaoPorCorte;
+  const custoTesouraPorHora = custoTrocaTesouraPorHora + custoAfiacaoPorHora;
+  const minutosCorteManual = item.minutosCorteManual ?? 0;
 
   const custoMateriais = useMemo(() => {
     return item.materiais.reduce((sum, im) => {
@@ -186,7 +188,7 @@ function PrecificarItemPage() {
   const custoMaquinaTotal = custoBaseCorte + custoLaminaItem;
 
   const custoImpressaoItem = custoTintaPagina * item.paginasImpressas;
-  const custoTesouraItem = custoTesouraPorCorte * item.cortesManuais;
+  const custoTesouraItem = (custoTesouraPorHora / 60) * minutosCorteManual;
 
   const custoTotal =
     custoMateriais +
@@ -287,9 +289,9 @@ function PrecificarItemPage() {
         brl(custoImpressaoItem),
       ],
     ];
-    if (item.cortesManuais > 0) {
+    if (minutosCorteManual > 0) {
       linhas.push([
-        `Tesoura / corte manual (${item.cortesManuais} cortes)`,
+        `Tesoura / corte manual (${minutosCorteManual} min)`,
         brl(custoTesouraItem),
       ]);
     }
@@ -591,7 +593,7 @@ function PrecificarItemPage() {
           <TabsContent value="tesoura" className="space-y-6">
             <p className="text-sm text-muted-foreground">
               Se você corta na tesoura, informe os custos de troca e afiação. Vamos ratear
-              esses valores por corte.
+              esses valores por tempo de corte.
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-1.5">
@@ -602,10 +604,10 @@ function PrecificarItemPage() {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label>Vida útil da tesoura (nº de cortes)</Label>
+                <Label>Vida útil da tesoura (horas de corte)</Label>
                 <MoneyInput
-                  value={tesoura.vidaUtilCortes}
-                  onChange={(n) => setTesoura({ ...tesoura, vidaUtilCortes: n })}
+                  value={tesoura.vidaUtilHoras ?? 0}
+                  onChange={(n) => setTesoura({ ...tesoura, vidaUtilHoras: n })}
                 />
               </div>
               <div className="grid gap-1.5">
@@ -616,42 +618,42 @@ function PrecificarItemPage() {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label>Cortes entre uma afiação e outra</Label>
+                <Label>Horas de corte entre uma afiação e outra</Label>
                 <MoneyInput
-                  value={tesoura.cortesEntreAfiacoes}
+                  value={tesoura.horasEntreAfiacoes ?? 0}
                   onChange={(n) =>
-                    setTesoura({ ...tesoura, cortesEntreAfiacoes: n })
+                    setTesoura({ ...tesoura, horasEntreAfiacoes: n })
                   }
                 />
               </div>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
               <Linha
-                label="Custo troca por corte"
-                value={brl(custoTrocaTesouraPorCorte)}
+                label="Custo troca por hora"
+                value={brl(custoTrocaTesouraPorHora)}
               />
               <Linha
-                label="Custo afiação por corte"
-                value={brl(custoAfiacaoPorCorte)}
+                label="Custo afiação por hora"
+                value={brl(custoAfiacaoPorHora)}
               />
               <Linha
-                label="Custo total por corte"
-                value={brl(custoTesouraPorCorte)}
+                label="Custo total por hora de corte"
+                value={brl(custoTesouraPorHora)}
                 highlight
               />
             </div>
 
             <div className="border-t border-border/60 pt-5 space-y-4">
               <p className="text-sm text-muted-foreground">
-                Se este item tem cortes manuais, informe a quantidade — o custo é calculado
-                automaticamente com base nos dados acima.
+                Informe quanto tempo você passa cortando este item na tesoura — o custo é
+                calculado automaticamente com base nos dados acima.
               </p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-1.5">
-                  <Label>Quantidade de cortes manuais neste item</Label>
+                  <Label>Tempo de corte manual neste item (minutos)</Label>
                   <MoneyInput
-                    value={item.cortesManuais}
-                    onChange={(n) => setItem({ ...item, cortesManuais: n })}
+                    value={minutosCorteManual}
+                    onChange={(n) => setItem({ ...item, minutosCorteManual: n })}
                   />
                 </div>
                 <Linha
@@ -664,6 +666,7 @@ function PrecificarItemPage() {
           </TabsContent>
         </Tabs>
       </Card>
+
 
       {/* ==== Impressão ==== */}
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
@@ -725,7 +728,7 @@ function PrecificarItemPage() {
           />
           <Linha label="Máquina (base + lâmina)" value={brl(custoMaquinaTotal)} />
           <Linha label="Impressão" value={brl(custoImpressaoItem)} />
-          {item.cortesManuais > 0 && (
+          {minutosCorteManual > 0 && (
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
         </div>

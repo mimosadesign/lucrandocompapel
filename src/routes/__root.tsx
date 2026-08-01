@@ -9,9 +9,10 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useUser, useEntitlement, signOutEverywhere } from "@/lib/auth";
-import { LogOut } from "lucide-react";
+import { useDarkMode } from "@/lib/theme";
+import { LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import appCss from "../styles.css?url";
@@ -140,10 +141,37 @@ function RootShell({ children }: { children: ReactNode }) {
 function TrialExpiredDialog() {
   const { trialExpired } = useEntitlement();
   const navigate = useNavigate();
-  if (!trialExpired) return null;
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("lcp:trialAvisoFechado") === "1") setDismissed(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function fechar() {
+    setDismissed(true);
+    try {
+      sessionStorage.setItem("lcp:trialAvisoFechado", "1");
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (!trialExpired || dismissed) return null;
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-3xl bg-card p-6 shadow-2xl text-center">
+      <div className="relative w-full max-w-md rounded-3xl bg-card p-6 shadow-2xl text-center">
+        <button
+          type="button"
+          onClick={fechar}
+          aria-label="Fechar aviso"
+          className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-diamond/25">
           <span className="text-2xl">💎</span>
         </div>
@@ -159,9 +187,20 @@ function TrialExpiredDialog() {
         <Button
           size="lg"
           className="mt-5 w-full rounded-full gap-2"
-          onClick={() => navigate({ to: "/assinar" })}
+          onClick={() => {
+            fechar();
+            navigate({ to: "/assinar" });
+          }}
         >
           Assinar Diamante agora
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-2 w-full rounded-full text-muted-foreground"
+          onClick={fechar}
+        >
+          Continuar no plano gratuito
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">
           Enquanto isso, os recursos Pró ficam bloqueados. Você pode revisar seus dados básicos normalmente.
@@ -171,10 +210,14 @@ function TrialExpiredDialog() {
   );
 }
 
+
 function AppLayout() {
   const { user } = useUser();
   const { inTrial, daysLeft, isPaid, isUnlimited } = useEntitlement();
   const navigate = useNavigate();
+  useDarkMode(); // aplica o tema escuro salvo
+
+
 
   // Personalização visual (Diamante / trial) — aplica a cor escolhida.
   useEffect(() => {
