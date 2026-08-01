@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { useUser, useEntitlement, signOutEverywhere } from "@/lib/auth";
+import { useDarkMode } from "@/lib/theme";
 import { LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -214,6 +215,9 @@ function AppLayout() {
   const { user } = useUser();
   const { inTrial, daysLeft, isPaid, isUnlimited } = useEntitlement();
   const navigate = useNavigate();
+  useDarkMode(); // aplica o tema escuro salvo
+
+
 
   // Personalização visual (Diamante / trial) — aplica a cor escolhida.
   useEffect(() => {
