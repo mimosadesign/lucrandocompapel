@@ -69,7 +69,7 @@ type PrecItem = {
   paginasImpressas: number;
   // tesoura (corte manual)
   usaTesoura: boolean;
-  cortesManuais: number;
+  minutosCorteManual: number;
 };
 
 type MaquinaCfg = {
@@ -87,9 +87,9 @@ type ImpressaoCfg = {
 
 type TesouraCfg = {
   valorTesoura: number;
-  vidaUtilCortes: number; // quantidade de cortes até trocar
+  vidaUtilHoras: number; // horas de corte até trocar a tesoura
   custoAfiacao: number;
-  cortesEntreAfiacoes: number;
+  horasEntreAfiacoes: number;
 };
 
 function loadMateriais(): Material[] {
@@ -112,7 +112,7 @@ function novoItem(): PrecItem {
     minutosCorte: 0,
     paginasImpressas: 0,
     usaTesoura: false,
-    cortesManuais: 0,
+    minutosCorteManual: 0,
   };
 }
 
@@ -142,11 +142,11 @@ function PrecificarItemPage() {
     paginasPorKit: 0,
   });
 
-  const [tesoura, setTesoura] = useLocalState<TesouraCfg>("lcp:tesoura", {
+  const [tesoura, setTesoura] = useLocalState<TesouraCfg>("lcp:tesouraTempo", {
     valorTesoura: 0,
-    vidaUtilCortes: 0,
+    vidaUtilHoras: 0,
     custoAfiacao: 0,
-    cortesEntreAfiacoes: 0,
+    horasEntreAfiacoes: 0,
   });
 
   const [item, setItem] = useLocalState<PrecItem>("lcp:precItem:atual", novoItem());
@@ -163,13 +163,15 @@ function PrecificarItemPage() {
   const custoTintaPagina =
     impressao.paginasPorKit > 0 ? impressao.valorKit / impressao.paginasPorKit : 0;
 
-  const custoTrocaTesouraPorCorte =
-    tesoura.vidaUtilCortes > 0 ? tesoura.valorTesoura / tesoura.vidaUtilCortes : 0;
-  const custoAfiacaoPorCorte =
-    tesoura.cortesEntreAfiacoes > 0
-      ? tesoura.custoAfiacao / tesoura.cortesEntreAfiacoes
+  // Custo da tesoura rateado por HORA de corte manual
+  const custoTrocaTesouraPorHora =
+    (tesoura.vidaUtilHoras ?? 0) > 0 ? tesoura.valorTesoura / tesoura.vidaUtilHoras : 0;
+  const custoAfiacaoPorHora =
+    (tesoura.horasEntreAfiacoes ?? 0) > 0
+      ? tesoura.custoAfiacao / tesoura.horasEntreAfiacoes
       : 0;
-  const custoTesouraPorCorte = custoTrocaTesouraPorCorte + custoAfiacaoPorCorte;
+  const custoTesouraPorHora = custoTrocaTesouraPorHora + custoAfiacaoPorHora;
+  const minutosCorteManual = item.minutosCorteManual ?? 0;
 
   const custoMateriais = useMemo(() => {
     return item.materiais.reduce((sum, im) => {
