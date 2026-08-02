@@ -217,7 +217,12 @@ function Caixa() {
   const doDia = dia === hoje ? vendas : vendas;
 
   const totais = useMemo(() => {
-    const t: Record<string, number> = { PIX: 0, Dinheiro: 0, Cartão: 0, Fiado: 0 };
+    const t: Record<Venda["forma"], number> = {
+      PIX: 0,
+      Dinheiro: 0,
+      Cartão: 0,
+      Fiado: 0,
+    };
     for (const v of doDia) t[v.forma] += v.valor;
     const recebido = t.PIX + t.Dinheiro + t["Cartão"];
     return { ...t, recebido, total: recebido + t.Fiado };
