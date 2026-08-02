@@ -36,6 +36,8 @@ import {
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
 import { useEntitlement, openDiamondDialog } from "@/lib/auth";
+import { CronometroProducao } from "@/components/cronometro-producao";
+import { FormulasCofre } from "@/components/formulas-cofre";
 
 export const Route = createFileRoute("/precificar-item")({
   head: () => ({ meta: [{ title: "Precificar Item — Lucrando com Papel" }] }),
