@@ -36,6 +36,8 @@ import {
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
 import { useEntitlement, openDiamondDialog } from "@/lib/auth";
+import { CronometroProducao } from "@/components/cronometro-producao";
+import { FormulasCofre } from "@/components/formulas-cofre";
 
 export const Route = createFileRoute("/precificar-item")({
   head: () => ({ meta: [{ title: "Precificar Item — Lucrando com Papel" }] }),
@@ -394,6 +396,49 @@ function PrecificarItemPage() {
           </div>
         </div>
       </Card>
+
+      <CronometroProducao
+        nomeSugerido={item.nome}
+        onUsarTempo={(min) => setItem({ ...item, minutos: min })}
+      />
+
+      <FormulasCofre
+        atual={{
+          materiais: item.materiais.map((m) => ({
+            materialId: m.materialId,
+            quantidade: m.quantidade,
+          })),
+          minutos: item.minutos,
+          folhasUsadas: item.folhasUsadas,
+          minutosCorte: item.minutosCorte,
+          paginasImpressas: item.paginasImpressas,
+          usaTesoura: item.usaTesoura,
+          minutosCorteManual: item.minutosCorteManual ?? 0,
+        }}
+        nomesMateriais={(ids) =>
+          ids
+            .map((id) => materiais.find((m) => m.id === id)?.nome)
+            .filter(Boolean) as string[]
+        }
+        onAplicar={(f) =>
+          setItem({
+            ...item,
+            materiais: f.materiais.map((m) => ({
+              id: crypto.randomUUID(),
+              materialId: m.materialId,
+              quantidade: m.quantidade,
+            })),
+            minutos: f.minutos,
+            folhasUsadas: f.folhasUsadas,
+            minutosCorte: f.minutosCorte,
+            paginasImpressas: f.paginasImpressas,
+            usaTesoura: f.usaTesoura,
+            minutosCorteManual: f.minutosCorteManual,
+          })
+        }
+      />
+
+
 
       {/* ==== Materiais ==== */}
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">

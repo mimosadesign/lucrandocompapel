@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { MoneyInput } from "@/components/money-input";
+import { ComprasInteligentes } from "@/components/compras-inteligentes";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({ meta: [{ title: "Materiais — Lucrando com Papel" }] }),
@@ -134,6 +135,11 @@ function MateriaisPage() {
       />
 
       <EstoqueInteligente materiais={materiais} />
+
+      <div className="mb-6">
+        <ComprasInteligentes materiais={materiais} />
+      </div>
+
 
 
 

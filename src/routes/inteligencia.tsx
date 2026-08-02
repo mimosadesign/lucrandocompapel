@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
+import { AuditoriaPrecos, GanhoPorHora } from "@/components/auditoria-precos";
 
 type NumState = Record<string, string>;
 type Gasto = { id: string; nome: string; valor: string };
@@ -161,6 +162,11 @@ function InteligenciaDashboard() {
           </p>
         </Card>
       </div>
+
+      <GanhoPorHora />
+      <AuditoriaPrecos />
+
+
 
       <Card className="rounded-3xl p-6 border-primary/30 bg-primary/5">
         <p className="font-display text-base font-semibold">O que é o Break-even (ponto de empate)?</p>
