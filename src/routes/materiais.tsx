@@ -135,6 +135,11 @@ function MateriaisPage() {
 
       <EstoqueInteligente materiais={materiais} />
 
+      <div className="mb-6">
+        <ComprasInteligentes materiais={materiais} />
+      </div>
+
+
 
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
