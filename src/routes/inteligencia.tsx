@@ -162,6 +162,11 @@ function InteligenciaDashboard() {
         </Card>
       </div>
 
+      <GanhoPorHora />
+      <AuditoriaPrecos />
+
+
+
       <Card className="rounded-3xl p-6 border-primary/30 bg-primary/5">
         <p className="font-display text-base font-semibold">O que é o Break-even (ponto de empate)?</p>
         <p className="text-sm text-muted-foreground mt-2">
