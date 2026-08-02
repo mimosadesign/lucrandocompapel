@@ -23,6 +23,7 @@ import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
+import { Route as CalculadorasRouteImport } from './routes/calculadoras'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssinarRouteImport } from './routes/assinar'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -100,6 +101,11 @@ const CatalogoRoute = CatalogoRouteImport.update({
   path: '/catalogo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CalculadorasRoute = CalculadorasRouteImport.update({
+  id: '/calculadoras',
+  path: '/calculadoras',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
+  '/calculadoras': typeof CalculadorasRoute
   '/catalogo': typeof CatalogoRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
+  '/calculadoras': typeof CalculadorasRoute
   '/catalogo': typeof CatalogoRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/auth': typeof AuthRoute
+  '/calculadoras': typeof CalculadorasRoute
   '/catalogo': typeof CatalogoRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/assinar'
     | '/auth'
+    | '/calculadoras'
     | '/catalogo'
     | '/clientes'
     | '/configuracoes'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/assinar'
     | '/auth'
+    | '/calculadoras'
     | '/catalogo'
     | '/clientes'
     | '/configuracoes'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/assinar'
     | '/auth'
+    | '/calculadoras'
     | '/catalogo'
     | '/clientes'
     | '/configuracoes'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AssinarRoute: typeof AssinarRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CalculadorasRoute: typeof CalculadorasRoute
   CatalogoRoute: typeof CatalogoRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/calculadoras': {
+      id: '/calculadoras'
+      path: '/calculadoras'
+      fullPath: '/calculadoras'
+      preLoaderRoute: typeof CalculadorasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -450,6 +470,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AssinarRoute: AssinarRouteWithChildren,
   AuthRoute: AuthRoute,
+  CalculadorasRoute: CalculadorasRoute,
   CatalogoRoute: CatalogoRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
