@@ -395,6 +395,49 @@ function PrecificarItemPage() {
         </div>
       </Card>
 
+      <CronometroProducao
+        nomeSugerido={item.nome}
+        onUsarTempo={(min) => setItem({ ...item, minutos: min })}
+      />
+
+      <FormulasCofre
+        atual={{
+          materiais: item.materiais.map((m) => ({
+            materialId: m.materialId,
+            quantidade: m.quantidade,
+          })),
+          minutos: item.minutos,
+          folhasUsadas: item.folhasUsadas,
+          minutosCorte: item.minutosCorte,
+          paginasImpressas: item.paginasImpressas,
+          usaTesoura: item.usaTesoura,
+          minutosCorteManual: item.minutosCorteManual ?? 0,
+        }}
+        nomesMateriais={(ids) =>
+          ids
+            .map((id) => materiais.find((m) => m.id === id)?.nome)
+            .filter(Boolean) as string[]
+        }
+        onAplicar={(f) =>
+          setItem({
+            ...item,
+            materiais: f.materiais.map((m) => ({
+              id: crypto.randomUUID(),
+              materialId: m.materialId,
+              quantidade: m.quantidade,
+            })),
+            minutos: f.minutos,
+            folhasUsadas: f.folhasUsadas,
+            minutosCorte: f.minutosCorte,
+            paginasImpressas: f.paginasImpressas,
+            usaTesoura: f.usaTesoura,
+            minutosCorteManual: f.minutosCorteManual,
+          })
+        }
+      />
+
+
+
       {/* ==== Materiais ==== */}
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex items-center gap-2">
