@@ -16,6 +16,7 @@ import {
   FileText,
   ShieldCheck,
   Users,
+  Percent,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
