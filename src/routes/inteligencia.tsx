@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
+import { AuditoriaPrecos, GanhoPorHora } from "@/components/auditoria-precos";
 
 type NumState = Record<string, string>;
 type Gasto = { id: string; nome: string; valor: string };
