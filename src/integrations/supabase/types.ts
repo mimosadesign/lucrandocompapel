@@ -292,7 +292,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_catalogs_public: {
+        Row: {
+          data: Json | null
+          slug: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          data?: Json | null
+          slug?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          data?: Json | null
+          slug?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_active_subscription: {
