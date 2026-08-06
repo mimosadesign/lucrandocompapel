@@ -69,16 +69,14 @@ function PublicCatalog() {
     if (!isSlug) return;
     let alive = true;
     void (async () => {
-      const { data: row, error } = await supabase
-        .from("public_catalogs")
-        .select("data")
-        .eq("slug", data)
-        .maybeSingle();
+      const { data: row, error } = await supabase.rpc("get_public_catalog", {
+        _slug: data,
+      });
       if (!alive) return;
       if (error || !row) {
         setNotFound(true);
       } else {
-        setCatalog(row.data as unknown as SharedCatalog);
+        setCatalog(row as unknown as SharedCatalog);
       }
       setLoading(false);
     })();

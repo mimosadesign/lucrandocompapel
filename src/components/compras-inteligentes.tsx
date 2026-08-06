@@ -84,9 +84,11 @@ export function ComprasInteligentes({ materiais }: { materiais: MaterialRow[] })
   }, [precItens, materiais]);
 
   function compartilhar() {
-    const linhas = comprar.map((n) => `• ${n.faltando} ${n.m.nome}`).join("\n");
-    const texto = `🛒 Lista de compras da semana:\n${linhas}\n\nInvestimento estimado: ${brl(investimento)}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+    const linhas = comprar
+      .map((n) => `• ${n.m.nome} — comprar ${n.faltando} un. (${brl(n.custo)})`)
+      .join("\n");
+    const texto = `🛒 *Lista de compras da semana*\n${linhas}\n\n💰 Investimento estimado: ${brl(investimento)}`;
+    shareWhats(texto);
   }
 
   return (
