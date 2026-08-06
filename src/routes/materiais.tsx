@@ -143,6 +143,8 @@ function MateriaisPage() {
 
       <EstoqueInteligente materiais={materiais} />
 
+      <AlertasCusto />
+
       <div className="mb-6">
         <ComprasInteligentes materiais={materiais} />
       </div>
