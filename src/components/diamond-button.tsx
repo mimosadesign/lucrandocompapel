@@ -74,7 +74,7 @@ export function DiamondButton() {
               <>
                 Plano Diamante — <span className="font-semibold text-foreground">R$ 18/mês</span>,{" "}
                 <span className="font-semibold text-foreground">R$ 36 por 3 meses</span> ou{" "}
-                <span className="font-semibold text-foreground">R$ 160 vitalício</span>
+                <span className="font-semibold text-foreground">R$ 235 vitalício</span>
               </>
             )}
           </DialogDescription>
