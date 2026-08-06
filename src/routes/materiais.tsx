@@ -19,6 +19,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { MoneyInput } from "@/components/money-input";
 import { ComprasInteligentes } from "@/components/compras-inteligentes";
+import { AlertasCusto, registrarPreco } from "@/components/alertas-custo";
+import { shareWhats } from "@/lib/share";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({ meta: [{ title: "Materiais — Lucrando com Papel" }] }),
@@ -102,6 +104,11 @@ function MateriaisPage() {
       toast.error("Limite do plano gratuito atingido (25 materiais). Assine o Diamante para cadastrar ilimitados.");
       return;
     }
+    registrarPreco(
+      editing.id,
+      editing.nome.trim(),
+      editing.quantidade > 0 ? editing.valorPago / editing.quantidade : 0,
+    );
     setMateriais((prev) => {
       const idx = prev.findIndex((p) => p.id === editing.id);
       if (idx === -1) return [...prev, editing];
@@ -135,6 +142,8 @@ function MateriaisPage() {
       />
 
       <EstoqueInteligente materiais={materiais} />
+
+      <AlertasCusto />
 
       <div className="mb-6">
         <ComprasInteligentes materiais={materiais} />
@@ -368,9 +377,12 @@ function EstoqueInteligente({ materiais }: { materiais: Material[] }) {
   const linhas = lista.map((m) => {
     const alvo = Math.max(m.estoqueMinimo || 1, 1);
     const sugerido = Math.max(alvo - m.estoque, 1);
-    return `• ${m.nome} — comprar ${sugerido} un.`;
+    const unit = m.quantidade > 0 ? m.valorPago / m.quantidade : 0;
+    return `• ${m.nome} — comprar ${sugerido} un.${unit > 0 ? ` (${brl(unit * sugerido)})` : ""}`;
   }).join("\n");
-  const mensagem = encodeURIComponent(`Lista de compras do ateliê:\n\n${linhas}`);
+  const mensagem = `🛒 *Lista de compras do ateliê*\n\n${linhas}${
+    total > 0 ? `\n\n💰 Investimento estimado: ${brl(total)}` : ""
+  }`;
 
   return (
     <Card className="mb-6 rounded-3xl border-primary/30 bg-primary/5 p-5">
@@ -399,15 +411,23 @@ function EstoqueInteligente({ materiais }: { materiais: Material[] }) {
           );
         })}
       </div>
-      <a
-        href={`https://wa.me/?text=${mensagem}`}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-      >
-        Compartilhar lista no WhatsApp
-      </a>
+      <div className="flex flex-wrap gap-2">
+        <Button className="rounded-full" onClick={() => shareWhats(mensagem)}>
+          Compartilhar lista no WhatsApp
+        </Button>
+        <Button
+          variant="ghost"
+          className="rounded-full"
+          onClick={() => {
+            void navigator.clipboard?.writeText(mensagem);
+            toast.success("Lista copiada!");
+          }}
+        >
+          Copiar lista
+        </Button>
+      </div>
     </Card>
   );
 }
+
 

@@ -63,10 +63,10 @@ function AssinarPage() {
     {
       id: "lifetime",
       titulo: "Vitalício",
-      preco: "R$ 160,00",
+      preco: "R$ 235,00",
       detalhe: "pagamento único · acesso para sempre",
       destaque: "Melhor custo-benefício",
-      msg: "Vitalício (R$ 160,00)",
+      msg: "Vitalício (R$ 235,00)",
     },
   ];
 
