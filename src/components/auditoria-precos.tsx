@@ -14,23 +14,42 @@ type Pedido = {
   entrega?: string;
 };
 
-const MARGEM_ALVO = 60;
-const MARGEM_MINIMA = 30;
+const OPCOES_ALVO = [40, 50, 60, 70, 80];
 
 export function AuditoriaPrecos() {
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
+  const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
+  const [alvo, setAlvo] = useLocalState<number>("lcp:auditoria:alvo", 60);
+  const [minima, setMinima] = useLocalState<number>("lcp:auditoria:minima", 30);
+
+  // Quantas vezes cada produto foi vendido (para priorizar pelo impacto real).
+  const vendasPorNome = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const p of pedidos) {
+      if (p.status === "Cancelado") continue;
+      const nome = (p as Pedido & { produto?: string }).produto?.trim().toLowerCase();
+      if (!nome) continue;
+      map[nome] = (map[nome] ?? 0) + 1;
+    }
+    return map;
+  }, [pedidos]);
 
   const problemas = useMemo(() => {
     return produtos
-      .filter((p) => p.custo > 0 && p.margemPct < MARGEM_MINIMA)
+      .filter((p) => p.custo > 0 && p.margemPct < minima)
       .map((p) => {
         const precoAtual = p.custo * (1 + p.margemPct / 100);
-        const precoSugerido = p.custo * (1 + MARGEM_ALVO / 100);
-        return { ...p, precoAtual, precoSugerido };
+        const precoSugerido = p.custo * (1 + alvo / 100);
+        const vendas = vendasPorNome[p.nome.trim().toLowerCase()] ?? 0;
+        const perdaUnit = precoSugerido - precoAtual;
+        const impacto = perdaUnit * Math.max(vendas, 1);
+        return { ...p, precoAtual, precoSugerido, vendas, perdaUnit, impacto };
       })
-      .sort((a, b) => a.margemPct - b.margemPct)
-      .slice(0, 8);
-  }, [produtos]);
+      .sort((a, b) => b.impacto - a.impacto)
+      .slice(0, 10);
+  }, [produtos, alvo, minima, vendasPorNome]);
+
+  const perdaTotal = problemas.reduce((s, p) => s + p.impacto, 0);
 
   return (
     <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)] space-y-4">
@@ -38,15 +57,46 @@ export function AuditoriaPrecos() {
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/15">
           <Sparkles className="h-4 w-4" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-display text-base font-semibold">
-            Análise de produtos mal precificados
+            Auditoria de preços
           </p>
           <p className="text-sm text-muted-foreground">
-            Produtos com margem abaixo de {MARGEM_MINIMA}% e o preço recomendado para chegar a{" "}
-            {MARGEM_ALVO}%.
+            Produtos com margem abaixo de {minima}% ordenados pelo impacto no seu lucro, com o
+            preço recomendado para chegar a {alvo}%.
           </p>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-secondary/40 p-3 text-sm">
+        <label className="flex items-center gap-2">
+          <span className="text-muted-foreground">Margem alvo</span>
+          <select
+            value={alvo}
+            onChange={(e) => setAlvo(Number(e.target.value))}
+            className="rounded-full border border-border/70 bg-background px-3 py-1"
+          >
+            {OPCOES_ALVO.map((v) => (
+              <option key={v} value={v}>
+                {v}%
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2">
+          <span className="text-muted-foreground">Alertar abaixo de</span>
+          <select
+            value={minima}
+            onChange={(e) => setMinima(Number(e.target.value))}
+            className="rounded-full border border-border/70 bg-background px-3 py-1"
+          >
+            {[15, 20, 25, 30, 40, 50].map((v) => (
+              <option key={v} value={v}>
+                {v}%
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {produtos.length === 0 ? (
@@ -55,30 +105,41 @@ export function AuditoriaPrecos() {
         </p>
       ) : problemas.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Nenhum produto abaixo de {MARGEM_MINIMA}% de margem. Seus preços estão saudáveis. 🎉
+          Nenhum produto abaixo de {minima}% de margem. Seus preços estão saudáveis. 🎉
         </p>
       ) : (
-        <div className="space-y-2">
-          {problemas.map((p) => (
-            <div
-              key={p.id}
-              className="rounded-2xl border border-destructive/30 bg-destructive/5 p-3 text-sm"
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-                <strong className="min-w-0 flex-1 truncate">{p.nome}</strong>
-                <Badge variant="destructive" className="rounded-full">
-                  margem {p.margemPct.toFixed(0)}%
-                </Badge>
+        <>
+          <div className="rounded-2xl bg-primary/10 p-3 text-sm">
+            Corrigindo esses preços você deixaria de perder cerca de{" "}
+            <strong>{brl(perdaTotal)}</strong> considerando o histórico de vendas.
+          </div>
+          <div className="space-y-2">
+            {problemas.map((p) => (
+              <div
+                key={p.id}
+                className="rounded-2xl border border-destructive/30 bg-destructive/5 p-3 text-sm"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <strong className="min-w-0 flex-1 truncate">{p.nome}</strong>
+                  {p.vendas > 0 && (
+                    <Badge variant="secondary" className="rounded-full">
+                      {p.vendas} venda{p.vendas > 1 ? "s" : ""}
+                    </Badge>
+                  )}
+                  <Badge variant="destructive" className="rounded-full">
+                    margem {p.margemPct.toFixed(0)}%
+                  </Badge>
+                </div>
+                <p className="mt-1.5 text-muted-foreground">
+                  Hoje você vende por {brl(p.precoAtual)}. Recomendamos vender por{" "}
+                  <strong className="text-foreground">{brl(p.precoSugerido)}</strong> (+
+                  {brl(p.perdaUnit)} por unidade) para manter {alvo}% de margem.
+                </p>
               </div>
-              <p className="mt-1.5 text-muted-foreground">
-                Hoje você vende por {brl(p.precoAtual)}. Recomendamos vender por{" "}
-                <strong className="text-foreground">{brl(p.precoSugerido)}</strong> para manter{" "}
-                {MARGEM_ALVO}% de margem.
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
     </Card>
   );
