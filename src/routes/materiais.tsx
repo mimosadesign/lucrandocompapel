@@ -19,6 +19,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { MoneyInput } from "@/components/money-input";
 import { ComprasInteligentes } from "@/components/compras-inteligentes";
+import { AlertasCusto, registrarPreco } from "@/components/alertas-custo";
+import { shareWhats } from "@/lib/share";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({ meta: [{ title: "Materiais — Lucrando com Papel" }] }),
@@ -102,6 +104,11 @@ function MateriaisPage() {
       toast.error("Limite do plano gratuito atingido (25 materiais). Assine o Diamante para cadastrar ilimitados.");
       return;
     }
+    registrarPreco(
+      editing.id,
+      editing.nome.trim(),
+      editing.quantidade > 0 ? editing.valorPago / editing.quantidade : 0,
+    );
     setMateriais((prev) => {
       const idx = prev.findIndex((p) => p.id === editing.id);
       if (idx === -1) return [...prev, editing];
