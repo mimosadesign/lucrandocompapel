@@ -91,6 +91,23 @@ export function FormulasCofre({
         </Button>
       </div>
 
+      <div className="flex items-center gap-2">
+        <Badge variant="secondary" className="rounded-full">
+          {unlimited
+            ? `${formulas.length} fórmulas · ilimitado`
+            : `${formulas.length} / ${FREE_LIMIT} fórmulas (plano gratuito)`}
+        </Badge>
+        {!unlimited && formulas.length >= FREE_LIMIT && (
+          <button
+            type="button"
+            onClick={openDiamondDialog}
+            className="text-xs font-medium text-primary underline underline-offset-2"
+          >
+            Liberar ilimitado no Diamante
+          </button>
+        )}
+      </div>
+
       {formulas.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Nenhuma fórmula guardada ainda.
