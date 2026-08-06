@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocalState, brl } from "@/lib/storage";
+import { shareWhats } from "@/lib/share";
 
 type MaterialRow = {
   id: string;
