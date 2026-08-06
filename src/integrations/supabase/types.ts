@@ -292,26 +292,10 @@ export type Database = {
       }
     }
     Views: {
-      public_catalogs_public: {
-        Row: {
-          data: Json | null
-          slug: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          data?: Json | null
-          slug?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          data?: Json | null
-          slug?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_public_catalog: { Args: { _slug: string }; Returns: Json }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
