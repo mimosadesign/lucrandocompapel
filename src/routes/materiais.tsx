@@ -377,9 +377,12 @@ function EstoqueInteligente({ materiais }: { materiais: Material[] }) {
   const linhas = lista.map((m) => {
     const alvo = Math.max(m.estoqueMinimo || 1, 1);
     const sugerido = Math.max(alvo - m.estoque, 1);
-    return `• ${m.nome} — comprar ${sugerido} un.`;
+    const unit = m.quantidade > 0 ? m.valorPago / m.quantidade : 0;
+    return `• ${m.nome} — comprar ${sugerido} un.${unit > 0 ? ` (${brl(unit * sugerido)})` : ""}`;
   }).join("\n");
-  const mensagem = encodeURIComponent(`Lista de compras do ateliê:\n\n${linhas}`);
+  const mensagem = `🛒 *Lista de compras do ateliê*\n\n${linhas}${
+    total > 0 ? `\n\n💰 Investimento estimado: ${brl(total)}` : ""
+  }`;
 
   return (
     <Card className="mb-6 rounded-3xl border-primary/30 bg-primary/5 p-5">
