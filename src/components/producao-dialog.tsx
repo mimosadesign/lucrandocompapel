@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { brl } from "@/lib/storage";
+import { brl, scopedKey } from "@/lib/storage";
 
 export type MaterialRow = {
   id: string;

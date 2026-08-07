@@ -1,3 +1,4 @@
+import { scopedKey } from "@/lib/storage";
 import { useRef, useState } from "react";
 import {
   Download,

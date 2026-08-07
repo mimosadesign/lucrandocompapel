@@ -1,3 +1,4 @@
+import { scopedKey } from "@/lib/storage";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, AlertCircle, Package, Trash2, Brain } from "lucide-react";
 import { toast } from "sonner";
