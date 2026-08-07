@@ -185,6 +185,62 @@ function ExecutivoDashboard() {
     return map;
   }, [ativos]);
 
+  // ---- Métricas complementares -------------------------------------------
+  const totalPedido = (p: Pedido) => (p.valor || 0) + (p.valorEntrega || 0);
+  const pedidosMes = ativos.filter((p) => inMonth(p, 0));
+  const ticketMedio = pedidosMes.length ? faturamentoMes / pedidosMes.length : 0;
+  const aReceber = ativos
+    .filter((p) => p.status !== "Entregue")
+    .reduce((s, p) => s + totalPedido(p), 0);
+  const hojeStr = new Date(anoAtual, mesAtual, now.getDate()).getTime();
+  const atrasados = ativos.filter((p) => {
+    if (p.status === "Entregue" || !p.entrega) return false;
+    const d = new Date(p.entrega).getTime();
+    return isFinite(d) && d < hojeStr;
+  });
+  const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  const diaHoje = now.getDate();
+  const projecao = diaHoje > 0 ? (faturamentoMes / diaHoje) * diasNoMes : 0;
+  const metaPct = meta > 0 ? Math.min(100, (faturamentoMes / meta) * 100) : 0;
+  const faltaMeta = Math.max(0, meta - faturamentoMes);
+  const diasRestantes = Math.max(1, diasNoMes - diaHoje + 1);
+  const metaDiaria = faltaMeta / diasRestantes;
+  const lucroEstimado = useMemo(
+    () => faturamentoMes * (margemMedia / (100 + margemMedia)),
+    [faturamentoMes, margemMedia],
+  );
+
+  const ultimos6 = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => {
+      const off = 5 - i;
+      const ref = new Date(anoAtual, mesAtual - off, 1);
+      const valor = ativos
+        .filter((p) => inMonth(p, off))
+        .reduce((s, p) => s + totalPedido(p), 0);
+      return { label: ref.toLocaleDateString("pt-BR", { month: "short" }), valor };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidos]);
+  const maxMes = Math.max(...ultimos6.map((m) => m.valor), 1);
+
+  const topClientes = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const p of ativos) {
+      const nome = (p.cliente || "").trim();
+      if (!nome) continue;
+      map[nome] = (map[nome] ?? 0) + totalPedido(p);
+    }
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidos]);
+
+  const topProdutos = useMemo(
+    () => [...produtos].sort((a, b) => b.margemPct - a.margemPct).slice(0, 5),
+    [produtos],
+  );
+
   const scoreColor =
     score >= 75 ? "text-success" : score >= 50 ? "text-primary" : "text-destructive";
 
@@ -254,6 +310,102 @@ function ExecutivoDashboard() {
         </div>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniKpi label="Ticket médio" valor={brl(ticketMedio)} hint={`${pedidosMes.length} pedidos no mês`} />
+        <MiniKpi label="A receber" valor={brl(aReceber)} hint="Pedidos ainda não entregues" />
+        <MiniKpi
+          label="Pedidos atrasados"
+          valor={String(atrasados.length)}
+          hint={atrasados.length ? "Entre em contato com os clientes" : "Nenhum atraso 🎉"}
+          alerta={atrasados.length > 0}
+        />
+        <MiniKpi
+          label="Lucro estimado do mês"
+          valor={brl(lucroEstimado)}
+          hint={`Baseado na margem média de ${margemMedia.toFixed(0)}%`}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="rounded-3xl p-6">
+          <p className="font-display text-base font-semibold">Meta do mês</p>
+          {meta > 0 ? (
+            <>
+              <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${metaPct}%` }} />
+              </div>
+              <p className="mt-2 text-sm">
+                {brl(faturamentoMes)} de {brl(meta)} ({metaPct.toFixed(0)}%)
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {faltaMeta > 0
+                  ? `Faltam ${brl(faltaMeta)} — cerca de ${brl(metaDiaria)} por dia nos ${diasRestantes} dias restantes.`
+                  : "Meta batida! 🎉"}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Projeção de fechamento do mês: <strong>{brl(projecao)}</strong>
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Defina sua meta em Faturamento para acompanhar o progresso aqui.
+            </p>
+          )}
+        </Card>
+
+        <Card className="rounded-3xl p-6">
+          <p className="font-display text-base font-semibold mb-4">Últimos 6 meses</p>
+          <div className="flex h-32 items-end gap-2">
+            {ultimos6.map((m) => (
+              <div key={m.label} className="flex flex-1 flex-col items-center gap-1">
+                <div
+                  className="w-full rounded-t-lg bg-primary/70"
+                  style={{ height: `${Math.max(4, (m.valor / maxMes) * 100)}%` }}
+                  title={brl(m.valor)}
+                />
+                <span className="text-[10px] text-muted-foreground">{m.label}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="rounded-3xl p-6">
+          <p className="font-display text-base font-semibold mb-3">Melhores clientes</p>
+          {topClientes.length ? (
+            <div className="space-y-1.5">
+              {topClientes.map(([nome, valor]) => (
+                <div key={nome} className="flex items-center justify-between text-sm">
+                  <span className="min-w-0 truncate">{nome}</span>
+                  <strong>{brl(valor)}</strong>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Cadastre pedidos com o nome do cliente.</p>
+          )}
+        </Card>
+
+        <Card className="rounded-3xl p-6">
+          <p className="font-display text-base font-semibold mb-3">Produtos mais lucrativos</p>
+          {topProdutos.length ? (
+            <div className="space-y-1.5">
+              {topProdutos.map((p) => (
+                <div key={p.id} className="flex items-center justify-between text-sm">
+                  <span className="min-w-0 truncate">{p.nome}</span>
+                  <Badge variant="secondary" className="rounded-full">
+                    {p.margemPct.toFixed(0)}%
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Cadastre produtos para ver o ranking.</p>
+          )}
+        </Card>
+      </div>
+
       <Card className="rounded-3xl p-6">
         <p className="font-display text-base font-semibold mb-3">Alertas inteligentes</p>
         <div className="space-y-2">
@@ -308,5 +460,31 @@ function ExecutivoDashboard() {
         </div>
       </Card>
     </div>
+  );
+}
+
+function MiniKpi({
+  label,
+  valor,
+  hint,
+  alerta,
+}: {
+  label: string;
+  valor: string;
+  hint?: string;
+  alerta?: boolean;
+}) {
+  return (
+    <Card className="rounded-3xl p-5">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p
+        className={`font-display text-2xl font-semibold mt-2 ${
+          alerta ? "text-destructive" : ""
+        }`}
+      >
+        {valor}
+      </p>
+      {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+    </Card>
   );
 }
