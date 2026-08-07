@@ -167,6 +167,7 @@ export function useUser() {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
+        setStorageUser(null);
         setUser(null);
         setReady(true);
         return;
