@@ -34,7 +34,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { MoneyInput } from "@/components/money-input";
-import { useLocalState, brl, scopedKey, useStorageUser } from "@/lib/storage";
+import { useLocalState, brl, scopedKey, useStorageUser, monthKey } from "@/lib/storage";
 import { useEntitlement, openDiamondDialog } from "@/lib/auth";
 import { CronometroProducao } from "@/components/cronometro-producao";
 import { FormulasCofre } from "@/components/formulas-cofre";
@@ -122,6 +122,10 @@ function PrecificarItemPage() {
   const { isUnlimited } = useEntitlement();
 
   const uid = useStorageUser();
+  const [pdfUso, setPdfUso] = useLocalState<{ mes: string; count: number }>(
+    "lcp:precificar:pdfUso",
+    { mes: "", count: 0 },
+  );
   const [materiais, setMateriais] = useState<Material[]>([]);
   useEffect(() => {
     setMateriais(loadMateriais());
@@ -252,6 +256,15 @@ function PrecificarItemPage() {
   }
 
   function exportarPDF() {
+    const mes = monthKey();
+    const usados = pdfUso.mes === mes ? pdfUso.count : 0;
+    if (!isUnlimited && usados >= FREE_LIMIT) {
+      toast.error(
+        `Plano gratuito permite ${FREE_LIMIT} PDFs por mês. Zera no dia 1º do próximo mês — ou assine o Diamante para ilimitado.`,
+      );
+      return;
+    }
+    setPdfUso({ mes, count: usados + 1 });
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const marginX = 40;
     let y = 50;
@@ -324,6 +337,7 @@ function PrecificarItemPage() {
   }
 
   const podeCriarMais = isUnlimited || salvos.length < FREE_LIMIT;
+  const pdfsNoMes = pdfUso.mes === monthKey() ? pdfUso.count : 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -350,7 +364,8 @@ function PrecificarItemPage() {
 
       {!isUnlimited && (
         <Card className="rounded-2xl border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
-          {salvos.length}/{FREE_LIMIT} itens salvos no plano gratuito.{" "}
+          {salvos.length}/{FREE_LIMIT} itens salvos e {pdfsNoMes}/{FREE_LIMIT} PDFs
+          baixados no mês (plano gratuito, zera no dia 1º).{" "}
           <button
             className="font-medium text-primary underline-offset-2 hover:underline"
             onClick={openDiamondDialog}
