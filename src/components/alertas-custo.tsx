@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLocalState, brl } from "@/lib/storage";
+import { useLocalState, readLocal, writeLocal, brl } from "@/lib/storage";
+import { useIsUnlimited } from "@/lib/auth";
 
 export type PrecoHistorico = {
   id: string;
