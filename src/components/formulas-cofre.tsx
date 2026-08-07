@@ -23,7 +23,7 @@ export type Formula = {
   criadaEm: string;
 };
 
-const FREE_LIMIT = 10;
+const FREE_LIMIT = 5;
 
 export function FormulasCofre({
   atual,

@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Users,
   Percent,
+  Sparkles,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
@@ -44,11 +45,12 @@ const mainItems = [
   { title: "Catálogo", url: "/catalogo", icon: ShoppingBag },
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Calculadoras", url: "/calculadoras", icon: Percent },
-];
+]; 
 
 const diamondItems = [
+  { title: "Clientes", url: "/clientes", icon: Users },
+  { title: "Calculadoras", url: "/calculadoras", icon: Percent },
+  { title: "Assistente IA", url: "/assistente", icon: Sparkles },
   { title: "Faturamento", url: "/faturamento", icon: BarChart3 },
   { title: "Inteligência Financeira", url: "/inteligencia", icon: Brain },
   { title: "Dashboard Executivo", url: "/executivo", icon: TrendingUp },

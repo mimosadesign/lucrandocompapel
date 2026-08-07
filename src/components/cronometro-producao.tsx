@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Timer, Play, Square, Trash2, ArrowRightLeft } from "lucide-react";
+import { Timer, Play, Square, Trash2, ArrowRightLeft, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,10 @@ import { useLocalState } from "@/lib/storage";
 export type SessaoProducao = {
   id: string;
   nome: string;
+  /** Minutos (pode ser fracionado — 30s = 0.5) */
   minutos: number;
+  /** Tempo exato em segundos */
+  segundos?: number;
   data: string;
 };
 
@@ -20,10 +23,15 @@ function fmt(totalSeg: number) {
   return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }
 
+/** Mostra o tempo fiel: horas, minutos e segundos. */
 export function humanMin(min: number) {
-  const h = Math.floor(min / 60);
-  const m = Math.round(min % 60);
-  return h > 0 ? `${h}h${String(m).padStart(2, "0")}min` : `${m}min`;
+  const totalSeg = Math.round(min * 60);
+  const h = Math.floor(totalSeg / 3600);
+  const m = Math.floor((totalSeg % 3600) / 60);
+  const s = totalSeg % 60;
+  if (h > 0) return `${h}h${String(m).padStart(2, "0")}min`;
+  if (m > 0) return s > 0 ? `${m}min ${s}s` : `${m}min`;
+  return `${s}s`;
 }
 
 export function CronometroProducao({
@@ -46,7 +54,7 @@ export function CronometroProducao({
     if (inicio === null) return;
     tick.current = setInterval(() => {
       setSeg(Math.floor((Date.now() - inicio) / 1000));
-    }, 1000);
+    }, 250);
     return () => {
       if (tick.current) clearInterval(tick.current);
     };
@@ -59,17 +67,18 @@ export function CronometroProducao({
 
   function parar() {
     if (inicio === null) return;
-    const minutos = Math.max(1, Math.round((Date.now() - inicio) / 60000));
+    const segundos = Math.max(1, Math.round((Date.now() - inicio) / 1000));
     const registro: SessaoProducao = {
       id: crypto.randomUUID(),
       nome: nome.trim() || nomeSugerido || "Produção",
-      minutos,
+      minutos: segundos / 60,
+      segundos,
       data: new Date().toISOString(),
     };
     setSessoes([registro, ...sessoes].slice(0, 200));
     setInicio(null);
     setSeg(0);
-    toast.success(`Tempo real registrado: ${humanMin(minutos)}`);
+    toast.success(`Tempo real registrado: ${humanMin(segundos / 60)}`);
   }
 
   const ultima = sessoes[0];
@@ -83,8 +92,8 @@ export function CronometroProducao({
         <div className="flex-1">
           <p className="font-display text-base font-semibold">Cronômetro de Produção</p>
           <p className="text-sm text-muted-foreground">
-            Inicie ao começar a produzir. Ao terminar, o tempo real fica salvo e pode ser
-            usado direto na precificação.
+            Inicie ao começar a produzir. Ao terminar, o tempo real (com segundos) fica
+            salvo e pode ser usado direto na precificação.
           </p>
         </div>
       </div>
@@ -119,13 +128,24 @@ export function CronometroProducao({
               variant="outline"
               className="rounded-full gap-1.5 border-foreground/20"
               onClick={() => {
-                onUsarTempo(ultima.minutos);
+                onUsarTempo(Number(ultima.minutos.toFixed(4)));
                 toast.success("Tempo real aplicado neste item.");
               }}
             >
               <ArrowRightLeft className="h-3.5 w-3.5" /> Usar na precificação
             </Button>
           ) : null}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="rounded-full gap-1.5 text-destructive"
+            onClick={() => {
+              setSessoes(sessoes.slice(1));
+              toast.success("Último tempo de produção excluído.");
+            }}
+          >
+            <Undo2 className="h-3.5 w-3.5" /> Excluir último tempo
+          </Button>
         </div>
       ) : null}
 

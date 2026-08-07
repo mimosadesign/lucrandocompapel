@@ -3,6 +3,7 @@ import { AlertTriangle, Sparkles, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLocalState, brl } from "@/lib/storage";
+import { useIsUnlimited } from "@/lib/auth";
 import { humanMin, type SessaoProducao } from "@/components/cronometro-producao";
 
 type Produto = { id: string; nome: string; custo: number; margemPct: number };
@@ -21,6 +22,7 @@ export function AuditoriaPrecos() {
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [alvo, setAlvo] = useLocalState<number>("lcp:auditoria:alvo", 60);
   const [minima, setMinima] = useLocalState<number>("lcp:auditoria:minima", 30);
+  const unlimited = useIsUnlimited();
 
   // Quantas vezes cada produto foi vendido (para priorizar pelo impacto real).
   const vendasPorNome = useMemo(() => {
@@ -50,6 +52,8 @@ export function AuditoriaPrecos() {
   }, [produtos, alvo, minima, vendasPorNome]);
 
   const perdaTotal = problemas.reduce((s, p) => s + p.impacto, 0);
+
+  if (!unlimited) return null;
 
   return (
     <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)] space-y-4">

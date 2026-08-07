@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLocalState, brl } from "@/lib/storage";
+import { useLocalState, readLocal, writeLocal, brl } from "@/lib/storage";
+import { useIsUnlimited } from "@/lib/auth";
 
 export type PrecoHistorico = {
   id: string;
@@ -17,27 +18,24 @@ export const HISTORICO_KEY = "lcp:materiais:historico";
 /** Registra o custo unitário do material quando ele muda. */
 export function registrarPreco(materialId: string, nome: string, unitario: number) {
   if (typeof window === "undefined" || !isFinite(unitario) || unitario <= 0) return;
-  try {
-    const raw = localStorage.getItem(HISTORICO_KEY);
-    const lista: PrecoHistorico[] = raw ? JSON.parse(raw) : [];
-    const ultimo = [...lista].reverse().find((h) => h.materialId === materialId);
-    if (ultimo && Math.abs(ultimo.unitario - unitario) < 0.0001) return;
-    lista.push({
-      id: crypto.randomUUID(),
-      materialId,
-      nome,
-      unitario,
-      data: new Date().toISOString(),
-    });
-    localStorage.setItem(HISTORICO_KEY, JSON.stringify(lista.slice(-500)));
-  } catch {
-    /* ignore */
-  }
+  const lista = readLocal<PrecoHistorico[]>(HISTORICO_KEY, []);
+  const ultimo = [...lista].reverse().find((h) => h.materialId === materialId);
+  if (ultimo && Math.abs(ultimo.unitario - unitario) < 0.0001) return;
+  lista.push({
+    id: crypto.randomUUID(),
+    materialId,
+    nome,
+    unitario,
+    data: new Date().toISOString(),
+  });
+  writeLocal(HISTORICO_KEY, lista.slice(-500));
 }
 
-/** Alerta de aumento de custos + custo médio atualizado por material. */
+/** Alerta de aumento de custos + custo médio atualizado por material (Diamante). */
 export function AlertasCusto() {
   const [historico] = useLocalState<PrecoHistorico[]>(HISTORICO_KEY, []);
+  const unlimited = useIsUnlimited();
+
 
   const linhas = useMemo(() => {
     const porMaterial: Record<string, PrecoHistorico[]> = {};
@@ -62,7 +60,7 @@ export function AlertasCusto() {
 
   const aumentos = linhas.filter((l) => l.variacao >= 5);
 
-  if (linhas.length === 0) return null;
+  if (!unlimited || linhas.length === 0) return null;
 
   return (
     <Card className="mb-6 rounded-3xl border-border/60 p-5 shadow-[var(--shadow-card)]">

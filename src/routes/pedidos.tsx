@@ -164,7 +164,7 @@ function PedidosPage() {
       .sort((a, b) => new Date(a.entrega).getTime() - new Date(b.entrega).getTime());
   }, [pedidos]);
 
-  const limiteAtingido = !isUnlimited && pedidosMesAtual >= 20;
+  const limiteAtingido = !isUnlimited && pedidosMesAtual >= 15;
 
   function novo() {
     if (limiteAtingido) return;
@@ -332,7 +332,7 @@ function PedidosPage() {
 
       {!isUnlimited && (
         <p className={`mt-4 text-xs text-center ${limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-          {pedidosMesAtual} / 20 pedidos no mês (plano gratuito) ·
+          {pedidosMesAtual} / 15 pedidos no mês (plano gratuito) ·
           {limiteAtingido
             ? " limite atingido. Volta a zerar automaticamente no dia 1º do próximo mês."
             : " zera automaticamente no dia 1º do próximo mês."}

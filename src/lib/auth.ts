@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as AuthUser } from "@supabase/supabase-js";
+import { setStorageUser } from "@/lib/storage";
 
 const TRIAL_DAYS = 25;
 
@@ -129,10 +130,14 @@ export function useUser() {
 
   const hydrate = useCallback(async (authUser: AuthUser | null) => {
     if (!authUser) {
+      setStorageUser(null);
       setUser(null);
       setReady(true);
       return;
     }
+    // Cada conta guarda seus dados em uma gaveta própria — nada de um usuário
+    // aparece para outro no mesmo aparelho.
+    setStorageUser(authUser.id);
     // Set user immediately from session so route gates don't bounce to /auth
     // while we wait for the profile fetch (which can be slow or fail under RLS).
     setUser(toAppUser(authUser, null));
@@ -162,6 +167,7 @@ export function useUser() {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
+        setStorageUser(null);
         setUser(null);
         setReady(true);
         return;
