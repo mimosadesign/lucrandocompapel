@@ -1,4 +1,4 @@
-import { scopedKey } from "@/lib/storage";
+import { scopedKey, useStorageUser } from "@/lib/storage";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, AlertCircle, Package, Trash2, Brain } from "lucide-react";
 import { toast } from "sonner";
@@ -61,15 +61,18 @@ function MateriaisPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
   const unlimited = useIsUnlimited();
+  const uid = useStorageUser();
+  const [hidratado, setHidratado] = useState(false);
 
   useEffect(() => {
     setMateriais(loadMateriais());
-  }, []);
+    setHidratado(true);
+  }, [uid]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !hidratado) return;
     localStorage.setItem(scopedKey(STORAGE_KEY), JSON.stringify(materiais));
-  }, [materiais]);
+  }, [materiais, hidratado, uid]);
 
   const filtrados = useMemo(
     () =>

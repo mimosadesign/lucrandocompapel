@@ -34,7 +34,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { MoneyInput } from "@/components/money-input";
-import { useLocalState, brl, scopedKey } from "@/lib/storage";
+import { useLocalState, brl, scopedKey, useStorageUser } from "@/lib/storage";
 import { useEntitlement, openDiamondDialog } from "@/lib/auth";
 import { CronometroProducao } from "@/components/cronometro-producao";
 import { FormulasCofre } from "@/components/formulas-cofre";
@@ -121,13 +121,14 @@ function novoItem(): PrecItem {
 function PrecificarItemPage() {
   const { isUnlimited } = useEntitlement();
 
+  const uid = useStorageUser();
   const [materiais, setMateriais] = useState<Material[]>([]);
   useEffect(() => {
     setMateriais(loadMateriais());
     const onStorage = () => setMateriais(loadMateriais());
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  }, [uid]);
 
   const [valorHora] = useLocalState<number>("lcp:valorHora", 0);
 
