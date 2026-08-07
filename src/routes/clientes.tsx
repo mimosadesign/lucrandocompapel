@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useLocalState, brl } from "@/lib/storage";
+import { DiamondLock } from "@/components/diamond-lock";
 
 export const Route = createFileRoute("/clientes")({
   head: () => ({ meta: [{ title: "Clientes — Lucrando com Papel" }] }),
@@ -48,6 +49,16 @@ function normKey(nome: string) {
 }
 
 function ClientesPage() {
+  return (
+    <DiamondLock
+      title="CRM completo do seu ateliê"
+      description="Histórico de cada cliente, quanto cada um já gastou, VIPs, aniversariantes do mês, inativos e etiquetas. Disponível no plano Diamante."
+      preview={<ClientesConteudo />}
+    />
+  );
+}
+
+function ClientesConteudo() {
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [extras, setExtras] = useLocalState<ClienteExtra[]>("lcp:clientes:extras", []);
   const [busca, setBusca] = useState("");
