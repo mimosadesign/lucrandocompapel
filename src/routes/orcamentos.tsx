@@ -151,7 +151,7 @@ function OrcamentosPage() {
     const isNovo = idx === -1;
     if (isNovo && limiteAtingido) {
       toast.error(
-        "Limite de 36 orçamentos no mês (plano gratuito). Reseta automaticamente no dia 1º do próximo mês. Assine o Diamante para ilimitado.",
+        "Limite de 20 orçamentos no mês (plano gratuito). Reseta automaticamente no dia 1º do próximo mês. Assine o Diamante para ilimitado.",
       );
       return;
     }
