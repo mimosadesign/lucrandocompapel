@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as AuthUser } from "@supabase/supabase-js";
+import { setStorageUser } from "@/lib/storage";
 
 const TRIAL_DAYS = 25;
 
