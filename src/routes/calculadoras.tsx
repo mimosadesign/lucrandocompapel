@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
+import { DiamondLock } from "@/components/diamond-lock";
 
 export const Route = createFileRoute("/calculadoras")({
   head: () => ({
@@ -50,9 +51,12 @@ const TAXAS_PARCELAS: Record<number, number> = {
 
 type Venda = {
   id: string;
+  cliente?: string;
   descricao: string;
   valor: number;
   forma: "PIX" | "Dinheiro" | "Cartão" | "Fiado";
+  /** Prazo final para receber (somente fiado) */
+  prazoFiado?: string;
 };
 
 function CalculadorasPage() {
@@ -62,8 +66,16 @@ function CalculadorasPage() {
         title="Calculadoras"
         description="Simule parcelamentos sem perder dinheiro e feche o caixa do dia em segundos."
       />
-      <Parcelamento />
-      <Caixa />
+      <DiamondLock
+        title="Calculadoras do Diamante"
+        description="Simule parcelamentos com taxa real e feche o caixa do dia com controle de fiado e prazos. Disponível no plano Diamante."
+        preview={
+          <div className="space-y-6">
+            <Parcelamento />
+            <Caixa />
+          </div>
+        }
+      />
     </div>
   );
 }
@@ -210,9 +222,11 @@ function Caixa() {
   const hoje = new Date().toISOString().slice(0, 10);
   const [dia, setDia] = useLocalState<string>("lcp:caixa:dia", hoje);
   const [vendas, setVendas] = useLocalState<Venda[]>("lcp:caixa:vendas", []);
+  const [cliente, setCliente] = useState("");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState(0);
   const [forma, setForma] = useState<Venda["forma"]>("PIX");
+  const [prazoFiado, setPrazoFiado] = useState("");
 
   const doDia = dia === hoje ? vendas : vendas;
 
@@ -232,11 +246,22 @@ function Caixa() {
     if (valor <= 0) return;
     setVendas([
       ...vendas,
-      { id: crypto.randomUUID(), descricao: descricao.trim() || "Venda", valor, forma },
+      {
+        id: crypto.randomUUID(),
+        cliente: cliente.trim(),
+        descricao: descricao.trim() || "Venda",
+        valor,
+        forma,
+        prazoFiado: forma === "Fiado" ? prazoFiado : undefined,
+      },
     ]);
+    setCliente("");
     setDescricao("");
     setValor(0);
+    setPrazoFiado("");
   }
+
+  const fiados = doDia.filter((v) => v.forma === "Fiado");
 
   return (
     <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)] space-y-5">
@@ -258,7 +283,13 @@ function Caixa() {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[1fr_150px_150px_auto]">
+      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_150px_150px_auto]">
+        <Input
+          value={cliente}
+          onChange={(e) => setCliente(e.target.value)}
+          placeholder="Nome do cliente"
+          className="h-11 rounded-full border-border/70 bg-background px-4"
+        />
         <Input
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
@@ -282,6 +313,21 @@ function Caixa() {
         </Button>
       </div>
 
+      {forma === "Fiado" ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-primary/5 p-3">
+          <Label className="text-sm">Prazo final para receber</Label>
+          <Input
+            type="date"
+            value={prazoFiado}
+            onChange={(e) => setPrazoFiado(e.target.value)}
+            className="h-10 w-44 rounded-full border-border/70 bg-background px-4"
+          />
+          <span className="text-xs text-muted-foreground">
+            Fica registrado para você cobrar na data certa.
+          </span>
+        </div>
+      ) : null}
+
       {doDia.length > 0 ? (
         <div className="space-y-1.5">
           {doDia.map((v) => (
@@ -289,7 +335,17 @@ function Caixa() {
               key={v.id}
               className="flex items-center gap-2 rounded-2xl border border-border/60 bg-background/60 px-3 py-2 text-sm"
             >
-              <span className="min-w-0 flex-1 truncate">{v.descricao}</span>
+              <span className="min-w-0 flex-1 truncate">
+                {v.cliente ? <strong>{v.cliente}</strong> : null}
+                {v.cliente ? " · " : ""}
+                {v.descricao}
+                {v.prazoFiado ? (
+                  <span className="text-muted-foreground">
+                    {" "}
+                    · receber até {new Date(`${v.prazoFiado}T12:00:00`).toLocaleDateString("pt-BR")}
+                  </span>
+                ) : null}
+              </span>
               <Badge variant="secondary" className="rounded-full">
                 {v.forma}
               </Badge>
@@ -322,6 +378,23 @@ function Caixa() {
           </p>
         </div>
       </div>
+
+      {fiados.length > 0 ? (
+        <div className="space-y-1.5 rounded-2xl border border-border/60 p-3">
+          <p className="text-sm font-medium">A receber (fiado)</p>
+          {fiados.map((v) => (
+            <div key={v.id} className="flex items-center justify-between gap-2 text-sm">
+              <span className="min-w-0 truncate">{v.cliente || v.descricao}</span>
+              <span className="text-muted-foreground">
+                {v.prazoFiado
+                  ? new Date(`${v.prazoFiado}T12:00:00`).toLocaleDateString("pt-BR")
+                  : "sem prazo"}
+              </span>
+              <strong>{brl(v.valor)}</strong>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       {vendas.length > 0 ? (
         <div className="flex justify-end">
