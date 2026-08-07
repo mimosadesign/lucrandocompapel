@@ -69,7 +69,7 @@ function OrcamentosPage() {
   );
 
   // Plano gratuito: no dia 1º do novo mês, remove orçamentos de meses anteriores
-  // para liberar novamente o limite de 36/mês.
+  // para liberar novamente o limite de 20/mês.
   useEffect(() => {
     if (isUnlimited) return;
     const now = new Date();
@@ -95,7 +95,7 @@ function OrcamentosPage() {
     }).length;
   }, [salvos]);
 
-  const limiteAtingido = !isUnlimited && orcamentosMesAtual >= 36;
+  const limiteAtingido = !isUnlimited && orcamentosMesAtual >= 20;
 
   const numeroSugerido = useMemo(
     () => String(1000 + salvos.length + 1),
@@ -355,7 +355,7 @@ function OrcamentosPage() {
             limiteAtingido ? "text-destructive font-medium" : "text-muted-foreground"
           }`}
         >
-          {orcamentosMesAtual} / 36 orçamentos no mês (plano gratuito) ·{" "}
+          {orcamentosMesAtual} / 20 orçamentos no mês (plano gratuito) ·{" "}
           {limiteAtingido
             ? "limite atingido. Zera automaticamente no dia 1º do próximo mês."
             : "zera automaticamente no dia 1º do próximo mês."}
