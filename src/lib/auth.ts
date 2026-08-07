@@ -129,10 +129,14 @@ export function useUser() {
 
   const hydrate = useCallback(async (authUser: AuthUser | null) => {
     if (!authUser) {
+      setStorageUser(null);
       setUser(null);
       setReady(true);
       return;
     }
+    // Cada conta guarda seus dados em uma gaveta própria — nada de um usuário
+    // aparece para outro no mesmo aparelho.
+    setStorageUser(authUser.id);
     // Set user immediately from session so route gates don't bounce to /auth
     // while we wait for the profile fetch (which can be slow or fail under RLS).
     setUser(toAppUser(authUser, null));
