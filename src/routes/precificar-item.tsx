@@ -97,7 +97,7 @@ type TesouraCfg = {
 function loadMateriais(): Material[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem("lcp:materiais");
+    const raw = localStorage.getItem(scopedKey("lcp:materiais"));
     return raw ? (JSON.parse(raw) as Material[]) : [];
   } catch {
     return [];

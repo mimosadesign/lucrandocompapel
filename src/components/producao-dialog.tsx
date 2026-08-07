@@ -51,7 +51,7 @@ const MATERIAIS_KEY = "lcp:materiais";
 function loadMateriais(): MaterialRow[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(MATERIAIS_KEY);
+    const raw = localStorage.getItem(scopedKey(MATERIAIS_KEY));
     return raw ? (JSON.parse(raw) as MaterialRow[]) : [];
   } catch {
     return [];
@@ -60,7 +60,7 @@ function loadMateriais(): MaterialRow[] {
 
 function saveMateriais(list: MaterialRow[]) {
   try {
-    localStorage.setItem(MATERIAIS_KEY, JSON.stringify(list));
+    localStorage.setItem(scopedKey(MATERIAIS_KEY), JSON.stringify(list));
     window.dispatchEvent(new Event("lcp:materiais-updated"));
   } catch {
     /* ignore */

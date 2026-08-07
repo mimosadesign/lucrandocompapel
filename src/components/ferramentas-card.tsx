@@ -55,7 +55,7 @@ function parseCsv(text: string): Row[] {
 
 function lerLista(key: string): Row[] {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(scopedKey(key));
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? (parsed as Row[]) : [];
   } catch {
@@ -101,11 +101,13 @@ export function FerramentasCard() {
     const dados: Record<string, unknown> = {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (!k || !k.startsWith("lcp:")) continue;
+      const prefixo = scopedKey("lcp:").slice(0, -4);
+      if (!k || !k.startsWith(`${prefixo}lcp:`)) continue;
+      const limpo = k.slice(prefixo.length);
       try {
-        dados[k] = JSON.parse(localStorage.getItem(k) ?? "null");
+        dados[limpo] = JSON.parse(localStorage.getItem(k) ?? "null");
       } catch {
-        dados[k] = localStorage.getItem(k);
+        dados[limpo] = localStorage.getItem(k);
       }
     }
     baixarArquivo(
@@ -124,7 +126,7 @@ export function FerramentasCard() {
       if (!dados || typeof dados !== "object") throw new Error("formato");
       Object.entries(dados).forEach(([k, v]) => {
         if (!k.startsWith("lcp:")) return;
-        localStorage.setItem(k, JSON.stringify(v));
+        localStorage.setItem(scopedKey(k), JSON.stringify(v));
       });
       toast.success("Backup restaurado! Recarregando...");
       setTimeout(() => window.location.reload(), 900);
@@ -150,7 +152,7 @@ export function FerramentasCard() {
         estoque: num(r["estoque"] ?? r["Estoque"]),
         estoqueMinimo: num(r["estoqueMinimo"] ?? r["estoque minimo"]),
       }));
-      localStorage.setItem("lcp:materiais", JSON.stringify([...atuais, ...novos]));
+      localStorage.setItem(scopedKey("lcp:materiais"), JSON.stringify([...atuais, ...novos]));
       toast.success(`${novos.length} materiais importados! Recarregando...`);
       setTimeout(() => window.location.reload(), 900);
     } catch {

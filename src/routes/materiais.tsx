@@ -42,7 +42,7 @@ const STORAGE_KEY = "lcp:materiais";
 function loadMateriais(): Material[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(scopedKey(STORAGE_KEY));
     return raw ? (JSON.parse(raw) as Material[]) : [];
   } catch {
     return [];
@@ -67,7 +67,7 @@ function MateriaisPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(materiais));
+    localStorage.setItem(scopedKey(STORAGE_KEY), JSON.stringify(materiais));
   }, [materiais]);
 
   const filtrados = useMemo(
