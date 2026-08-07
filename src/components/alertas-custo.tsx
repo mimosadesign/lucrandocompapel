@@ -60,7 +60,7 @@ export function AlertasCusto() {
 
   const aumentos = linhas.filter((l) => l.variacao >= 5);
 
-  if (linhas.length === 0) return null;
+  if (!unlimited || linhas.length === 0) return null;
 
   return (
     <Card className="mb-6 rounded-3xl border-border/60 p-5 shadow-[var(--shadow-card)]">
