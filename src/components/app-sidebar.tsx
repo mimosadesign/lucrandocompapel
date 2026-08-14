@@ -46,7 +46,9 @@ const mainItems = [
   { title: "Catálogo", url: "/catalogo", icon: ShoppingBag },
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
-]; 
+  { title: "Contas a Pagar", url: "/contas", icon: Receipt },
+  { title: "Central de Alertas", url: "/alertas", icon: BellRing },
+];
 
 const diamondItems = [
   { title: "Clientes", url: "/clientes", icon: Users },

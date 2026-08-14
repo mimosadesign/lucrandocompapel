@@ -29,6 +29,7 @@ import { Route as CaixaRouteImport } from './routes/caixa'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as AssinarRouteImport } from './routes/assinar'
+import { Route as AlertasRouteImport } from './routes/alertas'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CDataRouteImport } from './routes/c.$data'
@@ -134,6 +135,11 @@ const AssinarRoute = AssinarRouteImport.update({
   path: '/assinar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlertasRoute = AlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -158,6 +164,7 @@ const AssinarSucessoRoute = AssinarSucessoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/alertas': typeof AlertasRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/assistente': typeof AssistenteRoute
   '/auth': typeof AuthRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/alertas': typeof AlertasRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/assistente': typeof AssistenteRoute
   '/auth': typeof AuthRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/alertas': typeof AlertasRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/assistente': typeof AssistenteRoute
   '/auth': typeof AuthRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/alertas'
     | '/assinar'
     | '/assistente'
     | '/auth'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/alertas'
     | '/assinar'
     | '/assistente'
     | '/auth'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/alertas'
     | '/assinar'
     | '/assistente'
     | '/auth'
@@ -318,6 +330,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AlertasRoute: typeof AlertasRoute
   AssinarRoute: typeof AssinarRouteWithChildren
   AssistenteRoute: typeof AssistenteRoute
   AuthRoute: typeof AuthRoute
@@ -483,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssinarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alertas': {
+      id: '/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AlertasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -528,6 +548,7 @@ const AssinarRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AlertasRoute: AlertasRoute,
   AssinarRoute: AssinarRouteWithChildren,
   AssistenteRoute: AssistenteRoute,
   AuthRoute: AuthRoute,
