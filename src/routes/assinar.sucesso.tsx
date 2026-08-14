@@ -23,7 +23,7 @@ function SucessoPage() {
         <div className="mt-5 flex flex-col gap-2">
           <Button asChild size="lg" className="rounded-full gap-2">
             <a
-              href="https://wa.me/5511999999999"
+              href="https://wa.me/5511959203386"
               target="_blank"
               rel="noopener noreferrer"
             >

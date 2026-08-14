@@ -18,8 +18,7 @@ export const Route = createFileRoute("/assinar")({
   component: AssinarPage,
 });
 
-// ⚠️ TROQUE PARA O SEU WHATSAPP (só números, com código do país e DDD, ex: 5511987654321)
-const MEU_WHATSAPP = "5511999999999";
+const MEU_WHATSAPP = "5511959203386";
 
 type Plano = {
   id: "1m" | "3m" | "lifetime";
