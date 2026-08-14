@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Users,
   Percent,
+  Wallet,
   Sparkles,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
@@ -50,6 +51,7 @@ const mainItems = [
 const diamondItems = [
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Calculadoras", url: "/calculadoras", icon: Percent },
+  { title: "Caixa Diário", url: "/caixa", icon: Wallet },
   { title: "Assistente IA", url: "/assistente", icon: Sparkles },
   { title: "Faturamento", url: "/faturamento", icon: BarChart3 },
   { title: "Inteligência Financeira", url: "/inteligencia", icon: Brain },
