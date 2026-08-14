@@ -204,6 +204,15 @@ function PrecificarItemPage() {
     custoImpressaoItem +
     custoTesouraItem;
 
+  const [margemDesejada, setMargemDesejada] = useLocalState<number>(
+    "lcp:precItem:margemDesejada",
+    50,
+  );
+  const precoSugerido =
+    margemDesejada > 0 && margemDesejada < 100
+      ? custoTotal / (1 - margemDesejada / 100)
+      : custoTotal;
+
   // ==== Ações ====
   function addMaterial() {
     setItem({
@@ -793,13 +802,43 @@ function PrecificarItemPage() {
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
         </div>
-        <div className="mt-6 rounded-2xl border border-primary/40 bg-background p-5">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Custo total do item
-          </p>
-          <p className="mt-1 font-display text-3xl font-semibold text-primary">
-            {brl(custoTotal)}
-          </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-primary/40 bg-background p-5">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Custo total do item
+            </p>
+            <p className="mt-1 font-display text-3xl font-semibold text-primary">
+              {brl(custoTotal)}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-diamond/40 bg-diamond/10 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Preço de venda sugerido
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs">Margem</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={90}
+                  value={margemDesejada}
+                  onChange={(e) =>
+                    setMargemDesejada(Math.min(90, Math.max(0, Number(e.target.value) || 0)))
+                  }
+                  className="h-8 w-16 text-center"
+                />
+                <span className="text-xs">%</span>
+              </div>
+            </div>
+            <p className="mt-1 font-display text-3xl font-semibold">
+              {brl(precoSugerido)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Lucro de {brl(precoSugerido - custoTotal)} por item
+              {custoTotal > 0 && ` · markup de ${(precoSugerido / custoTotal).toFixed(2)}x`}.
+            </p>
+          </div>
         </div>
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <Button variant="outline" className="rounded-full gap-2" onClick={exportarPDF}>
