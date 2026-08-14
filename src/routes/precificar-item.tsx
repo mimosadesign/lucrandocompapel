@@ -204,6 +204,15 @@ function PrecificarItemPage() {
     custoImpressaoItem +
     custoTesouraItem;
 
+  const [margemDesejada, setMargemDesejada] = useLocalState<number>(
+    "lcp:precItem:margemDesejada",
+    50,
+  );
+  const precoSugerido =
+    margemDesejada > 0 && margemDesejada < 100
+      ? custoTotal / (1 - margemDesejada / 100)
+      : custoTotal;
+
   // ==== Ações ====
   function addMaterial() {
     setItem({
