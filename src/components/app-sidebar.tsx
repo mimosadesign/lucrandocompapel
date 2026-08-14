@@ -19,6 +19,8 @@ import {
   Percent,
   Wallet,
   Sparkles,
+  Receipt,
+  BellRing,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
