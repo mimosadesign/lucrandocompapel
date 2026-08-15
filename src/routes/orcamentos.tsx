@@ -25,6 +25,29 @@ type OrcItem = {
   valorUnit: number;
 };
 
+export type StatusOrcamento =
+  | "Rascunho"
+  | "Enviado"
+  | "Visualizado"
+  | "Aprovado"
+  | "Recusado";
+
+const STATUS_ORC: StatusOrcamento[] = [
+  "Rascunho",
+  "Enviado",
+  "Visualizado",
+  "Aprovado",
+  "Recusado",
+];
+
+const statusClass: Record<StatusOrcamento, string> = {
+  Rascunho: "bg-secondary text-secondary-foreground",
+  Enviado: "bg-chart-4/20 text-foreground",
+  Visualizado: "bg-primary/15 text-foreground",
+  Aprovado: "bg-success/20 text-foreground",
+  Recusado: "bg-destructive/15 text-destructive",
+};
+
 type Orcamento = {
   id: string;
   numero: string;
@@ -37,7 +60,27 @@ type Orcamento = {
   chavePix: string;
   criadoEm: string;
   aceito?: boolean;
+  status?: StatusOrcamento;
+  /** validade do orçamento (YYYY-MM-DD) */
+  validade?: string;
+  /** prazo de produção em dias úteis */
+  prazoProducao?: number;
+  condicoesPagamento?: string;
+  /** sinal em % do total */
+  sinalPct?: number;
+  parcelas?: number;
+  convertidoPedidoId?: string;
 };
+
+function statusDe(o: Orcamento): StatusOrcamento {
+  return o.status || (o.aceito ? "Aprovado" : "Rascunho");
+}
+
+function dataMaisDias(dias: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
 
 function novoOrcamento(chavePixPadrao: string, numeroSugerido: string): Orcamento {
   return {
@@ -51,8 +94,15 @@ function novoOrcamento(chavePixPadrao: string, numeroSugerido: string): Orcament
     itens: [],
     chavePix: chavePixPadrao,
     criadoEm: new Date().toISOString(),
+    status: "Rascunho",
+    validade: dataMaisDias(15),
+    prazoProducao: 7,
+    condicoesPagamento: "50% de sinal e 50% na entrega",
+    sinalPct: 50,
+    parcelas: 1,
   };
 }
+
 
 function OrcamentosPage() {
   const { user } = useUser();
