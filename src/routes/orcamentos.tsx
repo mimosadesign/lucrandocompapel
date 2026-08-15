@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, Save, FileDown, FileText, Copy } from "lucide-react";
+import { Plus, Trash2, Save, FileDown, FileText, Copy, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { PageHeader } from "@/components/page-header";
@@ -10,8 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MoneyInput } from "@/components/money-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocalState, brl } from "@/lib/storage";
 import { useUser, useEntitlement } from "@/lib/auth";
+
 
 export const Route = createFileRoute("/orcamentos")({
   head: () => ({ meta: [{ title: "Orçamentos — Lucrando com Papel" }] }),
@@ -23,6 +31,29 @@ type OrcItem = {
   descricao: string;
   quantidade: number;
   valorUnit: number;
+};
+
+export type StatusOrcamento =
+  | "Rascunho"
+  | "Enviado"
+  | "Visualizado"
+  | "Aprovado"
+  | "Recusado";
+
+const STATUS_ORC: StatusOrcamento[] = [
+  "Rascunho",
+  "Enviado",
+  "Visualizado",
+  "Aprovado",
+  "Recusado",
+];
+
+const statusClass: Record<StatusOrcamento, string> = {
+  Rascunho: "bg-secondary text-secondary-foreground",
+  Enviado: "bg-chart-4/20 text-foreground",
+  Visualizado: "bg-primary/15 text-foreground",
+  Aprovado: "bg-success/20 text-foreground",
+  Recusado: "bg-destructive/15 text-destructive",
 };
 
 type Orcamento = {
@@ -37,7 +68,27 @@ type Orcamento = {
   chavePix: string;
   criadoEm: string;
   aceito?: boolean;
+  status?: StatusOrcamento;
+  /** validade do orçamento (YYYY-MM-DD) */
+  validade?: string;
+  /** prazo de produção em dias úteis */
+  prazoProducao?: number;
+  condicoesPagamento?: string;
+  /** sinal em % do total */
+  sinalPct?: number;
+  parcelas?: number;
+  convertidoPedidoId?: string;
 };
+
+function statusDe(o: Orcamento): StatusOrcamento {
+  return o.status || (o.aceito ? "Aprovado" : "Rascunho");
+}
+
+function dataMaisDias(dias: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
 
 function novoOrcamento(chavePixPadrao: string, numeroSugerido: string): Orcamento {
   return {
@@ -51,8 +102,15 @@ function novoOrcamento(chavePixPadrao: string, numeroSugerido: string): Orcament
     itens: [],
     chavePix: chavePixPadrao,
     criadoEm: new Date().toISOString(),
+    status: "Rascunho",
+    validade: dataMaisDias(15),
+    prazoProducao: 7,
+    condicoesPagamento: "50% de sinal e 50% na entrega",
+    sinalPct: 50,
+    parcelas: 1,
   };
 }
+
 
 function OrcamentosPage() {
   const { user } = useUser();
@@ -63,10 +121,12 @@ function OrcamentosPage() {
   );
   const [logo] = useLocalState<string>("lcp:logo", "");
   const [salvos, setSalvos] = useLocalState<Orcamento[]>("lcp:orcamentos", []);
+  const [pedidos, setPedidos] = useLocalState<any[]>("lcp:pedidos", []);
   const [lastReset, setLastReset] = useLocalState<string>(
     "lcp:orcamentos:lastReset",
     "",
   );
+
 
   // Plano gratuito: no dia 1º do novo mês, remove orçamentos de meses anteriores
   // para liberar novamente o limite de 20/mês.
@@ -183,6 +243,59 @@ function OrcamentosPage() {
   function excluir(id: string) {
     setSalvos(salvos.filter((s) => s.id !== id));
   }
+
+  function mudarStatus(id: string, status: StatusOrcamento) {
+    setSalvos(
+      salvos.map((x) =>
+        x.id === id ? { ...x, status, aceito: status === "Aprovado" } : x,
+      ),
+    );
+    if (orc.id === id) setOrc({ ...orc, status, aceito: status === "Aprovado" });
+  }
+
+  function totalDe(o: Orcamento) {
+    const sub = o.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0);
+    return Math.max(0, sub + (o.entrega || 0) - (o.desconto || 0));
+  }
+
+  function converterEmPedido(o: Orcamento) {
+    if (o.convertidoPedidoId) {
+      toast.error("Este orçamento já virou pedido.");
+      return;
+    }
+    const valorTotal = totalDe(o);
+    const entregaData = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + (o.prazoProducao || 0));
+      return d.toISOString().slice(0, 10);
+    })();
+    const pedidoId = crypto.randomUUID();
+    setPedidos([
+      {
+        id: pedidoId,
+        cliente: o.cliente || "Sem cliente",
+        produto:
+          o.itens.map((i) => i.descricao).filter(Boolean).join(", ") ||
+          `Orçamento #${o.numero}`,
+        entrega: entregaData,
+        entregaTipo: "Combinar",
+        valor: Math.max(0, valorTotal - (o.entrega || 0)),
+        valorEntrega: o.entrega || 0,
+        status: "Em aberto",
+        criadoEm: new Date().toISOString(),
+      },
+      ...pedidos,
+    ]);
+    setSalvos(
+      salvos.map((x) =>
+        x.id === o.id
+          ? { ...x, status: "Aprovado" as StatusOrcamento, aceito: true, convertidoPedidoId: pedidoId }
+          : x,
+      ),
+    );
+    toast.success("Orçamento convertido em pedido!");
+  }
+
 
   async function loadLogoImage(): Promise<HTMLImageElement | null> {
     if (!logo) return null;
@@ -307,7 +420,37 @@ function OrcamentosPage() {
     doc.setFontSize(10);
     y += 8;
 
+    const linhasCond: string[] = [];
+    if (orc.validade)
+      linhasCond.push(
+        `Validade do orçamento: ${new Date(`${orc.validade}T12:00:00`).toLocaleDateString("pt-BR")}`,
+      );
+    if (orc.prazoProducao)
+      linhasCond.push(`Prazo de produção: ${orc.prazoProducao} dias`);
+    if (orc.condicoesPagamento)
+      linhasCond.push(`Condições de pagamento: ${orc.condicoesPagamento}`);
+    if ((orc.sinalPct || 0) > 0)
+      linhasCond.push(
+        `Sinal (${orc.sinalPct}%): ${brl(total * ((orc.sinalPct || 0) / 100))}`,
+      );
+    if ((orc.parcelas || 1) > 1)
+      linhasCond.push(
+        `Parcelamento: ${orc.parcelas}x de ${brl((total * (1 - (orc.sinalPct || 0) / 100)) / (orc.parcelas || 1))}`,
+      );
+    if (linhasCond.length) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Condições", marginX, y);
+      y += 14;
+      doc.setFont("helvetica", "normal");
+      linhasCond.forEach((l) => {
+        doc.text(l, marginX, y);
+        y += 14;
+      });
+      y += 6;
+    }
+
     if (orc.chavePix) {
+
       doc.setFont("helvetica", "bold");
       doc.text("Chave Pix para pagamento", marginX, y);
       y += 14;
@@ -458,6 +601,72 @@ function OrcamentosPage() {
               onChange={(n) => setOrc({ ...orc, desconto: n })}
             />
           </div>
+          <div className="grid gap-1.5">
+            <Label>Status</Label>
+            <Select
+              value={statusDe(orc)}
+              onValueChange={(v) =>
+                setOrc({
+                  ...orc,
+                  status: v as StatusOrcamento,
+                  aceito: v === "Aprovado",
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_ORC.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Validade do orçamento</Label>
+            <Input
+              type="date"
+              value={orc.validade || ""}
+              onChange={(e) => setOrc({ ...orc, validade: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Prazo de produção (dias)</Label>
+            <MoneyInput
+              value={orc.prazoProducao || 0}
+              onChange={(n) => setOrc({ ...orc, prazoProducao: n })}
+              placeholder="7"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Parcelas</Label>
+            <MoneyInput
+              value={orc.parcelas || 1}
+              onChange={(n) => setOrc({ ...orc, parcelas: n })}
+              placeholder="1"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Sinal (%)</Label>
+            <MoneyInput
+              value={orc.sinalPct || 0}
+              onChange={(n) => setOrc({ ...orc, sinalPct: n })}
+              placeholder="50"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Condições de pagamento</Label>
+            <Input
+              value={orc.condicoesPagamento || ""}
+              onChange={(e) =>
+                setOrc({ ...orc, condicoesPagamento: e.target.value })
+              }
+              placeholder="Ex.: 50% de sinal e 50% na entrega"
+            />
+          </div>
           <div className="grid gap-1.5 md:col-span-2">
             <Label>Chave Pix</Label>
             <Input
@@ -470,6 +679,7 @@ function OrcamentosPage() {
               próximos orçamentos.
             </p>
           </div>
+
           <div className="grid gap-1.5 md:col-span-2">
             <Label>Observações</Label>
             <Textarea
@@ -504,7 +714,17 @@ function OrcamentosPage() {
               {brl(total)}
             </span>
           </div>
+          {(orc.sinalPct || 0) > 0 && total > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Sinal de {orc.sinalPct}%: <strong>{brl(total * ((orc.sinalPct || 0) / 100))}</strong> ·
+              restante {brl(total * (1 - (orc.sinalPct || 0) / 100))}
+              {(orc.parcelas || 1) > 1 && (
+                <> em {orc.parcelas}x de {brl((total * (1 - (orc.sinalPct || 0) / 100)) / (orc.parcelas || 1))}</>
+              )}
+            </p>
+          )}
         </div>
+
 
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <Button variant="outline" className="rounded-full gap-2" onClick={exportarPDF}>
@@ -517,8 +737,10 @@ function OrcamentosPage() {
       </Card>
 
       {salvos.length > 0 && (() => {
-        const aceitos = salvos.filter((s) => s.aceito).length;
-        const conv = salvos.length > 0 ? (aceitos / salvos.length) * 100 : 0;
+        const aprovados = salvos.filter((s) => statusDe(s) === "Aprovado").length;
+        const enviados = salvos.filter((s) => statusDe(s) !== "Rascunho").length;
+        const base = enviados || salvos.length;
+        const conv = base > 0 ? (aprovados / base) * 100 : 0;
         return (
           <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -529,12 +751,17 @@ function OrcamentosPage() {
                   {conv.toFixed(0)}%
                 </span>
                 <span className="text-xs text-muted-foreground ml-2">
-                  ({aceitos} de {salvos.length} aceito{aceitos === 1 ? "" : "s"})
+                  ({aprovados} aprovado{aprovados === 1 ? "" : "s"} de {base} enviado
+                  {base === 1 ? "" : "s"})
                 </span>
               </div>
             </div>
             <div className="space-y-2">
-              {salvos.map((s) => (
+              {salvos.map((s) => {
+                const st = statusDe(s);
+                const vencido =
+                  s.validade && new Date(`${s.validade}T23:59:59`) < new Date();
+                return (
                 <div
                   key={s.id}
                   className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/60 px-4 py-3"
@@ -542,27 +769,53 @@ function OrcamentosPage() {
                   <div className="min-w-0">
                     <p className="font-medium truncate">
                       #{s.numero} · {s.cliente || "Sem cliente"}
-                      {s.aceito && (
-                        <span className="ml-2 inline-flex rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-medium">
-                          Aceito
+                      <span
+                        className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${statusClass[st]}`}
+                      >
+                        {st}
+                      </span>
+                      {s.convertidoPedidoId && (
+                        <span className="ml-2 inline-flex rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium">
+                          Virou pedido
                         </span>
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {s.itens.length} itens ·{" "}
+                      {s.itens.length} itens · {brl(totalDe(s))} ·{" "}
                       {new Date(s.criadoEm).toLocaleDateString("pt-BR")}
+                      {s.validade && (
+                        <span className={vencido ? " text-destructive" : ""}>
+                          {" "}· validade{" "}
+                          {new Date(`${s.validade}T12:00:00`).toLocaleDateString("pt-BR")}
+                          {vencido ? " (vencido)" : ""}
+                        </span>
+                      )}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant={s.aceito ? "default" : "outline"}
-                      size="sm"
-                      className="rounded-full h-8 text-xs"
-                      onClick={() =>
-                        setSalvos(salvos.map((x) => (x.id === s.id ? { ...x, aceito: !x.aceito } : x)))
-                      }
+                  <div className="flex flex-wrap items-center gap-1">
+                    <Select
+                      value={st}
+                      onValueChange={(v) => mudarStatus(s.id, v as StatusOrcamento)}
                     >
-                      {s.aceito ? "✓ Aceito" : "Marcar aceito"}
+                      <SelectTrigger className="h-8 w-[135px] rounded-full text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUS_ORC.map((x) => (
+                          <SelectItem key={x} value={x}>
+                            {x}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      className="rounded-full h-8 gap-1 text-xs"
+                      disabled={!!s.convertidoPedidoId}
+                      onClick={() => converterEmPedido(s)}
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      {s.convertidoPedidoId ? "Convertido" : "Virar pedido"}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => carregar(s)}>
                       Abrir
@@ -580,10 +833,12 @@ function OrcamentosPage() {
                     </Button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         );
+
       })()}
     </div>
   );

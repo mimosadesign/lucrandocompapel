@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { Target, TrendingUp, Wallet, PartyPopper, Save } from "lucide-react";
 import {
@@ -19,7 +19,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLocalState, brl, parseNum } from "@/lib/storage";
+import {
+  CONTAS_KEY,
+  contasDoMes,
+  contaPaga,
+  totalContasDoMes,
+  totalAPagar,
+  type Conta,
+} from "@/lib/contas";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/faturamento")({
   head: () => ({ meta: [{ title: "Faturamento Mensal — Lucrando com Papel" }] }),
@@ -57,7 +66,9 @@ function FaturamentoPage() {
 function FaturamentoDashboard() {
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
+  const [contas] = useLocalState<Conta[]>(CONTAS_KEY, []);
   const [meta, setMeta] = useLocalState<number>("lcp:meta", 0);
+
   const [precifFat] = useLocalState<Record<string, string>>("lcp:precif:faturamento", {
     m1: "", m2: "", m3: "", m4: "", m5: "",
   });
@@ -115,9 +126,14 @@ function FaturamentoDashboard() {
   }, [produtos]);
 
   const lucroEstimado = faturamentoMes * (margemMedia / 100);
+  const contasMes = useMemo(() => contasDoMes(contas), [contas]);
+  const totalContas = useMemo(() => totalContasDoMes(contas), [contas]);
+  const contasAPagar = useMemo(() => totalAPagar(contas), [contas]);
+  const lucroLiquido = lucroEstimado - totalContas;
   const pctMeta = meta > 0 ? Math.min(100, (faturamentoMes / meta) * 100) : 0;
   const bateuMeta = meta > 0 && faturamentoMes >= meta;
   const ticketMedio = pedidosMes.length ? faturamentoMes / pedidosMes.length : 0;
+
 
   const historico = useMemo(() => {
     const buckets: { mes: string; faturamento: number; pedidos: number }[] = [];
@@ -183,6 +199,61 @@ function FaturamentoDashboard() {
           sub={`Margem média ${margemMedia.toFixed(0)}%`}
         />
       </div>
+
+      <Card className="rounded-3xl p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="font-display text-base font-semibold">
+              Contas do mês (contas a pagar)
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Puxado automaticamente do seu cadastro de contas.
+            </p>
+          </div>
+          <Link to="/contas" className="text-sm text-primary underline">
+            Gerenciar contas
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-border/60 p-4">
+            <p className="text-xs uppercase text-muted-foreground">Total de contas</p>
+            <p className="font-display text-xl font-semibold">{brl(totalContas)}</p>
+            <p className="text-xs text-muted-foreground">{contasMes.length} conta(s)</p>
+          </div>
+          <div className="rounded-2xl border border-border/60 p-4">
+            <p className="text-xs uppercase text-muted-foreground">Ainda a pagar</p>
+            <p className="font-display text-xl font-semibold text-destructive">
+              {brl(contasAPagar)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {contasMes.filter((c) => !contaPaga(c)).length} em aberto
+            </p>
+          </div>
+          <div
+            className={`rounded-2xl border p-4 ${
+              lucroLiquido >= 0 ? "border-success/40 bg-success/10" : "border-destructive/40 bg-destructive/10"
+            }`}
+          >
+            <p className="text-xs uppercase text-muted-foreground">
+              Lucro líquido estimado
+            </p>
+            <p className="font-display text-xl font-semibold">{brl(lucroLiquido)}</p>
+            <p className="text-xs text-muted-foreground">Lucro estimado − contas</p>
+          </div>
+        </div>
+        {meta > 0 && totalContas > 0 && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Para cobrir suas contas com a margem média de {margemMedia.toFixed(0)}%, você
+            precisa faturar cerca de{" "}
+            <strong>
+              {brl(margemMedia > 0 ? totalContas / (margemMedia / 100) : 0)}
+            </strong>{" "}
+            no mês.
+          </p>
+        )}
+      </Card>
+
+
 
       <Card className="rounded-3xl p-6">
         <div className="flex flex-wrap items-end gap-3 justify-between">

@@ -36,9 +36,23 @@ type Material = {
   quantidade: number;
   estoque: number;
   estoqueMinimo: number;
+  /** preenchido automaticamente quando o material é papel */
+  gramatura?: string;
+  tamanho?: string;
 };
 
 const STORAGE_KEY = "lcp:materiais";
+
+const GRAMATURAS = ["75g", "90g", "120g", "150g", "180g", "240g", "250g", "300g"];
+const TAMANHOS = ["A4", "A3", "A5", "66x96cm", "50x70cm", "30x30cm", "Outro"];
+
+/** Detecta se o material cadastrado é um papel (para pedir gramatura e tamanho). */
+export function ehPapel(nome: string) {
+  return /\bpapel(is)?\b|cartolina|color\s*plus|kraft|couch|couch[eê]|opalina|vergê|verge/i.test(
+    nome || "",
+  );
+}
+
 
 function loadMateriais(): Material[] {
   if (typeof window === "undefined") return [];
@@ -208,11 +222,19 @@ function MateriaisPage() {
                       <Package className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium">{m.nome}</p>
+                      <p className="font-medium">
+                        {m.nome}
+                        {(m.gramatura || m.tamanho) && (
+                          <span className="ml-2 inline-flex rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium">
+                            {[m.gramatura, m.tamanho].filter(Boolean).join(" · ")}
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {m.fornecedor || "Sem fornecedor"}
                       </p>
                     </div>
+
                   </div>
                   <div className="md:col-span-2 text-sm">{brl(m.valorPago)}</div>
                   <div className="md:col-span-1 text-sm">{m.quantidade}</div>
@@ -278,6 +300,48 @@ function MateriaisPage() {
                   placeholder="Opcional"
                 />
               </div>
+              {ehPapel(editing.nome) && (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                  <p className="mb-3 text-sm font-medium">
+                    📄 Detectamos que é papel — informe gramatura e tamanho
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-2">
+                      <Label>Gramatura</Label>
+                      <Input
+                        list="lcp-gramaturas"
+                        value={editing.gramatura || ""}
+                        onChange={(e) =>
+                          setEditing({ ...editing, gramatura: e.target.value })
+                        }
+                        placeholder="Ex.: 180g"
+                      />
+                      <datalist id="lcp-gramaturas">
+                        {GRAMATURAS.map((g) => (
+                          <option key={g} value={g} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Tamanho</Label>
+                      <Input
+                        list="lcp-tamanhos"
+                        value={editing.tamanho || ""}
+                        onChange={(e) =>
+                          setEditing({ ...editing, tamanho: e.target.value })
+                        }
+                        placeholder="Ex.: A4"
+                      />
+                      <datalist id="lcp-tamanhos">
+                        {TAMANHOS.map((t) => (
+                          <option key={t} value={t} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Valor pago (R$)</Label>
