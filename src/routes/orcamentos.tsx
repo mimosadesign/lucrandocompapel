@@ -420,7 +420,37 @@ function OrcamentosPage() {
     doc.setFontSize(10);
     y += 8;
 
+    const linhasCond: string[] = [];
+    if (orc.validade)
+      linhasCond.push(
+        `Validade do orçamento: ${new Date(`${orc.validade}T12:00:00`).toLocaleDateString("pt-BR")}`,
+      );
+    if (orc.prazoProducao)
+      linhasCond.push(`Prazo de produção: ${orc.prazoProducao} dias`);
+    if (orc.condicoesPagamento)
+      linhasCond.push(`Condições de pagamento: ${orc.condicoesPagamento}`);
+    if ((orc.sinalPct || 0) > 0)
+      linhasCond.push(
+        `Sinal (${orc.sinalPct}%): ${brl(total * ((orc.sinalPct || 0) / 100))}`,
+      );
+    if ((orc.parcelas || 1) > 1)
+      linhasCond.push(
+        `Parcelamento: ${orc.parcelas}x de ${brl((total * (1 - (orc.sinalPct || 0) / 100)) / (orc.parcelas || 1))}`,
+      );
+    if (linhasCond.length) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Condições", marginX, y);
+      y += 14;
+      doc.setFont("helvetica", "normal");
+      linhasCond.forEach((l) => {
+        doc.text(l, marginX, y);
+        y += 14;
+      });
+      y += 6;
+    }
+
     if (orc.chavePix) {
+
       doc.setFont("helvetica", "bold");
       doc.text("Chave Pix para pagamento", marginX, y);
       y += 14;
