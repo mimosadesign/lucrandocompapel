@@ -244,6 +244,59 @@ function OrcamentosPage() {
     setSalvos(salvos.filter((s) => s.id !== id));
   }
 
+  function mudarStatus(id: string, status: StatusOrcamento) {
+    setSalvos(
+      salvos.map((x) =>
+        x.id === id ? { ...x, status, aceito: status === "Aprovado" } : x,
+      ),
+    );
+    if (orc.id === id) setOrc({ ...orc, status, aceito: status === "Aprovado" });
+  }
+
+  function totalDe(o: Orcamento) {
+    const sub = o.itens.reduce((s, i) => s + i.quantidade * i.valorUnit, 0);
+    return Math.max(0, sub + (o.entrega || 0) - (o.desconto || 0));
+  }
+
+  function converterEmPedido(o: Orcamento) {
+    if (o.convertidoPedidoId) {
+      toast.error("Este orçamento já virou pedido.");
+      return;
+    }
+    const valorTotal = totalDe(o);
+    const entregaData = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + (o.prazoProducao || 0));
+      return d.toISOString().slice(0, 10);
+    })();
+    const pedidoId = crypto.randomUUID();
+    setPedidos([
+      {
+        id: pedidoId,
+        cliente: o.cliente || "Sem cliente",
+        produto:
+          o.itens.map((i) => i.descricao).filter(Boolean).join(", ") ||
+          `Orçamento #${o.numero}`,
+        entrega: entregaData,
+        entregaTipo: "Combinar",
+        valor: Math.max(0, valorTotal - (o.entrega || 0)),
+        valorEntrega: o.entrega || 0,
+        status: "Em aberto",
+        criadoEm: new Date().toISOString(),
+      },
+      ...pedidos,
+    ]);
+    setSalvos(
+      salvos.map((x) =>
+        x.id === o.id
+          ? { ...x, status: "Aprovado" as StatusOrcamento, aceito: true, convertidoPedidoId: pedidoId }
+          : x,
+      ),
+    );
+    toast.success("Orçamento convertido em pedido!");
+  }
+
+
   async function loadLogoImage(): Promise<HTMLImageElement | null> {
     if (!logo) return null;
     return new Promise((resolve) => {
