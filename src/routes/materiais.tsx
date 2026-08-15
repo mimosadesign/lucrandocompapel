@@ -36,9 +36,23 @@ type Material = {
   quantidade: number;
   estoque: number;
   estoqueMinimo: number;
+  /** preenchido automaticamente quando o material é papel */
+  gramatura?: string;
+  tamanho?: string;
 };
 
 const STORAGE_KEY = "lcp:materiais";
+
+const GRAMATURAS = ["75g", "90g", "120g", "150g", "180g", "240g", "250g", "300g"];
+const TAMANHOS = ["A4", "A3", "A5", "66x96cm", "50x70cm", "30x30cm", "Outro"];
+
+/** Detecta se o material cadastrado é um papel (para pedir gramatura e tamanho). */
+export function ehPapel(nome: string) {
+  return /\bpapel(is)?\b|cartolina|color\s*plus|kraft|couch|couch[eê]|opalina|vergê|verge/i.test(
+    nome || "",
+  );
+}
+
 
 function loadMateriais(): Material[] {
   if (typeof window === "undefined") return [];
