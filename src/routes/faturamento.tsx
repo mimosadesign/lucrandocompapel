@@ -66,7 +66,9 @@ function FaturamentoPage() {
 function FaturamentoDashboard() {
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [produtos] = useLocalState<Produto[]>("lcp:produtos", []);
+  const [contas] = useLocalState<Conta[]>(CONTAS_KEY, []);
   const [meta, setMeta] = useLocalState<number>("lcp:meta", 0);
+
   const [precifFat] = useLocalState<Record<string, string>>("lcp:precif:faturamento", {
     m1: "", m2: "", m3: "", m4: "", m5: "",
   });
