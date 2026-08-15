@@ -571,6 +571,72 @@ function OrcamentosPage() {
               onChange={(n) => setOrc({ ...orc, desconto: n })}
             />
           </div>
+          <div className="grid gap-1.5">
+            <Label>Status</Label>
+            <Select
+              value={statusDe(orc)}
+              onValueChange={(v) =>
+                setOrc({
+                  ...orc,
+                  status: v as StatusOrcamento,
+                  aceito: v === "Aprovado",
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_ORC.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Validade do orçamento</Label>
+            <Input
+              type="date"
+              value={orc.validade || ""}
+              onChange={(e) => setOrc({ ...orc, validade: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Prazo de produção (dias)</Label>
+            <MoneyInput
+              value={orc.prazoProducao || 0}
+              onChange={(n) => setOrc({ ...orc, prazoProducao: n })}
+              placeholder="7"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Parcelas</Label>
+            <MoneyInput
+              value={orc.parcelas || 1}
+              onChange={(n) => setOrc({ ...orc, parcelas: n })}
+              placeholder="1"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Sinal (%)</Label>
+            <MoneyInput
+              value={orc.sinalPct || 0}
+              onChange={(n) => setOrc({ ...orc, sinalPct: n })}
+              placeholder="50"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Condições de pagamento</Label>
+            <Input
+              value={orc.condicoesPagamento || ""}
+              onChange={(e) =>
+                setOrc({ ...orc, condicoesPagamento: e.target.value })
+              }
+              placeholder="Ex.: 50% de sinal e 50% na entrega"
+            />
+          </div>
           <div className="grid gap-1.5 md:col-span-2">
             <Label>Chave Pix</Label>
             <Input
@@ -583,6 +649,7 @@ function OrcamentosPage() {
               próximos orçamentos.
             </p>
           </div>
+
           <div className="grid gap-1.5 md:col-span-2">
             <Label>Observações</Label>
             <Textarea
