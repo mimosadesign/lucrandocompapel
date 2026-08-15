@@ -292,6 +292,48 @@ function MateriaisPage() {
                   placeholder="Opcional"
                 />
               </div>
+              {ehPapel(editing.nome) && (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                  <p className="mb-3 text-sm font-medium">
+                    📄 Detectamos que é papel — informe gramatura e tamanho
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-2">
+                      <Label>Gramatura</Label>
+                      <Input
+                        list="lcp-gramaturas"
+                        value={editing.gramatura || ""}
+                        onChange={(e) =>
+                          setEditing({ ...editing, gramatura: e.target.value })
+                        }
+                        placeholder="Ex.: 180g"
+                      />
+                      <datalist id="lcp-gramaturas">
+                        {GRAMATURAS.map((g) => (
+                          <option key={g} value={g} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Tamanho</Label>
+                      <Input
+                        list="lcp-tamanhos"
+                        value={editing.tamanho || ""}
+                        onChange={(e) =>
+                          setEditing({ ...editing, tamanho: e.target.value })
+                        }
+                        placeholder="Ex.: A4"
+                      />
+                      <datalist id="lcp-tamanhos">
+                        {TAMANHOS.map((t) => (
+                          <option key={t} value={t} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Valor pago (R$)</Label>
