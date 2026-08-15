@@ -10,8 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MoneyInput } from "@/components/money-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocalState, brl } from "@/lib/storage";
 import { useUser, useEntitlement } from "@/lib/auth";
+
 
 export const Route = createFileRoute("/orcamentos")({
   head: () => ({ meta: [{ title: "Orçamentos — Lucrando com Papel" }] }),
