@@ -222,11 +222,19 @@ function MateriaisPage() {
                       <Package className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium">{m.nome}</p>
+                      <p className="font-medium">
+                        {m.nome}
+                        {(m.gramatura || m.tamanho) && (
+                          <span className="ml-2 inline-flex rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium">
+                            {[m.gramatura, m.tamanho].filter(Boolean).join(" · ")}
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {m.fornecedor || "Sem fornecedor"}
                       </p>
                     </div>
+
                   </div>
                   <div className="md:col-span-2 text-sm">{brl(m.valorPago)}</div>
                   <div className="md:col-span-1 text-sm">{m.quantidade}</div>
