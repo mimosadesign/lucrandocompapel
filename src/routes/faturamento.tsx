@@ -126,9 +126,14 @@ function FaturamentoDashboard() {
   }, [produtos]);
 
   const lucroEstimado = faturamentoMes * (margemMedia / 100);
+  const contasMes = useMemo(() => contasDoMes(contas), [contas]);
+  const totalContas = useMemo(() => totalContasDoMes(contas), [contas]);
+  const contasAPagar = useMemo(() => totalAPagar(contas), [contas]);
+  const lucroLiquido = lucroEstimado - totalContas;
   const pctMeta = meta > 0 ? Math.min(100, (faturamentoMes / meta) * 100) : 0;
   const bateuMeta = meta > 0 && faturamentoMes >= meta;
   const ticketMedio = pedidosMes.length ? faturamentoMes / pedidosMes.length : 0;
+
 
   const historico = useMemo(() => {
     const buckets: { mes: string; faturamento: number; pedidos: number }[] = [];
