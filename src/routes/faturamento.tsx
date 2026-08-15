@@ -19,7 +19,16 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLocalState, brl, parseNum } from "@/lib/storage";
+import {
+  CONTAS_KEY,
+  contasDoMes,
+  contaPaga,
+  totalContasDoMes,
+  totalAPagar,
+  type Conta,
+} from "@/lib/contas";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/faturamento")({
   head: () => ({ meta: [{ title: "Faturamento Mensal — Lucrando com Papel" }] }),
