@@ -121,10 +121,12 @@ function OrcamentosPage() {
   );
   const [logo] = useLocalState<string>("lcp:logo", "");
   const [salvos, setSalvos] = useLocalState<Orcamento[]>("lcp:orcamentos", []);
+  const [pedidos, setPedidos] = useLocalState<any[]>("lcp:pedidos", []);
   const [lastReset, setLastReset] = useLocalState<string>(
     "lcp:orcamentos:lastReset",
     "",
   );
+
 
   // Plano gratuito: no dia 1º do novo mês, remove orçamentos de meses anteriores
   // para liberar novamente o limite de 20/mês.
