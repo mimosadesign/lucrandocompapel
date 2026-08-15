@@ -707,8 +707,10 @@ function OrcamentosPage() {
       </Card>
 
       {salvos.length > 0 && (() => {
-        const aceitos = salvos.filter((s) => s.aceito).length;
-        const conv = salvos.length > 0 ? (aceitos / salvos.length) * 100 : 0;
+        const aprovados = salvos.filter((s) => statusDe(s) === "Aprovado").length;
+        const enviados = salvos.filter((s) => statusDe(s) !== "Rascunho").length;
+        const base = enviados || salvos.length;
+        const conv = base > 0 ? (aprovados / base) * 100 : 0;
         return (
           <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -719,12 +721,17 @@ function OrcamentosPage() {
                   {conv.toFixed(0)}%
                 </span>
                 <span className="text-xs text-muted-foreground ml-2">
-                  ({aceitos} de {salvos.length} aceito{aceitos === 1 ? "" : "s"})
+                  ({aprovados} aprovado{aprovados === 1 ? "" : "s"} de {base} enviado
+                  {base === 1 ? "" : "s"})
                 </span>
               </div>
             </div>
             <div className="space-y-2">
-              {salvos.map((s) => (
+              {salvos.map((s) => {
+                const st = statusDe(s);
+                const vencido =
+                  s.validade && new Date(`${s.validade}T23:59:59`) < new Date();
+                return (
                 <div
                   key={s.id}
                   className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/60 px-4 py-3"
@@ -732,27 +739,53 @@ function OrcamentosPage() {
                   <div className="min-w-0">
                     <p className="font-medium truncate">
                       #{s.numero} · {s.cliente || "Sem cliente"}
-                      {s.aceito && (
-                        <span className="ml-2 inline-flex rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-medium">
-                          Aceito
+                      <span
+                        className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${statusClass[st]}`}
+                      >
+                        {st}
+                      </span>
+                      {s.convertidoPedidoId && (
+                        <span className="ml-2 inline-flex rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium">
+                          Virou pedido
                         </span>
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {s.itens.length} itens ·{" "}
+                      {s.itens.length} itens · {brl(totalDe(s))} ·{" "}
                       {new Date(s.criadoEm).toLocaleDateString("pt-BR")}
+                      {s.validade && (
+                        <span className={vencido ? " text-destructive" : ""}>
+                          {" "}· validade{" "}
+                          {new Date(`${s.validade}T12:00:00`).toLocaleDateString("pt-BR")}
+                          {vencido ? " (vencido)" : ""}
+                        </span>
+                      )}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant={s.aceito ? "default" : "outline"}
-                      size="sm"
-                      className="rounded-full h-8 text-xs"
-                      onClick={() =>
-                        setSalvos(salvos.map((x) => (x.id === s.id ? { ...x, aceito: !x.aceito } : x)))
-                      }
+                  <div className="flex flex-wrap items-center gap-1">
+                    <Select
+                      value={st}
+                      onValueChange={(v) => mudarStatus(s.id, v as StatusOrcamento)}
                     >
-                      {s.aceito ? "✓ Aceito" : "Marcar aceito"}
+                      <SelectTrigger className="h-8 w-[135px] rounded-full text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUS_ORC.map((x) => (
+                          <SelectItem key={x} value={x}>
+                            {x}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      className="rounded-full h-8 gap-1 text-xs"
+                      disabled={!!s.convertidoPedidoId}
+                      onClick={() => converterEmPedido(s)}
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      {s.convertidoPedidoId ? "Convertido" : "Virar pedido"}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => carregar(s)}>
                       Abrir
@@ -770,10 +803,12 @@ function OrcamentosPage() {
                     </Button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         );
+
       })()}
     </div>
   );
