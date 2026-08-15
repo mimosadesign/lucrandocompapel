@@ -684,7 +684,17 @@ function OrcamentosPage() {
               {brl(total)}
             </span>
           </div>
+          {(orc.sinalPct || 0) > 0 && total > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Sinal de {orc.sinalPct}%: <strong>{brl(total * ((orc.sinalPct || 0) / 100))}</strong> ·
+              restante {brl(total * (1 - (orc.sinalPct || 0) / 100))}
+              {(orc.parcelas || 1) > 1 && (
+                <> em {orc.parcelas}x de {brl((total * (1 - (orc.sinalPct || 0) / 100)) / (orc.parcelas || 1))}</>
+              )}
+            </p>
+          )}
         </div>
+
 
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <Button variant="outline" className="rounded-full gap-2" onClick={exportarPDF}>
