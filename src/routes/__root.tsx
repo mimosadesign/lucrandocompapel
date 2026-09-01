@@ -308,6 +308,19 @@ function RootComponent() {
     }
   }, [ready, user, isPublicRoute, navigate]);
 
+  // PWA: instala o service worker para o app poder ser adicionado à tela inicial.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    const onLoad = () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        /* ignore */
+      });
+    };
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad);
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {isPublicRoute ? <Outlet /> : ready && user ? <AppLayout /> : <div className="min-h-screen bg-background" />}
