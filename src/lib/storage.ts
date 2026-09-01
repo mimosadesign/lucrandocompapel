@@ -100,7 +100,12 @@ async function flushPush() {
     } catch {
       value = raw;
     }
-    return { user_id: uid, key, value, updated_at: new Date().toISOString() };
+    return {
+      user_id: uid,
+      key,
+      value: value as never,
+      updated_at: new Date().toISOString(),
+    };
   });
   pending.clear();
   try {
