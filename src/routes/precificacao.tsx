@@ -259,26 +259,40 @@ function PrecificacaoPage() {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {gastos.map((g, idx) => (
             <div key={g.id} className="relative">
-              <Field
-                label={g.nome}
-                placeholder="R$ 0,00"
-                value={g.valor}
-                onChange={(v) => {
-                  const copy = [...gastos];
-                  copy[idx] = { ...g, valor: v };
-                  setGastos(copy);
-                }}
-              />
-              {!["aluguel","tinta","internet","agua","luz","gasolina","cartao","ia"].includes(g.id) && (
-                <button
-                  type="button"
-                  aria-label="Remover"
-                  onClick={() => setGastos(gastos.filter((x) => x.id !== g.id))}
-                  className="absolute -top-1 right-0 text-muted-foreground hover:text-foreground"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              )}
+              <div className="flex items-center gap-2 pr-5">
+                <Input
+                  value={g.nome}
+                  aria-label="Nome do gasto"
+                  placeholder="Nome do gasto"
+                  onChange={(e) => {
+                    const copy = [...gastos];
+                    copy[idx] = { ...g, nome: e.target.value };
+                    setGastos(copy);
+                  }}
+                  className="h-8 rounded-full border-transparent bg-muted/50 px-3 text-xs font-medium uppercase tracking-wide focus-visible:border-border"
+                />
+              </div>
+              <div className="mt-1.5">
+                <Input
+                  inputMode="decimal"
+                  placeholder="R$ 0,00"
+                  value={g.valor}
+                  onChange={(e) => {
+                    const copy = [...gastos];
+                    copy[idx] = { ...g, valor: e.target.value };
+                    setGastos(copy);
+                  }}
+                  className="h-11 rounded-full border-border/70 bg-background px-4"
+                />
+              </div>
+              <button
+                type="button"
+                aria-label="Remover gasto"
+                onClick={() => setGastos(gastos.filter((x) => x.id !== g.id))}
+                className="absolute top-1 right-0 text-muted-foreground hover:text-foreground"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </div>
           ))}
         </div>

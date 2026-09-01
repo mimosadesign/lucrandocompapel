@@ -107,8 +107,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Sua ferramenta completa de gestão e precificação para papelaria personalizada." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mDVKQAqEfpMFO0UkEBjOlHl5TyD3/social-images/social-1780951335969-WhatsApp_Image_2026-06-08_at_17.33.27.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mDVKQAqEfpMFO0UkEBjOlHl5TyD3/social-images/social-1780951335969-WhatsApp_Image_2026-06-08_at_17.33.27.webp" },
+      { name: "theme-color", content: "#A8B87C" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Lucrando" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/app-icon-512.png" },
+      { rel: "icon", href: "/app-icon-512.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -299,6 +307,19 @@ function RootComponent() {
       navigate({ to: "/auth", replace: true });
     }
   }, [ready, user, isPublicRoute, navigate]);
+
+  // PWA: instala o service worker para o app poder ser adicionado à tela inicial.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    const onLoad = () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        /* ignore */
+      });
+    };
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad);
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
