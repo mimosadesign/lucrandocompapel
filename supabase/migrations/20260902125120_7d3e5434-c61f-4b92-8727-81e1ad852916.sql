@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.capture_user_data_version() FROM PUBLIC, anon, authenticated, service_role;
