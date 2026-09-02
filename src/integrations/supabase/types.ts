@@ -311,6 +311,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_data_versions: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          source: string
+          user_id: string
+          value: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          source?: string
+          user_id: string
+          value: Json
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          source?: string
+          user_id?: string
+          value?: Json
+          version?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
