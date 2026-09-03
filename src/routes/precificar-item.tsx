@@ -34,7 +34,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { MoneyInput } from "@/components/money-input";
-import { useLocalState, brl, scopedKey, useStorageUser, monthKey } from "@/lib/storage";
+import { useLocalState, brl, monthKey } from "@/lib/storage";
 import { useEntitlement, openDiamondDialog } from "@/lib/auth";
 import { CronometroProducao } from "@/components/cronometro-producao";
 import { FormulasCofre } from "@/components/formulas-cofre";
@@ -94,16 +94,6 @@ type TesouraCfg = {
   horasEntreAfiacoes: number;
 };
 
-function loadMateriais(): Material[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(scopedKey("lcp:materiais"));
-    return raw ? (JSON.parse(raw) as Material[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 function novoItem(): PrecItem {
   return {
     id: crypto.randomUUID(),
@@ -121,18 +111,11 @@ function novoItem(): PrecItem {
 function PrecificarItemPage() {
   const { isUnlimited } = useEntitlement();
 
-  const uid = useStorageUser();
   const [pdfUso, setPdfUso] = useLocalState<{ mes: string; count: number }>(
     "lcp:precificar:pdfUso",
     { mes: "", count: 0 },
   );
-  const [materiais, setMateriais] = useState<Material[]>([]);
-  useEffect(() => {
-    setMateriais(loadMateriais());
-    const onStorage = () => setMateriais(loadMateriais());
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [uid]);
+  const [materiais] = useLocalState<Material[]>("lcp:materiais", []);
 
   const [valorHora] = useLocalState<number>("lcp:valorHora", 0);
 

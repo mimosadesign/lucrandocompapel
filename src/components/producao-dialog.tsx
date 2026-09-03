@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { brl, scopedKey } from "@/lib/storage";
+import { brl, readLocal, writeLocal } from "@/lib/storage";
 
 export type MaterialRow = {
   id: string;
@@ -49,22 +49,11 @@ const ETAPAS_PADRAO: ProducaoEtapa[] = [
 const MATERIAIS_KEY = "lcp:materiais";
 
 function loadMateriais(): MaterialRow[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(scopedKey(MATERIAIS_KEY));
-    return raw ? (JSON.parse(raw) as MaterialRow[]) : [];
-  } catch {
-    return [];
-  }
+  return readLocal<MaterialRow[]>(MATERIAIS_KEY, []);
 }
 
 function saveMateriais(list: MaterialRow[]) {
-  try {
-    localStorage.setItem(scopedKey(MATERIAIS_KEY), JSON.stringify(list));
-    window.dispatchEvent(new Event("lcp:materiais-updated"));
-  } catch {
-    /* ignore */
-  }
+  writeLocal(MATERIAIS_KEY, list);
 }
 
 export function ProducaoDialog({

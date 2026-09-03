@@ -1,7 +1,7 @@
 /* Service worker do Lucrando com Papel (PWA).
    Estratégia: rede primeiro (para o app sempre atualizar) com fallback
    para o cache quando o aparelho estiver sem internet. */
-const CACHE = "lcp-v1";
+const CACHE = "lcp-v2";
 const OFFLINE_ASSETS = ["/", "/manifest.webmanifest", "/app-icon-512.png"];
 
 self.addEventListener("install", (event) => {
