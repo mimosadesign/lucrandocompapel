@@ -1,4 +1,4 @@
-import { scopedKey } from "@/lib/storage";
+import { readLocal, scopedKey, writeLocal } from "@/lib/storage";
 import { useRef, useState } from "react";
 import {
   Download,
@@ -55,13 +55,8 @@ function parseCsv(text: string): Row[] {
 }
 
 function lerLista(key: string): Row[] {
-  try {
-    const raw = localStorage.getItem(scopedKey(key));
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? (parsed as Row[]) : [];
-  } catch {
-    return [];
-  }
+  const parsed = readLocal<unknown>(key, []);
+  return Array.isArray(parsed) ? (parsed as Row[]) : [];
 }
 
 function num(v: unknown): number {
@@ -127,7 +122,7 @@ export function FerramentasCard() {
       if (!dados || typeof dados !== "object") throw new Error("formato");
       Object.entries(dados).forEach(([k, v]) => {
         if (!k.startsWith("lcp:")) return;
-        localStorage.setItem(scopedKey(k), JSON.stringify(v));
+        writeLocal(k, v);
       });
       toast.success("Backup restaurado! Recarregando...");
       setTimeout(() => window.location.reload(), 900);
@@ -153,7 +148,7 @@ export function FerramentasCard() {
         estoque: num(r["estoque"] ?? r["Estoque"]),
         estoqueMinimo: num(r["estoqueMinimo"] ?? r["estoque minimo"]),
       }));
-      localStorage.setItem(scopedKey("lcp:materiais"), JSON.stringify([...atuais, ...novos]));
+      writeLocal("lcp:materiais", [...atuais, ...novos]);
       toast.success(`${novos.length} materiais importados! Recarregando...`);
       setTimeout(() => window.location.reload(), 900);
     } catch {

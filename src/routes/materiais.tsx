@@ -1,9 +1,9 @@
-import { scopedKey, useStorageUser } from "@/lib/storage";
+import { useLocalState } from "@/lib/storage";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, AlertCircle, Package, Trash2, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { useIsUnlimited } from "@/lib/auth";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,39 +54,17 @@ export function ehPapel(nome: string) {
 }
 
 
-function loadMateriais(): Material[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(scopedKey(STORAGE_KEY));
-    return raw ? (JSON.parse(raw) as Material[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 function brl(value: number) {
   if (!isFinite(value)) return "R$ 0,00";
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function MateriaisPage() {
-  const [materiais, setMateriais] = useState<Material[]>([]);
+  const [materiais, setMateriais] = useLocalState<Material[]>(STORAGE_KEY, []);
   const [busca, setBusca] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
   const unlimited = useIsUnlimited();
-  const uid = useStorageUser();
-  const [hidratado, setHidratado] = useState(false);
-
-  useEffect(() => {
-    setMateriais(loadMateriais());
-    setHidratado(true);
-  }, [uid]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !hidratado) return;
-    localStorage.setItem(scopedKey(STORAGE_KEY), JSON.stringify(materiais));
-  }, [materiais, hidratado, uid]);
 
   const filtrados = useMemo(
     () =>

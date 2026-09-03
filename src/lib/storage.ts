@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /* ------------------------------------------------------------------ *
@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 const UID_KEY = "lcp:uid";
 const MIGRATED_KEY = "lcp:migrated";
 const META_KEY = "lcp:meta:updated";
+const DIRTY_KEY = "lcp:sync:pending";
+const RESCUE_KEY = "lcp:sync:v2";
 
 let currentUid: string | null = null;
 const listeners = new Set<() => void>();
@@ -41,6 +43,30 @@ export function scopedKey(key: string, uid: string | null = currentUid) {
 function notify() {
   revision++;
   listeners.forEach((fn) => fn());
+}
+
+function dirtyFullKey(uid: string) {
+  return `u:${uid}:${DIRTY_KEY}`;
+}
+
+function restorePending(uid: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(dirtyFullKey(uid));
+    const saved = raw ? (JSON.parse(raw) as Record<string, string>) : {};
+    Object.entries(saved).forEach(([key, value]) => pending.set(key, value));
+  } catch {
+    /* ignore */
+  }
+}
+
+function persistPending(uid: string | null = currentUid) {
+  if (!uid || typeof window === "undefined") return;
+  try {
+    localStorage.setItem(dirtyFullKey(uid), JSON.stringify(Object.fromEntries(pending)));
+  } catch {
+    /* ignore */
+  }
 }
 
 /* ----------------------------- metadados ---------------------------- */
@@ -80,7 +106,9 @@ function isSyncable(key: string) {
     key.startsWith("lcp:") &&
     key !== UID_KEY &&
     key !== MIGRATED_KEY &&
-    key !== META_KEY
+    key !== META_KEY &&
+    key !== DIRTY_KEY &&
+    key !== RESCUE_KEY
   );
 }
 
@@ -93,7 +121,13 @@ async function flushPush() {
   pushTimer = null;
   const uid = currentUid;
   if (!uid || pending.size === 0) return;
-  const rows = [...pending.entries()].map(([key, raw]) => {
+  const snapshot = [...pending.entries()];
+  const { data: authData } = await supabase.auth.getUser();
+  if (authData.user?.id !== uid) {
+    schedulePush(2000);
+    return;
+  }
+  const rows = snapshot.map(([key, raw]) => {
     let value: unknown = null;
     try {
       value = JSON.parse(raw);
@@ -104,32 +138,47 @@ async function flushPush() {
       user_id: uid,
       key,
       value: value as never,
-      updated_at: new Date().toISOString(),
     };
   });
-  pending.clear();
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("user_data")
-      .upsert(rows, { onConflict: "user_id,key" });
-    if (error) console.warn("sync push falhou", error.message);
+      .upsert(rows, { onConflict: "user_id,key" })
+      .select("key,updated_at");
+    if (error) throw error;
+    const meta = readMeta(uid);
+    for (const row of data ?? []) meta[row.key] = row.updated_at;
+    writeMeta(meta, uid);
+    for (const [key, raw] of snapshot) {
+      if (pending.get(key) === raw) pending.delete(key);
+    }
+    persistPending(uid);
   } catch (e) {
     console.warn("sync push falhou", e);
+    persistPending(uid);
+    schedulePush(3000);
   }
+}
+
+function schedulePush(delay = 700) {
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => void flushPush(), delay);
 }
 
 function queuePush(key: string, rawValue: string) {
   if (!currentUid || !isSyncable(key)) return;
   pending.set(key, rawValue);
   touchMeta(key);
-  if (pushTimer) clearTimeout(pushTimer);
-  pushTimer = setTimeout(() => void flushPush(), 700);
+  persistPending();
+  schedulePush();
 }
 
 /* ---------------------------- baixa (pull) -------------------------- */
 
 let syncing = false;
 let syncedOnce = false;
+let syncAgain = false;
+let realtimeCleanup: (() => void) | null = null;
 
 export function isSynced() {
   return syncedOnce;
@@ -138,9 +187,14 @@ export function isSynced() {
 /** Baixa os dados da nuvem e resolve conflitos pelo horário mais recente. */
 export async function syncFromCloud() {
   const uid = currentUid;
-  if (!uid || typeof window === "undefined" || syncing) return;
+  if (!uid || typeof window === "undefined") return;
+  if (syncing) {
+    syncAgain = true;
+    return;
+  }
   syncing = true;
   try {
+    if (pending.size > 0) await flushPush();
     const { data, error } = await supabase
       .from("user_data")
       .select("key,value,updated_at")
@@ -150,6 +204,8 @@ export async function syncFromCloud() {
     const meta = readMeta(uid);
     const remoteKeys = new Set<string>();
     let changed = false;
+    const rescueKey = `u:${uid}:${RESCUE_KEY}`;
+    const needsRescue = localStorage.getItem(rescueKey) !== "1";
 
     for (const row of (data ?? []) as {
       key: string;
@@ -162,6 +218,30 @@ export async function syncFromCloud() {
       const full = scopedKey(row.key, uid);
       const localRaw = localStorage.getItem(full);
       const remoteRaw = JSON.stringify(row.value);
+
+      // Resgata cadastros feitos por versões antigas que gravavam apenas no aparelho.
+      if (needsRescue && localRaw !== null && !localAt && localRaw !== remoteRaw) {
+        try {
+          const localValue = JSON.parse(localRaw) as unknown;
+          if (Array.isArray(localValue) && Array.isArray(row.value)) {
+            const byId = new Map<string, unknown>();
+            for (const item of row.value) {
+              if (item && typeof item === "object" && "id" in item) byId.set(String(item.id), item);
+            }
+            for (const item of localValue) {
+              if (item && typeof item === "object" && "id" in item) byId.set(String(item.id), item);
+            }
+            const merged = JSON.stringify([...byId.values()]);
+            localStorage.setItem(full, merged);
+            pending.set(row.key, merged);
+            meta[row.key] = new Date().toISOString();
+            changed = true;
+            continue;
+          }
+        } catch {
+          /* use remote value below */
+        }
+      }
 
       if (localRaw !== null && localAt && new Date(localAt) > new Date(remoteAt)) {
         // Local é mais novo → sobe para a nuvem.
@@ -192,6 +272,7 @@ export async function syncFromCloud() {
     }
 
     writeMeta(meta, uid);
+    localStorage.setItem(rescueKey, "1");
     if (pending.size > 0) await flushPush();
     syncedOnce = true;
     if (changed) notify();
@@ -200,7 +281,26 @@ export async function syncFromCloud() {
     syncedOnce = true;
   } finally {
     syncing = false;
+    if (syncAgain) {
+      syncAgain = false;
+      void syncFromCloud();
+    }
   }
+}
+
+function subscribeToCloud(uid: string) {
+  realtimeCleanup?.();
+  const channel = supabase
+    .channel(`user-data-${uid}`)
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "user_data", filter: `user_id=eq.${uid}` },
+      () => void syncFromCloud(),
+    )
+    .subscribe();
+  realtimeCleanup = () => {
+    void supabase.removeChannel(channel);
+  };
 }
 
 if (typeof window !== "undefined") {
@@ -209,6 +309,9 @@ if (typeof window !== "undefined") {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") void syncFromCloud();
   });
+  window.setInterval(() => {
+    if (document.visibilityState === "visible") void syncFromCloud();
+  }, 15000);
   window.addEventListener("beforeunload", () => {
     if (pending.size > 0) void flushPush();
   });
@@ -220,8 +323,9 @@ if (typeof window !== "undefined") {
 function migrateLegacyData(uid: string) {
   if (typeof window === "undefined") return;
   try {
-    if (localStorage.getItem(MIGRATED_KEY)) return;
-    localStorage.setItem(MIGRATED_KEY, uid);
+    const migratedForUser = `${MIGRATED_KEY}:${uid}`;
+    if (localStorage.getItem(migratedForUser)) return;
+    localStorage.setItem(migratedForUser, "1");
     const legacy: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -240,7 +344,16 @@ function migrateLegacyData(uid: string) {
 }
 
 export function setStorageUser(uid: string | null) {
-  if (uid === currentUid) return;
+  if (uid === currentUid) {
+    if (uid) {
+      restorePending(uid);
+      subscribeToCloud(uid);
+      void syncFromCloud();
+    }
+    return;
+  }
+  realtimeCleanup?.();
+  realtimeCleanup = null;
   currentUid = uid;
   syncedOnce = false;
   pending.clear();
@@ -248,6 +361,7 @@ export function setStorageUser(uid: string | null) {
     if (uid) {
       localStorage.setItem(UID_KEY, uid);
       migrateLegacyData(uid);
+      restorePending(uid);
     } else {
       localStorage.removeItem(UID_KEY);
     }
@@ -255,7 +369,10 @@ export function setStorageUser(uid: string | null) {
     /* ignore */
   }
   notify();
-  if (uid) void syncFromCloud();
+  if (uid) {
+    subscribeToCloud(uid);
+    void syncFromCloud();
+  }
 }
 
 export function useStorageUser() {
@@ -288,6 +405,7 @@ export function writeLocal<T>(key: string, value: T) {
     const raw = JSON.stringify(value);
     localStorage.setItem(scopedKey(key), raw);
     queuePush(key, raw);
+    notify();
   } catch {
     /* ignore */
   }
@@ -297,8 +415,9 @@ export function useLocalState<T>(key: string, initial: T) {
   const uid = useStorageUser();
   const full = scopedKey(key, uid);
   const [value, setValue] = useState<T>(initial);
-  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [rev, setRev] = useState(revision);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   // Recarrega quando a sincronização com a nuvem trouxer dados novos.
   useEffect(() => {
@@ -317,24 +436,24 @@ export function useLocalState<T>(key: string, initial: T) {
     } catch {
       /* ignore */
     }
+    valueRef.current = next;
     setValue(next);
-    setLoadedKey(full);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [full, rev]);
 
-  useEffect(() => {
-    if (loadedKey !== full) return;
-    try {
-      const raw = JSON.stringify(value);
-      if (localStorage.getItem(full) === raw) return;
-      localStorage.setItem(full, raw);
-      queuePush(key, raw);
-    } catch {
-      /* ignore */
-    }
-  }, [full, key, value, loadedKey]);
+  const setSyncedValue: Dispatch<SetStateAction<T>> = useCallback(
+    (next) => {
+      const resolved = typeof next === "function"
+        ? (next as (previous: T) => T)(valueRef.current)
+        : next;
+      valueRef.current = resolved;
+      setValue(resolved);
+      writeLocal(key, resolved);
+    },
+    [key, full],
+  );
 
-  return [value, setValue] as const;
+  return [value, setSyncedValue] as const;
 }
 
 export function brl(value: number) {
