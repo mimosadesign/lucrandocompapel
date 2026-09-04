@@ -118,6 +118,10 @@ function PrecificarItemPage() {
   const [materiais] = useLocalState<Material[]>("lcp:materiais", []);
 
   const [valorHora] = useLocalState<number>("lcp:valorHora", 0);
+  // Vêm de "Precificação e Custos": custo fixo por item (gastos fixos ÷ dias ÷ itens/dia)
+  // e a % de reserva de imprevistos. Entram automaticamente no custo total.
+  const [custoFixoItem] = useLocalState<number>("lcp:custoFixoItem", 0);
+  const [imprevistos] = useLocalState<number>("lcp:precif:imprevistos", 10);
 
   const [maquina, setMaquina] = useLocalState<MaquinaCfg>("lcp:maquina", {
     valorBase: 0,
@@ -180,12 +184,19 @@ function PrecificarItemPage() {
   const custoImpressaoItem = custoTintaPagina * item.paginasImpressas;
   const custoTesouraItem = (custoTesouraPorHora / 60) * minutosCorteManual;
 
-  const custoTotal =
+  // Subtotal direto (materiais + mão de obra + máquina + impressão + tesoura)
+  const subtotalDireto =
     custoMateriais +
     custoMaoDeObra +
     custoMaquinaTotal +
     custoImpressaoItem +
     custoTesouraItem;
+
+  // Soma o custo fixo por item e aplica a reserva de imprevistos — mesmo
+  // critério do "custo total por item" da tela Precificação e Custos.
+  const subtotalComFixo = subtotalDireto + custoFixoItem;
+  const valorImprevistos = subtotalComFixo * (imprevistos / 100);
+  const custoTotal = subtotalComFixo + valorImprevistos;
 
   const [margemDesejada, setMargemDesejada] = useLocalState<number>(
     "lcp:precItem:margemDesejada",
@@ -303,6 +314,9 @@ function PrecificarItemPage() {
         brl(custoTesouraItem),
       ]);
     }
+    linhas.push(["Custo fixo por item", brl(custoFixoItem)]);
+    linhas.push([`Reserva de imprevistos (${imprevistos}%)`, brl(valorImprevistos)]);
+
 
     doc.setFont("helvetica", "bold");
     doc.text("Detalhamento", marginX, y);
@@ -784,6 +798,11 @@ function PrecificarItemPage() {
           {minutosCorteManual > 0 && (
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
+          <Linha label="Custo fixo por item" value={brl(custoFixoItem)} />
+          <Linha
+            label={`Reserva de imprevistos (${imprevistos}%)`}
+            value={brl(valorImprevistos)}
+          />
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-primary/40 bg-background p-5">
@@ -792,6 +811,10 @@ function PrecificarItemPage() {
             </p>
             <p className="mt-1 font-display text-3xl font-semibold text-primary">
               {brl(custoTotal)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Já inclui o custo fixo por item ({brl(custoFixoItem)}) e {imprevistos}% de
+              imprevistos, definidos em Precificação e Custos.
             </p>
           </div>
           <div className="rounded-2xl border border-diamond/40 bg-diamond/10 p-5">

@@ -128,6 +128,13 @@ function PrecificacaoPage() {
   const custoFixoDia = dias > 0 ? totalGastoFixo / dias : 0;
   const custoFixoItem = num(itensDia) > 0 ? custoFixoDia / num(itensDia) : 0;
 
+  // Persiste globalmente para entrar automaticamente no resumo do Precificar Item
+  const [, setCustoFixoItemStored] = useLocalState<number>("lcp:custoFixoItem", 0);
+  useEffect(() => {
+    setCustoFixoItemStored(custoFixoItem);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [custoFixoItem]);
+
   // Imprevistos aplicados
   const impMult = 1 + imprevistos / 100;
   const custoMaoDeObraComImp = custoMaoDeObra * impMult;
@@ -139,7 +146,7 @@ function PrecificacaoPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title="Precificação e Custos"
-        description="Configure suas horas, faturamento esperado e gastos fixos. Todos os cálculos são automáticos."
+        description="Configure horas, faturamento e gastos fixos uma única vez. O valor da hora, o custo fixo por item e a reserva de imprevistos são usados automaticamente no Precificar Item."
       />
 
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
@@ -330,6 +337,10 @@ function PrecificacaoPage() {
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Sem imprevistos: {BRL(custoTotalItem)} · Fixo por item com imprevistos: {BRL(custoFixoItemComImp)}
+          </p>
+          <p className="mt-2 text-xs font-medium text-primary">
+            O custo fixo por item e a reserva de imprevistos entram automaticamente no
+            resumo do Precificar Item — você não precisa digitá-los de novo.
           </p>
         </div>
       </Card>
