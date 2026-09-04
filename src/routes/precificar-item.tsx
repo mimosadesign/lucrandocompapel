@@ -812,6 +812,10 @@ function PrecificarItemPage() {
             <p className="mt-1 font-display text-3xl font-semibold text-primary">
               {brl(custoTotal)}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Já inclui o custo fixo por item ({brl(custoFixoItem)}) e {imprevistos}% de
+              imprevistos, definidos em Precificação e Custos.
+            </p>
           </div>
           <div className="rounded-2xl border border-diamond/40 bg-diamond/10 p-5">
             <div className="flex items-center justify-between gap-3">

@@ -128,6 +128,13 @@ function PrecificacaoPage() {
   const custoFixoDia = dias > 0 ? totalGastoFixo / dias : 0;
   const custoFixoItem = num(itensDia) > 0 ? custoFixoDia / num(itensDia) : 0;
 
+  // Persiste globalmente para entrar automaticamente no resumo do Precificar Item
+  const [, setCustoFixoItemStored] = useLocalState<number>("lcp:custoFixoItem", 0);
+  useEffect(() => {
+    setCustoFixoItemStored(custoFixoItem);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [custoFixoItem]);
+
   // Imprevistos aplicados
   const impMult = 1 + imprevistos / 100;
   const custoMaoDeObraComImp = custoMaoDeObra * impMult;
