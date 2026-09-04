@@ -314,6 +314,9 @@ function PrecificarItemPage() {
         brl(custoTesouraItem),
       ]);
     }
+    linhas.push(["Custo fixo por item", brl(custoFixoItem)]);
+    linhas.push([`Reserva de imprevistos (${imprevistos}%)`, brl(valorImprevistos)]);
+
 
     doc.setFont("helvetica", "bold");
     doc.text("Detalhamento", marginX, y);
@@ -795,6 +798,11 @@ function PrecificarItemPage() {
           {minutosCorteManual > 0 && (
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
+          <Linha label="Custo fixo por item" value={brl(custoFixoItem)} />
+          <Linha
+            label={`Reserva de imprevistos (${imprevistos}%)`}
+            value={brl(valorImprevistos)}
+          />
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-primary/40 bg-background p-5">
