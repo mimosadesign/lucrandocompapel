@@ -146,7 +146,7 @@ function PrecificacaoPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title="Precificação e Custos"
-        description="Configure suas horas, faturamento esperado e gastos fixos. Todos os cálculos são automáticos."
+        description="Configure horas, faturamento e gastos fixos uma única vez. O valor da hora, o custo fixo por item e a reserva de imprevistos são usados automaticamente no Precificar Item."
       />
 
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
