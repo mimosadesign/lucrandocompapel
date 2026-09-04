@@ -34,6 +34,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CDataRouteImport } from './routes/c.$data'
 import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
+import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -160,6 +161,11 @@ const AssinarSucessoRoute = AssinarSucessoRouteImport.update({
   path: '/sucesso',
   getParentRoute: () => AssinarRoute,
 } as any)
+const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
+  id: '/api/public/mercadopago',
+  path: '/api/public/mercadopago',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
+  '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/assinar/sucesso'
     | '/c/$data'
+    | '/api/public/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/assinar/sucesso'
     | '/c/$data'
+    | '/api/public/mercadopago'
   id:
     | '__root__'
     | '/'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/assinar/sucesso'
     | '/c/$data'
+    | '/api/public/mercadopago'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -352,6 +364,7 @@ export interface RootRouteChildren {
   ProdutosRoute: typeof ProdutosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   CDataRoute: typeof CDataRoute
+  ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssinarSucessoRouteImport
       parentRoute: typeof AssinarRoute
     }
+    '/api/public/mercadopago': {
+      id: '/api/public/mercadopago'
+      path: '/api/public/mercadopago'
+      fullPath: '/api/public/mercadopago'
+      preLoaderRoute: typeof ApiPublicMercadopagoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -570,6 +590,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutosRoute: ProdutosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   CDataRoute: CDataRoute,
+  ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

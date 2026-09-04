@@ -101,6 +101,69 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_orders: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          id: string
+          plan: string
+          provider: string
+          provider_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          email: string
+          id?: string
+          plan: string
+          provider?: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          id?: string
+          plan?: string
+          provider?: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          id: string
+          mercadopago_access_token: string | null
+          mercadopago_enabled: boolean
+          provider: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          mercadopago_access_token?: string | null
+          mercadopago_enabled?: boolean
+          provider?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          mercadopago_access_token?: string | null
+          mercadopago_enabled?: boolean
+          provider?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       pedidos: {
         Row: {
           cliente: string | null
