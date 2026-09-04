@@ -338,6 +338,10 @@ function PrecificacaoPage() {
           <p className="mt-1 text-xs text-muted-foreground">
             Sem imprevistos: {BRL(custoTotalItem)} · Fixo por item com imprevistos: {BRL(custoFixoItemComImp)}
           </p>
+          <p className="mt-2 text-xs font-medium text-primary">
+            O custo fixo por item e a reserva de imprevistos entram automaticamente no
+            resumo do Precificar Item — você não precisa digitá-los de novo.
+          </p>
         </div>
       </Card>
 
