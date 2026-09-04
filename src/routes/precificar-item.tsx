@@ -118,6 +118,10 @@ function PrecificarItemPage() {
   const [materiais] = useLocalState<Material[]>("lcp:materiais", []);
 
   const [valorHora] = useLocalState<number>("lcp:valorHora", 0);
+  // Vêm de "Precificação e Custos": custo fixo por item (gastos fixos ÷ dias ÷ itens/dia)
+  // e a % de reserva de imprevistos. Entram automaticamente no custo total.
+  const [custoFixoItem] = useLocalState<number>("lcp:custoFixoItem", 0);
+  const [imprevistos] = useLocalState<number>("lcp:precif:imprevistos", 10);
 
   const [maquina, setMaquina] = useLocalState<MaquinaCfg>("lcp:maquina", {
     valorBase: 0,
@@ -180,12 +184,19 @@ function PrecificarItemPage() {
   const custoImpressaoItem = custoTintaPagina * item.paginasImpressas;
   const custoTesouraItem = (custoTesouraPorHora / 60) * minutosCorteManual;
 
-  const custoTotal =
+  // Subtotal direto (materiais + mão de obra + máquina + impressão + tesoura)
+  const subtotalDireto =
     custoMateriais +
     custoMaoDeObra +
     custoMaquinaTotal +
     custoImpressaoItem +
     custoTesouraItem;
+
+  // Soma o custo fixo por item e aplica a reserva de imprevistos — mesmo
+  // critério do "custo total por item" da tela Precificação e Custos.
+  const subtotalComFixo = subtotalDireto + custoFixoItem;
+  const valorImprevistos = subtotalComFixo * (imprevistos / 100);
+  const custoTotal = subtotalComFixo + valorImprevistos;
 
   const [margemDesejada, setMargemDesejada] = useLocalState<number>(
     "lcp:precItem:margemDesejada",
