@@ -22,24 +22,21 @@ import { MoneyInput } from "@/components/money-input";
 import { ComprasInteligentes } from "@/components/compras-inteligentes";
 import { AlertasCusto, registrarPreco } from "@/components/alertas-custo";
 import { shareWhats } from "@/lib/share";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UNIDADES, labelUnidade, type MaterialCusto } from "@/lib/custos";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({ meta: [{ title: "Materiais — Lucrando com Papel" }] }),
   component: MateriaisPage,
 });
 
-type Material = {
-  id: string;
-  nome: string;
-  fornecedor: string;
-  valorPago: number;
-  quantidade: number;
-  estoque: number;
-  estoqueMinimo: number;
-  /** preenchido automaticamente quando o material é papel */
-  gramatura?: string;
-  tamanho?: string;
-};
+type Material = MaterialCusto;
 
 const STORAGE_KEY = "lcp:materiais";
 
