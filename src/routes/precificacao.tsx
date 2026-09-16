@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { Clock, Wallet, Plus, AlertTriangle, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -149,6 +149,7 @@ function PrecificacaoPage() {
         description="Configure horas, faturamento e gastos fixos uma única vez. O valor da hora, o custo fixo por item e a reserva de imprevistos são usados automaticamente no Precificar Item."
       />
 
+      <Button asChild variant="outline"><Link to="/custos">Configurar máquinas, ferramentas, rateio e desperdício</Link></Button>
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
         <SectionTitle icon={<Clock className="h-4 w-4" />} title="2.1 — Dados de trabalho" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -330,7 +331,7 @@ function PrecificacaoPage() {
         </div>
         <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Custo total por item (mão de obra + fixo) com {imprevistos}% de imprevistos
+            Estimativa de mão de obra + fixos (sem materiais), com {imprevistos}% de imprevistos
           </p>
           <p className="mt-1 font-display text-2xl font-semibold">
             {BRL(custoTotalItemComImp)}
@@ -339,8 +340,7 @@ function PrecificacaoPage() {
             Sem imprevistos: {BRL(custoTotalItem)} · Fixo por item com imprevistos: {BRL(custoFixoItemComImp)}
           </p>
           <p className="mt-2 text-xs font-medium text-primary">
-            O custo fixo por item e a reserva de imprevistos entram automaticamente no
-            resumo do Precificar Item — você não precisa digitá-los de novo.
+            Esta é uma estimativa para o tempo informado acima. Em Precificar Item, o tempo real e o rateio da Configuração de Custos determinam o custo final. O rateio novo substitui o fixo antigo, sem duplicação.
           </p>
         </div>
       </Card>
@@ -363,7 +363,7 @@ function PrecificacaoPage() {
           <Slider
             value={[imprevistos]}
             onValueChange={(v) => setImprevistos(v[0])}
-            min={5}
+            min={0}
             max={15}
             step={1}
             className="mt-3"

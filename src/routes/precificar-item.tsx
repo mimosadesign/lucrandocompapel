@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Plus,
@@ -38,6 +38,8 @@ import { useLocalState, brl, monthKey } from "@/lib/storage";
 import { useEntitlement, openDiamondDialog } from "@/lib/auth";
 import { CronometroProducao } from "@/components/cronometro-producao";
 import { FormulasCofre } from "@/components/formulas-cofre";
+import * as C from "@/lib/custos";
+import { UsosCustos } from "@/components/usos-custos";
 
 export const Route = createFileRoute("/precificar-item")({
   head: () => ({ meta: [{ title: "Precificar Item — Lucrando com Papel" }] }),
@@ -64,6 +66,9 @@ type PrecItem = {
   nome: string;
   minutos: number;
   materiais: ItemMaterial[];
+  embalagens?: C.UsoMaterial[];
+  maquinas?: C.UsoMaquina[];
+  ferramentas?: C.UsoFerramenta[];
   // máquina de corte
   folhasUsadas: number;
   minutosCorte: number;
@@ -115,12 +120,21 @@ function PrecificarItemPage() {
     "lcp:precificar:pdfUso",
     { mes: "", count: 0 },
   );
-  const [materiais] = useLocalState<Material[]>("lcp:materiais", []);
+  const [materiais] = useLocalState<C.MaterialCusto[]>("lcp:materiais", []);
 
   const [valorHora] = useLocalState<number>("lcp:valorHora", 0);
   // Vêm de "Precificação e Custos": custo fixo por item (gastos fixos ÷ dias ÷ itens/dia)
   // e a % de reserva de imprevistos. Entram automaticamente no custo total.
-  const [custoFixoItem] = useLocalState<number>("lcp:custoFixoItem", 0);
+  const [maquinas] = useLocalState<C.Maquina[]>(C.K_MAQUINAS, []);
+  const [ferramentas] = useLocalState<C.Ferramenta[]>(C.K_FERRAMENTAS, []);
+  const [indiretos] = useLocalState<C.CustoIndireto[]>(C.K_INDIRETOS, []);
+  const [rateioSalvo] = useLocalState<C.RateioCfg>(C.K_RATEIO, C.RATEIO_PADRAO);
+  const [desperdicio] = useLocalState<C.DesperdicioCfg>(C.K_DESPERDICIO, C.DESPERDICIO_PADRAO);
+  const [gastos] = useLocalState<{nome:string;valor:string}[]>("lcp:precif:gastos", []);
+  const [trabalho] = useLocalState<Record<string,string>>("lcp:precif:trabalho", {});
+  const [itensDia] = useLocalState<string>("lcp:precif:itensDia", "");
+  const numero = (v?:string) => Number((v || "").replace(",", ".")) || 0;
+  const rateio = rateioSalvo.produtosMes > 0 || rateioSalvo.horasMes > 0 ? rateioSalvo : {...rateioSalvo, produtosMes: numero(itensDia) * numero(trabalho.diasMes)};
   const [imprevistos] = useLocalState<number>("lcp:precif:imprevistos", 10);
 
   const [maquina, setMaquina] = useLocalState<MaquinaCfg>("lcp:maquina", {
@@ -167,14 +181,16 @@ function PrecificarItemPage() {
   const custoTesouraPorHora = custoTrocaTesouraPorHora + custoAfiacaoPorHora;
   const minutosCorteManual = item.minutosCorteManual ?? 0;
 
-  const custoMateriais = useMemo(() => {
-    return item.materiais.reduce((sum, im) => {
-      const m = materiais.find((x) => x.id === im.materialId);
-      if (!m) return sum;
-      const unit = m.quantidade > 0 ? m.valorPago / m.quantidade : 0;
-      return sum + unit * im.quantidade;
-    }, 0);
-  }, [item.materiais, materiais]);
+  const composicao = C.montarComposicao({
+    minutos: item.minutos, valorHora,
+    materiais: item.materiais.filter(u => materiais.find(m=>m.id===u.materialId)?.categoria !== 'embalagem'),
+    embalagens: [...item.materiais.filter(u=>materiais.find(m=>m.id===u.materialId)?.categoria === 'embalagem'), ...(item.embalagens || [])],
+    maquinas: item.maquinas || [], ferramentas: item.ferramentas || [],
+    catalogoMateriais: materiais, catalogoMaquinas: maquinas, catalogoFerramentas: ferramentas,
+    indiretosMensal: C.totalIndiretosMensal(indiretos, gastos.reduce((s,g)=>s+numero(g.valor),0)), rateio, desperdicio,
+  });
+  const custoMateriais = composicao.totalMateriais;
+  const custoFixoItem = composicao.totalIndireto;
 
   const custoMaoDeObra = (valorHora / 60) * item.minutos;
   const custoBaseCorte = custoBasePorFolha * item.folhasUsadas;
@@ -184,19 +200,16 @@ function PrecificarItemPage() {
   const custoImpressaoItem = custoTintaPagina * item.paginasImpressas;
   const custoTesouraItem = (custoTesouraPorHora / 60) * minutosCorteManual;
 
-  // Subtotal direto (materiais + mão de obra + máquina + impressão + tesoura)
-  const subtotalDireto =
-    custoMateriais +
-    custoMaoDeObra +
-    custoMaquinaTotal +
-    custoImpressaoItem +
-    custoTesouraItem;
-
-  // Soma o custo fixo por item e aplica a reserva de imprevistos — mesmo
-  // critério do "custo total por item" da tela Precificação e Custos.
-  const subtotalComFixo = subtotalDireto + custoFixoItem;
+  // Custos antigos de consumíveis continuam; o rateio antigo não é somado novamente.
+  const subtotalComFixo = composicao.total + custoMaquinaTotal + custoImpressaoItem + custoTesouraItem;
   const valorImprevistos = subtotalComFixo * (imprevistos / 100);
   const custoTotal = subtotalComFixo + valorImprevistos;
+  const avisos = [...composicao.avisos];
+  if (!gastos.some(g=>numero(g.valor)>0) && !indiretos.some(c=>c.ativo && c.valor>0)) avisos.push('Custos fixos/indiretos sem valor configurado.');
+  if (item.folhasUsadas > 0 && !(maquina.valorBase > 0 && maquina.folhasPorBase > 0)) avisos.push('Base de corte sem custo ou vida útil configurada.');
+  if (item.minutosCorte > 0 && !(maquina.valorLamina > 0 && maquina.vidaLaminaMeses > 0 && maquina.horasCorteMes > 0)) avisos.push('Lâmina sem dados suficientes para calcular.');
+  if (item.paginasImpressas > 0 && !(impressao.valorKit > 0 && impressao.paginasPorKit > 0)) avisos.push('Impressão sem custo ou rendimento configurado.');
+  if (minutosCorteManual > 0 && !(tesoura.valorTesoura > 0 && tesoura.vidaUtilHoras > 0)) avisos.push('Tesoura sem custo ou vida útil configurada.');
 
   const [margemDesejada, setMargemDesejada] = useLocalState<number>(
     "lcp:precItem:margemDesejada",
@@ -314,7 +327,11 @@ function PrecificarItemPage() {
         brl(custoTesouraItem),
       ]);
     }
-    linhas.push(["Custo fixo por item", brl(custoFixoItem)]);
+    linhas.push(["Embalagens", brl(composicao.totalEmbalagens)]);
+    linhas.push(["Depreciação de máquinas", brl(composicao.totalMaquinas)]);
+    linhas.push(["Desgaste de ferramentas", brl(composicao.totalFerramentas)]);
+    linhas.push(["Desperdício", brl(composicao.totalDesperdicio)]);
+    linhas.push(["Custos indiretos rateados", brl(custoFixoItem)]);
     linhas.push([`Reserva de imprevistos (${imprevistos}%)`, brl(valorImprevistos)]);
 
 
@@ -338,6 +355,13 @@ function PrecificarItemPage() {
     doc.text("Custo total do item", marginX, y);
     doc.text(brl(custoTotal), 555, y, { align: "right" });
 
+    y += 30;
+    doc.setFontSize(10);
+    for (const texto of [...composicao.linhas.map(l=>`${l.grupo} - ${l.nome}: ${l.detalhe}`), ...avisos.map(a=>`PENDÊNCIA: ${a}`)]) {
+      const partes = doc.splitTextToSize(texto, 510);
+      for (const parte of partes) { if(y > 780){doc.addPage();y=40;} doc.text(parte,marginX,y);y+=14; }
+      y+=5;
+    }
     doc.save(`precificacao-${(item.nome || "item").replace(/\s+/g, "-").toLowerCase()}.pdf`);
     toast.success("PDF gerado!");
   }
@@ -430,6 +454,9 @@ function PrecificarItemPage() {
             materialId: m.materialId,
             quantidade: m.quantidade,
           })),
+          embalagens: item.embalagens,
+          maquinas: item.maquinas,
+          ferramentas: item.ferramentas,
           minutos: item.minutos,
           folhasUsadas: item.folhasUsadas,
           minutosCorte: item.minutosCorte,
@@ -450,6 +477,9 @@ function PrecificarItemPage() {
               materialId: m.materialId,
               quantidade: m.quantidade,
             })),
+            embalagens: f.embalagens || [],
+            maquinas: f.maquinas || [],
+            ferramentas: f.ferramentas || [],
             minutos: f.minutos,
             folhasUsadas: f.folhasUsadas,
             minutosCorte: f.minutosCorte,
@@ -496,7 +526,7 @@ function PrecificarItemPage() {
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {materiais.map((m) => (
+                        {materiais.filter(m=>m.categoria !== "embalagem").map((m) => (
                           <SelectItem key={m.id} value={m.id}>
                             {m.nome}
                           </SelectItem>
@@ -505,7 +535,7 @@ function PrecificarItemPage() {
                     </Select>
                   </div>
                   <div className="grid gap-1.5">
-                    <Label className="text-xs">Quantidade usada</Label>
+                    <Label className="text-xs">Quantidade usada ({C.labelUnidade(m?.unidade)})</Label>
                     <MoneyInput
                       value={im.quantidade}
                       onChange={(n) => updateMat(im.id, { quantidade: n })}
@@ -735,6 +765,13 @@ function PrecificarItemPage() {
       </Card>
 
 
+      <section className="space-y-6">
+        <Button asChild variant="outline"><Link to="/custos">Configuração de Custos</Link></Button>
+        <UsosCustos titulo="Embalagens" unidade="Quantidade" opcoes={materiais.filter(m=>m.categoria==='embalagem').map(m=>({...m,nome:`${m.nome} (${C.labelUnidade(m.unidade)})`}))} usos={(item.embalagens||[]).map(u=>({id:u.id,referencia:u.materialId,quantidade:u.quantidade}))} onChange={usos=>setItem({...item,embalagens:usos.map(u=>({id:u.id,materialId:u.referencia,quantidade:u.quantidade}))})}/>
+        <UsosCustos titulo="Máquinas" unidade="Minutos de uso" opcoes={maquinas.filter(m=>m.ativo)} usos={(item.maquinas||[]).map(u=>({id:u.id,referencia:u.maquinaId,quantidade:u.minutos}))} onChange={usos=>setItem({...item,maquinas:usos.map(u=>({id:u.id,maquinaId:u.referencia,minutos:u.quantidade}))})}/>
+        <UsosCustos titulo="Ferramentas" opcoes={ferramentas.filter(f=>f.ativo)} usos={(item.ferramentas||[]).map(u=>({id:u.id,referencia:u.ferramentaId,quantidade:1}))} onChange={usos=>setItem({...item,ferramentas:usos.map(u=>({id:u.id,ferramentaId:u.referencia}))})}/>
+        <p className="text-sm text-muted-foreground">Base, lâmina, tinta e tesoura já informadas acima continuam no total. Não cadastre o mesmo desgaste novamente como ferramenta.</p>
+      </section>
       {/* ==== Impressão ==== */}
       <Card className="rounded-3xl border-border/60 p-6 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex items-center gap-2">
@@ -798,29 +835,35 @@ function PrecificarItemPage() {
           {minutosCorteManual > 0 && (
             <Linha label="Tesoura / corte manual" value={brl(custoTesouraItem)} />
           )}
-          <Linha label="Custo fixo por item" value={brl(custoFixoItem)} />
+          <Linha label="Embalagens" value={brl(composicao.totalEmbalagens)} />
+          <Linha label="Depreciação de máquinas" value={brl(composicao.totalMaquinas)} />
+          <Linha label="Desgaste de ferramentas" value={brl(composicao.totalFerramentas)} />
+          <Linha label="Desperdício de materiais e embalagens" value={brl(composicao.totalDesperdicio)} />
+          <Linha label="Custos indiretos rateados" value={brl(custoFixoItem)} />
           <Linha
             label={`Reserva de imprevistos (${imprevistos}%)`}
             value={brl(valorImprevistos)}
           />
         </div>
+        {avisos.length>0 && <div role="status" className="my-4 rounded-lg border border-warning p-4 text-sm"><p className="font-semibold">Custo parcial — configuração pendente</p><ul className="list-disc pl-5">{[...new Set(avisos)].map(a=><li key={a}>{a}</li>)}</ul></div>}
+        <details className="mt-4 border-y border-border py-3"><summary className="cursor-pointer font-medium">Ver detalhes do custo</summary><div className="space-y-3 py-4">{composicao.linhas.map((l,i)=><div key={i}><p className="font-medium">{l.grupo} · {l.nome}: {brl(l.valor)}</p><p className="text-sm text-muted-foreground">{l.detalhe}</p>{l.aviso && <p className="text-warning text-sm">{l.aviso}</p>}</div>)}<p className="text-sm">Imprevistos: {brl(subtotalComFixo)} × {imprevistos}% = {brl(valorImprevistos)}</p></div></details>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-primary/40 bg-background p-5">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Custo total do item
+              {avisos.length ? "Custo parcial do item" : "Custo real de produção"}
             </p>
             <p className="mt-1 font-display text-3xl font-semibold text-primary">
               {brl(custoTotal)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Já inclui o custo fixo por item ({brl(custoFixoItem)}) e {imprevistos}% de
+              Inclui custos indiretos rateados ({brl(custoFixoItem)}) e {imprevistos}% de
               imprevistos, definidos em Precificação e Custos.
             </p>
           </div>
           <div className="rounded-2xl border border-diamond/40 bg-diamond/10 p-5">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Preço de venda sugerido
+                {avisos.length ? "Preço provisório (custos pendentes)" : "Preço de venda sugerido"}
               </p>
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs">Margem</Label>

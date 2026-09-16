@@ -20,6 +20,9 @@ export type Formula = {
   paginasImpressas: number;
   usaTesoura: boolean;
   minutosCorteManual: number;
+  embalagens?: import("@/lib/custos").UsoMaterial[];
+  maquinas?: import("@/lib/custos").UsoMaquina[];
+  ferramentas?: import("@/lib/custos").UsoFerramenta[];
   criadaEm: string;
 };
 
