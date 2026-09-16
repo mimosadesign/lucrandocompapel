@@ -1,0 +1,8 @@
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MoneyInput } from "@/components/money-input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+export type UsoCustoUI={id:string;referencia:string;quantidade:number};
+export function UsosCustos({titulo,opcoes,usos,onChange,unidade}:{titulo:string;opcoes:{id:string;nome:string}[];usos:UsoCustoUI[];onChange:(v:UsoCustoUI[])=>void;unidade?:string}){
+ return <section className="space-y-3 border-t border-border pt-5"><h2 className="font-semibold">{titulo}</h2>{usos.map(u=><div key={u.id} className="flex flex-wrap items-center gap-2"><Select value={u.referencia} onValueChange={v=>onChange(usos.map(x=>x.id===u.id?{...x,referencia:v}:x))}><SelectTrigger className="min-w-0 flex-1"><SelectValue placeholder="Selecione..."/></SelectTrigger><SelectContent>{opcoes.map(o=><SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent></Select>{unidade && <label className="text-xs">{unidade}<MoneyInput className="w-24" aria-label={`${titulo}: ${unidade}`} value={u.quantidade} onChange={v=>onChange(usos.map(x=>x.id===u.id?{...x,quantidade:v}:x))}/></label>}<Button variant="ghost" size="icon" aria-label={`Remover ${titulo}`} onClick={()=>onChange(usos.filter(x=>x.id!==u.id))}><Trash2 className="size-4"/></Button></div>)}<Button variant="outline" disabled={!opcoes.length} onClick={()=>onChange([...usos,{id:crypto.randomUUID(),referencia:'',quantidade:1}])}><Plus className="size-4"/>Adicionar {titulo.toLowerCase()}</Button>{!opcoes.length && <p className="text-sm text-muted-foreground">Nenhum cadastro disponível em Configuração de Custos.</p>}</section>;
+}

@@ -20,6 +20,7 @@ import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as FaturamentoRouteImport } from './routes/faturamento'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
+import { Route as CustosRouteImport } from './routes/custos'
 import { Route as ContasRouteImport } from './routes/contas'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
@@ -89,6 +90,11 @@ const FaturamentoRoute = FaturamentoRouteImport.update({
 const ExecutivoRoute = ExecutivoRouteImport.update({
   id: '/executivo',
   path: '/executivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustosRoute = CustosRouteImport.update({
+  id: '/custos',
+  path: '/custos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContasRoute = ContasRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
+  '/custos': typeof CustosRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -208,6 +215,7 @@ export interface FileRoutesByTo {
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
+  '/custos': typeof CustosRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
+  '/custos': typeof CustosRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/configuracoes'
     | '/contas'
+    | '/custos'
     | '/executivo'
     | '/faturamento'
     | '/inteligencia'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/configuracoes'
     | '/contas'
+    | '/custos'
     | '/executivo'
     | '/faturamento'
     | '/inteligencia'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/configuracoes'
     | '/contas'
+    | '/custos'
     | '/executivo'
     | '/faturamento'
     | '/inteligencia'
@@ -352,6 +364,7 @@ export interface RootRouteChildren {
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContasRoute: typeof ContasRoute
+  CustosRoute: typeof CustosRoute
   ExecutivoRoute: typeof ExecutivoRoute
   FaturamentoRoute: typeof FaturamentoRoute
   InteligenciaRoute: typeof InteligenciaRoute
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/executivo'
       fullPath: '/executivo'
       preLoaderRoute: typeof ExecutivoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/custos': {
+      id: '/custos'
+      path: '/custos'
+      fullPath: '/custos'
+      preLoaderRoute: typeof CustosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contas': {
@@ -578,6 +598,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContasRoute: ContasRoute,
+  CustosRoute: CustosRoute,
   ExecutivoRoute: ExecutivoRoute,
   FaturamentoRoute: FaturamentoRoute,
   InteligenciaRoute: InteligenciaRoute,

@@ -92,6 +92,10 @@ function MateriaisPage() {
   function salvar() {
     if (!editing) return;
     if (!editing.nome.trim()) return;
+    if (!(editing.quantidade > 0) || !(editing.valorPago > 0)) {
+      toast.error("Informe valor pago e quantidade comprada maiores que zero.");
+      return;
+    }
     const isNew = !materiais.some((m) => m.id === editing.id);
     if (isNew && materiais.length >= 25 && !unlimited) {
       toast.error("Limite do plano gratuito atingido (25 materiais). Assine o Diamante para cadastrar ilimitados.");
@@ -214,7 +218,7 @@ function MateriaisPage() {
                   <div className="md:col-span-2 text-sm">{brl(m.valorPago)}</div>
                   <div className="md:col-span-1 text-sm">{m.quantidade}</div>
                   <div className="md:col-span-2 font-display text-base font-semibold">
-                    {brl(unit)}
+                    {m.quantidade > 0 && m.valorPago > 0 ? `${unit.toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 4})} / ${labelUnidade(m.unidade)}` : "Sem custo configurado"}
                   </div>
                   <div className="md:col-span-2">
                     <StockBadge status={status} value={m.estoque} />
@@ -245,7 +249,7 @@ function MateriaisPage() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl sm:max-w-lg">
+        <DialogContent className="rounded-3xl sm:max-w-lg max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editing && materiais.some((m) => m.id === editing.id)
@@ -265,6 +269,11 @@ function MateriaisPage() {
                   placeholder="Ex.: Papel Color Plus A4"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2"><Label>Tipo</Label><Select value={editing.categoria || "material"} onValueChange={(v) => setEditing({...editing, categoria: v as "material" | "embalagem"})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="material">Material / insumo</SelectItem><SelectItem value="embalagem">Embalagem</SelectItem></SelectContent></Select></div>
+                <div className="grid gap-2"><Label>Unidade de medida</Label><Select value={editing.unidade || "un"} onValueChange={(v) => setEditing({...editing, unidade: v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{UNIDADES.map(u => <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>)}</SelectContent></Select></div>
+              </div>
+              <div className="grid gap-2"><Label>Observação</Label><Input value={editing.observacao || ""} onChange={e => setEditing({...editing, observacao: e.target.value})} /></div>
               <div className="grid gap-2">
                 <Label>Fornecedor</Label>
                 <Input
@@ -327,7 +336,7 @@ function MateriaisPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Quantidade no pacote</Label>
+                  <Label>Quantidade comprada ({labelUnidade(editing.unidade)})</Label>
                   <MoneyInput
                     value={editing.quantidade}
                     onChange={(n) => setEditing({ ...editing, quantidade: n })}
@@ -338,7 +347,7 @@ function MateriaisPage() {
               <div className="rounded-2xl bg-secondary/50 px-4 py-3 text-sm">
                 <span className="text-muted-foreground">Valor unitário: </span>
                 <span className="font-display text-base font-semibold">
-                  {brl(unitarioEditing)}
+                  {editing.quantidade > 0 && editing.valorPago > 0 ? `${unitarioEditing.toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 4})} por ${labelUnidade(editing.unidade)}` : "Sem custo configurado"}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">

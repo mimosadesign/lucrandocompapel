@@ -42,6 +42,7 @@ const mainItems = [
   { title: "Início", url: "/", icon: LayoutDashboard },
   { title: "Perfil do Ateliê", url: "/perfil", icon: User },
   { title: "Precificação e Custos", url: "/precificacao", icon: Calculator },
+  { title: "Configuração de Custos", url: "/custos", icon: Settings },
   { title: "Materiais", url: "/materiais", icon: Package },
   { title: "Precificar Item", url: "/precificar-item", icon: Scissors },
   { title: "Produtos", url: "/produtos", icon: Gift },

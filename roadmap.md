@@ -1,6 +1,6 @@
-# Roadmap
-
-- [x] Mapear toda persistência e reproduzir falha de sincronização
-- [x] Corrigir envio/recebimento de todos os dados por conta
-- [x] Criar histórico de versões por conta
-- [ ] Validar sincronização e ausência de regressões
+# Conclusão dos custos centralizados
+- [ ] Finalizar unidade, categoria e observação de materiais/embalagens.
+- [ ] Criar Configuração de Custos reaproveitando dados sincronizados.
+- [ ] Adicionar ao menu.
+- [ ] Integrar composição, detalhes, PDF e fórmulas sem duplicar rateio.
+- [ ] Validar cálculos do cenário informado e telas.
