@@ -21,6 +21,8 @@ import {
   Sparkles,
   Receipt,
   BellRing,
+  Table2,
+  PiggyBank,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
@@ -49,6 +51,8 @@ const mainItems = [
   { title: "Catálogo", url: "/catalogo", icon: ShoppingBag },
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
+  { title: "Tabela de Preços", url: "/tabela-precos", icon: Table2 },
+  { title: "Décimo Terceiro Salário", url: "/decimo-terceiro", icon: PiggyBank },
   { title: "Contas a Pagar", url: "/contas", icon: Receipt },
   { title: "Central de Alertas", url: "/alertas", icon: BellRing },
 ];

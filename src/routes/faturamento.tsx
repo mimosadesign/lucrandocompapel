@@ -167,6 +167,7 @@ function FaturamentoDashboard() {
 
   return (
     <div className="space-y-6">
+      <OrcamentosResumo />
       {bateuMeta && (
         <Card className="rounded-3xl border-success/40 bg-success/10 p-5 flex items-center gap-3">
           <PartyPopper className="h-6 w-6 text-success" />
@@ -494,3 +495,38 @@ function EvolucaoAnual({ pedidos }: { pedidos: Pedido[] }) {
   );
 }
 
+
+
+function OrcamentosResumo() {
+  const [orcs] = useLocalState<any[]>("lcp:orcamentos", []);
+  const tot = (o: any) =>
+    Math.max(
+      0,
+      (o.itens || []).reduce((s: number, i: any) => s + (i.quantidade || 0) * (i.valorUnit || 0), 0) +
+        (o.entrega || 0) -
+        (o.desconto || 0),
+    );
+  const st = (o: any) => o.status || (o.aceito ? "Aprovado" : "Rascunho");
+  const enviados = orcs.filter((o) => st(o) !== "Rascunho");
+  const aprovados = orcs.filter((o) => st(o) === "Aprovado");
+  const abertos = enviados.filter((o) => st(o) !== "Aprovado" && st(o) !== "Recusado");
+  const conv = enviados.length ? (aprovados.length / enviados.length) * 100 : 0;
+  const itens = [
+    { l: "Taxa de conversão", v: enviados.length ? `${conv.toFixed(0)}%` : "Sem orçamentos enviados" },
+    { l: "Orçamentos aprovados", v: brl(aprovados.reduce((s, o) => s + tot(o), 0)) },
+    { l: "Em negociação", v: brl(abertos.reduce((s, o) => s + tot(o), 0)) },
+  ];
+  return (
+    <Card className="rounded-3xl border-border/60 p-5 shadow-[var(--shadow-card)]">
+      <p className="font-display text-lg font-semibold">Orçamentos</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        {itens.map((i) => (
+          <div key={i.l} className="rounded-2xl bg-muted/50 p-3">
+            <p className="text-xs text-muted-foreground">{i.l}</p>
+            <p className="mt-1 font-semibold">{i.v}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}

@@ -1,3 +1,8 @@
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { getPaymentMode, criarPagamentoMercadoPago, type PlanoId } from "@/lib/payments.functions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Gem, MessageCircle, Check, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -41,6 +46,24 @@ const beneficios = [
 
 function AssinarPage() {
   const { user } = useUser();
+  const modoFn = useServerFn(getPaymentMode);
+  const pagarFn = useServerFn(criarPagamentoMercadoPago);
+  const { data: modo } = useQuery({ queryKey: ["pay-mode"], queryFn: () => modoFn() });
+  const [pagando, setPagando] = useState<string | null>(null);
+  async function pagarMP(id: PlanoId) {
+    if (!user) {
+      toast.error("Entre na sua conta para pagar.");
+      return;
+    }
+    setPagando(id);
+    try {
+      const r = await pagarFn({ data: { plano: id, origem: window.location.origin } });
+      window.location.href = r.url;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível abrir o pagamento.");
+      setPagando(null);
+    }
+  }
 
   const planos: Plano[] = [
     {
@@ -124,11 +147,25 @@ function AssinarPage() {
               <Button
                 size="lg"
                 className="mt-4 w-full rounded-full gap-2"
-                onClick={() => abrirWhats(p)}
+                disabled={pagando === p.id}
+                onClick={() => (modo?.online ? pagarMP(p.id as PlanoId) : abrirWhats(p))}
               >
                 <MessageCircle className="h-4 w-4" />
-                Quero este plano
+                {modo?.online
+                  ? pagando === p.id
+                    ? "Abrindo pagamento..."
+                    : "Pagar com Mercado Pago"
+                  : "Quero este plano"}
               </Button>
+              {modo?.online && (
+                <button
+                  type="button"
+                  className="mt-2 text-xs text-muted-foreground underline"
+                  onClick={() => abrirWhats(p)}
+                >
+                  Prefiro falar no WhatsApp
+                </button>
+              )}
 
               <ul className="mt-5 space-y-2 text-sm">
                 {beneficios.map((b) => (

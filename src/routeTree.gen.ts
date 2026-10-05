@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TabelaPrecosRouteImport } from './routes/tabela-precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PrecificarItemRouteImport } from './routes/precificar-item'
@@ -20,6 +21,7 @@ import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as FaturamentoRouteImport } from './routes/faturamento'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
+import { Route as DecimoTerceiroRouteImport } from './routes/decimo-terceiro'
 import { Route as CustosRouteImport } from './routes/custos'
 import { Route as ContasRouteImport } from './routes/contas'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -37,6 +39,11 @@ import { Route as CDataRouteImport } from './routes/c.$data'
 import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
+const TabelaPrecosRoute = TabelaPrecosRouteImport.update({
+  id: '/tabela-precos',
+  path: '/tabela-precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -90,6 +97,11 @@ const FaturamentoRoute = FaturamentoRouteImport.update({
 const ExecutivoRoute = ExecutivoRouteImport.update({
   id: '/executivo',
   path: '/executivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecimoTerceiroRoute = DecimoTerceiroRouteImport.update({
+  id: '/decimo-terceiro',
+  path: '/decimo-terceiro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustosRoute = CustosRouteImport.update({
@@ -187,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
   '/custos': typeof CustosRoute
+  '/decimo-terceiro': typeof DecimoTerceiroRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -198,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/precificar-item': typeof PrecificarItemRoute
   '/produtos': typeof ProdutosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/tabela-precos': typeof TabelaPrecosRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
@@ -216,6 +230,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
   '/custos': typeof CustosRoute
+  '/decimo-terceiro': typeof DecimoTerceiroRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -227,6 +242,7 @@ export interface FileRoutesByTo {
   '/precificar-item': typeof PrecificarItemRoute
   '/produtos': typeof ProdutosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/tabela-precos': typeof TabelaPrecosRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
@@ -246,6 +262,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
   '/custos': typeof CustosRoute
+  '/decimo-terceiro': typeof DecimoTerceiroRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -257,6 +274,7 @@ export interface FileRoutesById {
   '/precificar-item': typeof PrecificarItemRoute
   '/produtos': typeof ProdutosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/tabela-precos': typeof TabelaPrecosRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
@@ -277,6 +295,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contas'
     | '/custos'
+    | '/decimo-terceiro'
     | '/executivo'
     | '/faturamento'
     | '/inteligencia'
@@ -288,6 +307,7 @@ export interface FileRouteTypes {
     | '/precificar-item'
     | '/produtos'
     | '/reset-password'
+    | '/tabela-precos'
     | '/assinar/sucesso'
     | '/c/$data'
     | '/api/public/mercadopago'
@@ -306,6 +326,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contas'
     | '/custos'
+    | '/decimo-terceiro'
     | '/executivo'
     | '/faturamento'
     | '/inteligencia'
@@ -317,6 +338,7 @@ export interface FileRouteTypes {
     | '/precificar-item'
     | '/produtos'
     | '/reset-password'
+    | '/tabela-precos'
     | '/assinar/sucesso'
     | '/c/$data'
     | '/api/public/mercadopago'
@@ -335,6 +357,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contas'
     | '/custos'
+    | '/decimo-terceiro'
     | '/executivo'
     | '/faturamento'
     | '/inteligencia'
@@ -346,6 +369,7 @@ export interface FileRouteTypes {
     | '/precificar-item'
     | '/produtos'
     | '/reset-password'
+    | '/tabela-precos'
     | '/assinar/sucesso'
     | '/c/$data'
     | '/api/public/mercadopago'
@@ -365,6 +389,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContasRoute: typeof ContasRoute
   CustosRoute: typeof CustosRoute
+  DecimoTerceiroRoute: typeof DecimoTerceiroRoute
   ExecutivoRoute: typeof ExecutivoRoute
   FaturamentoRoute: typeof FaturamentoRoute
   InteligenciaRoute: typeof InteligenciaRoute
@@ -376,12 +401,20 @@ export interface RootRouteChildren {
   PrecificarItemRoute: typeof PrecificarItemRoute
   ProdutosRoute: typeof ProdutosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TabelaPrecosRoute: typeof TabelaPrecosRoute
   CDataRoute: typeof CDataRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tabela-precos': {
+      id: '/tabela-precos'
+      path: '/tabela-precos'
+      fullPath: '/tabela-precos'
+      preLoaderRoute: typeof TabelaPrecosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -457,6 +490,13 @@ declare module '@tanstack/react-router' {
       path: '/executivo'
       fullPath: '/executivo'
       preLoaderRoute: typeof ExecutivoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decimo-terceiro': {
+      id: '/decimo-terceiro'
+      path: '/decimo-terceiro'
+      fullPath: '/decimo-terceiro'
+      preLoaderRoute: typeof DecimoTerceiroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/custos': {
@@ -599,6 +639,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContasRoute: ContasRoute,
   CustosRoute: CustosRoute,
+  DecimoTerceiroRoute: DecimoTerceiroRoute,
   ExecutivoRoute: ExecutivoRoute,
   FaturamentoRoute: FaturamentoRoute,
   InteligenciaRoute: InteligenciaRoute,
@@ -610,6 +651,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrecificarItemRoute: PrecificarItemRoute,
   ProdutosRoute: ProdutosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TabelaPrecosRoute: TabelaPrecosRoute,
   CDataRoute: CDataRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }

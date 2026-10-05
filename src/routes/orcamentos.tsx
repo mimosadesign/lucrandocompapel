@@ -122,6 +122,26 @@ function OrcamentosPage() {
   const [logo] = useLocalState<string>("lcp:logo", "");
   const [salvos, setSalvos] = useLocalState<Orcamento[]>("lcp:orcamentos", []);
   const [pedidos, setPedidos] = useLocalState<any[]>("lcp:pedidos", []);
+  const [, setCaixa] = useLocalState<any[]>("lcp:caixa:lancamentos", []);
+  function lancarNoCaixa(o: Orcamento) {
+    const lid = `orc:${o.id}`;
+    setCaixa((prev) => {
+      if ((prev || []).some((l) => l.id === lid)) return prev;
+      return [
+        ...(prev || []),
+        {
+          id: lid,
+          tipo: "entrada",
+          data: new Date().toISOString().slice(0, 10),
+          cliente: o.cliente || "",
+          descricao: `Orçamento #${o.numero} aprovado`,
+          categoria: "Orçamento",
+          valor: totalDe(o),
+          forma: "PIX",
+        },
+      ];
+    });
+  }
   const [lastReset, setLastReset] = useLocalState<string>(
     "lcp:orcamentos:lastReset",
     "",
@@ -251,6 +271,11 @@ function OrcamentosPage() {
       ),
     );
     if (orc.id === id) setOrc({ ...orc, status, aceito: status === "Aprovado" });
+    const alvo = salvos.find((x) => x.id === id);
+    if (status === "Aprovado" && alvo) {
+      lancarNoCaixa(alvo);
+      toast.success("Valor lançado no Caixa Diário.");
+    }
   }
 
   function totalDe(o: Orcamento) {
@@ -293,7 +318,8 @@ function OrcamentosPage() {
           : x,
       ),
     );
-    toast.success("Orçamento convertido em pedido!");
+    lancarNoCaixa(o);
+    toast.success("Orçamento virou pedido e entrou no Caixa Diário!");
   }
 
 
