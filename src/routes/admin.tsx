@@ -1,3 +1,4 @@
+import { AdminPagamentos } from "@/components/admin-pagamentos";
 import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -133,6 +134,8 @@ function AdminPage() {
         title="Painel administrativo"
         description="Métricas do app e lista completa de cadastros. Uso restrito à administradora."
       />
+
+      <AdminPagamentos />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard icon={<Users className="h-4 w-4" />} label="Total de cadastros" value={data?.totalUsers ?? "—"} />
