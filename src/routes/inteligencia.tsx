@@ -122,6 +122,25 @@ function InteligenciaDashboard() {
     return Object.values(counts).sort((a, b) => b.faturamento - a.faturamento).slice(0, 5);
   }, [pedidos]);
 
+  const analise = useMemo(() => {
+    const porNome = new Map(produtos.map((p) => [p.nome.trim().toLowerCase(), p]));
+    const acc: Record<string, { nome: string; vendas: number; lucro: number }> = {};
+    for (const p of pedidos) {
+      if (p.status === "Cancelado" || !p.produto) continue;
+      const nome = p.produto;
+      if (!acc[nome]) acc[nome] = { nome, vendas: 0, lucro: 0 };
+      acc[nome].vendas += 1;
+      const prod = porNome.get(nome.trim().toLowerCase());
+      // preço = custo × (1 + margem) → lucro = valor × margem / (100 + margem)
+      if (prod && prod.margemPct > 0) acc[nome].lucro += (p.valor || 0) * prod.margemPct / (100 + prod.margemPct);
+    }
+    const arr = Object.values(acc);
+    const lucro = arr.filter((a) => a.lucro > 0).sort((a, b) => b.lucro - a.lucro)[0];
+    const vendas = arr.sort((a, b) => b.vendas - a.vendas)[0];
+    const margem = produtos.filter((p) => p.margemPct > 0).sort((a, b) => b.margemPct - a.margemPct)[0];
+    return { lucro, vendas, margem };
+  }, [pedidos, produtos]);
+
   const cenarios = useMemo(() => {
     const base = ticketMedio * Math.max(pedidos.filter((p) => p.status !== "Cancelado").length, 1);
     return [
@@ -162,6 +181,28 @@ function InteligenciaDashboard() {
           </p>
         </Card>
       </div>
+
+      <Card className="rounded-3xl p-6">
+        <p className="font-display text-base font-semibold">Análise de produtos</p>
+        <p className="text-xs text-muted-foreground mt-1">Vender muito não significa ganhar dinheiro — compare lucro, vendas e margem.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <p className="text-xs uppercase text-muted-foreground">🥇 Mais gera lucro</p>
+            <p className="font-semibold mt-1">{analise.lucro ? analise.lucro.nome : "—"}</p>
+            <p className="text-xs text-muted-foreground">{analise.lucro ? `${brl(analise.lucro.lucro)} de lucro estimado` : "Cadastre produtos com margem e pedidos com o mesmo nome"}</p>
+          </div>
+          <div className="rounded-2xl border border-border p-4">
+            <p className="text-xs uppercase text-muted-foreground">🥈 Mais vende</p>
+            <p className="font-semibold mt-1">{analise.vendas ? analise.vendas.nome : "—"}</p>
+            <p className="text-xs text-muted-foreground">{analise.vendas ? `${analise.vendas.vendas} venda(s)` : "Sem pedidos ainda"}</p>
+          </div>
+          <div className="rounded-2xl border border-border p-4">
+            <p className="text-xs uppercase text-muted-foreground">🥉 Maior margem</p>
+            <p className="font-semibold mt-1">{analise.margem ? analise.margem.nome : "—"}</p>
+            <p className="text-xs text-muted-foreground">{analise.margem ? `${analise.margem.margemPct.toFixed(0)}% de margem` : "Cadastre produtos com margem"}</p>
+          </div>
+        </div>
+      </Card>
 
       <GanhoPorHora />
       <AuditoriaPrecos />

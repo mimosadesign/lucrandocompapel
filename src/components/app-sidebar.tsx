@@ -23,6 +23,11 @@ import {
   BellRing,
   Table2,
   PiggyBank,
+  Cake,
+  Truck,
+  FileSpreadsheet,
+  PackageCheck,
+  CalendarDays,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
@@ -52,13 +57,18 @@ const mainItems = [
   { title: "Pedidos", url: "/pedidos", icon: ClipboardList },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
   { title: "Tabela de Preços", url: "/tabela-precos", icon: Table2 },
-  { title: "Décimo Terceiro Salário", url: "/decimo-terceiro", icon: PiggyBank },
   { title: "Contas a Pagar", url: "/contas", icon: Receipt },
   { title: "Central de Alertas", url: "/alertas", icon: BellRing },
 ];
 
 const diamondItems = [
   { title: "Clientes", url: "/clientes", icon: Users },
+  { title: "Datas dos Clientes", url: "/datas-clientes", icon: Cake },
+  { title: "Fornecedores", url: "/fornecedores", icon: Truck },
+  { title: "Ficha Técnica", url: "/ficha-tecnica", icon: FileSpreadsheet },
+  { title: "Controle de Envios", url: "/envios", icon: PackageCheck },
+  { title: "Agenda de Produção", url: "/agenda-producao", icon: CalendarDays },
+  { title: "Décimo Terceiro Salário", url: "/decimo-terceiro", icon: PiggyBank },
   { title: "Calculadoras", url: "/calculadoras", icon: Percent },
   { title: "Caixa Diário", url: "/caixa", icon: Wallet },
   { title: "Assistente IA", url: "/assistente", icon: Sparkles },
