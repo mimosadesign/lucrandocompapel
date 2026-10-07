@@ -19,9 +19,13 @@ import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as OrcamentosRouteImport } from './routes/orcamentos'
 import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
+import { Route as FornecedoresRouteImport } from './routes/fornecedores'
+import { Route as FichaTecnicaRouteImport } from './routes/ficha-tecnica'
 import { Route as FaturamentoRouteImport } from './routes/faturamento'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
+import { Route as EnviosRouteImport } from './routes/envios'
 import { Route as DecimoTerceiroRouteImport } from './routes/decimo-terceiro'
+import { Route as DatasClientesRouteImport } from './routes/datas-clientes'
 import { Route as CustosRouteImport } from './routes/custos'
 import { Route as ContasRouteImport } from './routes/contas'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -33,6 +37,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as AssinarRouteImport } from './routes/assinar'
 import { Route as AlertasRouteImport } from './routes/alertas'
+import { Route as AgendaProducaoRouteImport } from './routes/agenda-producao'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CDataRouteImport } from './routes/c.$data'
@@ -89,6 +94,16 @@ const InteligenciaRoute = InteligenciaRouteImport.update({
   path: '/inteligencia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FornecedoresRoute = FornecedoresRouteImport.update({
+  id: '/fornecedores',
+  path: '/fornecedores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FichaTecnicaRoute = FichaTecnicaRouteImport.update({
+  id: '/ficha-tecnica',
+  path: '/ficha-tecnica',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaturamentoRoute = FaturamentoRouteImport.update({
   id: '/faturamento',
   path: '/faturamento',
@@ -99,9 +114,19 @@ const ExecutivoRoute = ExecutivoRouteImport.update({
   path: '/executivo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnviosRoute = EnviosRouteImport.update({
+  id: '/envios',
+  path: '/envios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DecimoTerceiroRoute = DecimoTerceiroRouteImport.update({
   id: '/decimo-terceiro',
   path: '/decimo-terceiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatasClientesRoute = DatasClientesRouteImport.update({
+  id: '/datas-clientes',
+  path: '/datas-clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustosRoute = CustosRouteImport.update({
@@ -159,6 +184,11 @@ const AlertasRoute = AlertasRouteImport.update({
   path: '/alertas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgendaProducaoRoute = AgendaProducaoRouteImport.update({
+  id: '/agenda-producao',
+  path: '/agenda-producao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -188,6 +218,7 @@ const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agenda-producao': typeof AgendaProducaoRoute
   '/alertas': typeof AlertasRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/assistente': typeof AssistenteRoute
@@ -199,9 +230,13 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
   '/custos': typeof CustosRoute
+  '/datas-clientes': typeof DatasClientesRoute
   '/decimo-terceiro': typeof DecimoTerceiroRoute
+  '/envios': typeof EnviosRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
+  '/ficha-tecnica': typeof FichaTecnicaRoute
+  '/fornecedores': typeof FornecedoresRoute
   '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
   '/orcamentos': typeof OrcamentosRoute
@@ -219,6 +254,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agenda-producao': typeof AgendaProducaoRoute
   '/alertas': typeof AlertasRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/assistente': typeof AssistenteRoute
@@ -230,9 +266,13 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
   '/custos': typeof CustosRoute
+  '/datas-clientes': typeof DatasClientesRoute
   '/decimo-terceiro': typeof DecimoTerceiroRoute
+  '/envios': typeof EnviosRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
+  '/ficha-tecnica': typeof FichaTecnicaRoute
+  '/fornecedores': typeof FornecedoresRoute
   '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
   '/orcamentos': typeof OrcamentosRoute
@@ -251,6 +291,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agenda-producao': typeof AgendaProducaoRoute
   '/alertas': typeof AlertasRoute
   '/assinar': typeof AssinarRouteWithChildren
   '/assistente': typeof AssistenteRoute
@@ -262,9 +303,13 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/contas': typeof ContasRoute
   '/custos': typeof CustosRoute
+  '/datas-clientes': typeof DatasClientesRoute
   '/decimo-terceiro': typeof DecimoTerceiroRoute
+  '/envios': typeof EnviosRoute
   '/executivo': typeof ExecutivoRoute
   '/faturamento': typeof FaturamentoRoute
+  '/ficha-tecnica': typeof FichaTecnicaRoute
+  '/fornecedores': typeof FornecedoresRoute
   '/inteligencia': typeof InteligenciaRoute
   '/materiais': typeof MateriaisRoute
   '/orcamentos': typeof OrcamentosRoute
@@ -284,6 +329,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/agenda-producao'
     | '/alertas'
     | '/assinar'
     | '/assistente'
@@ -295,9 +341,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contas'
     | '/custos'
+    | '/datas-clientes'
     | '/decimo-terceiro'
+    | '/envios'
     | '/executivo'
     | '/faturamento'
+    | '/ficha-tecnica'
+    | '/fornecedores'
     | '/inteligencia'
     | '/materiais'
     | '/orcamentos'
@@ -315,6 +365,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/agenda-producao'
     | '/alertas'
     | '/assinar'
     | '/assistente'
@@ -326,9 +377,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contas'
     | '/custos'
+    | '/datas-clientes'
     | '/decimo-terceiro'
+    | '/envios'
     | '/executivo'
     | '/faturamento'
+    | '/ficha-tecnica'
+    | '/fornecedores'
     | '/inteligencia'
     | '/materiais'
     | '/orcamentos'
@@ -346,6 +401,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/agenda-producao'
     | '/alertas'
     | '/assinar'
     | '/assistente'
@@ -357,9 +413,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/contas'
     | '/custos'
+    | '/datas-clientes'
     | '/decimo-terceiro'
+    | '/envios'
     | '/executivo'
     | '/faturamento'
+    | '/ficha-tecnica'
+    | '/fornecedores'
     | '/inteligencia'
     | '/materiais'
     | '/orcamentos'
@@ -378,6 +438,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AgendaProducaoRoute: typeof AgendaProducaoRoute
   AlertasRoute: typeof AlertasRoute
   AssinarRoute: typeof AssinarRouteWithChildren
   AssistenteRoute: typeof AssistenteRoute
@@ -389,9 +450,13 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContasRoute: typeof ContasRoute
   CustosRoute: typeof CustosRoute
+  DatasClientesRoute: typeof DatasClientesRoute
   DecimoTerceiroRoute: typeof DecimoTerceiroRoute
+  EnviosRoute: typeof EnviosRoute
   ExecutivoRoute: typeof ExecutivoRoute
   FaturamentoRoute: typeof FaturamentoRoute
+  FichaTecnicaRoute: typeof FichaTecnicaRoute
+  FornecedoresRoute: typeof FornecedoresRoute
   InteligenciaRoute: typeof InteligenciaRoute
   MateriaisRoute: typeof MateriaisRoute
   OrcamentosRoute: typeof OrcamentosRoute
@@ -478,6 +543,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InteligenciaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fornecedores': {
+      id: '/fornecedores'
+      path: '/fornecedores'
+      fullPath: '/fornecedores'
+      preLoaderRoute: typeof FornecedoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ficha-tecnica': {
+      id: '/ficha-tecnica'
+      path: '/ficha-tecnica'
+      fullPath: '/ficha-tecnica'
+      preLoaderRoute: typeof FichaTecnicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faturamento': {
       id: '/faturamento'
       path: '/faturamento'
@@ -492,11 +571,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExecutivoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/envios': {
+      id: '/envios'
+      path: '/envios'
+      fullPath: '/envios'
+      preLoaderRoute: typeof EnviosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/decimo-terceiro': {
       id: '/decimo-terceiro'
       path: '/decimo-terceiro'
       fullPath: '/decimo-terceiro'
       preLoaderRoute: typeof DecimoTerceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/datas-clientes': {
+      id: '/datas-clientes'
+      path: '/datas-clientes'
+      fullPath: '/datas-clientes'
+      preLoaderRoute: typeof DatasClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/custos': {
@@ -576,6 +669,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlertasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agenda-producao': {
+      id: '/agenda-producao'
+      path: '/agenda-producao'
+      fullPath: '/agenda-producao'
+      preLoaderRoute: typeof AgendaProducaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -628,6 +728,7 @@ const AssinarRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AgendaProducaoRoute: AgendaProducaoRoute,
   AlertasRoute: AlertasRoute,
   AssinarRoute: AssinarRouteWithChildren,
   AssistenteRoute: AssistenteRoute,
@@ -639,9 +740,13 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContasRoute: ContasRoute,
   CustosRoute: CustosRoute,
+  DatasClientesRoute: DatasClientesRoute,
   DecimoTerceiroRoute: DecimoTerceiroRoute,
+  EnviosRoute: EnviosRoute,
   ExecutivoRoute: ExecutivoRoute,
   FaturamentoRoute: FaturamentoRoute,
+  FichaTecnicaRoute: FichaTecnicaRoute,
+  FornecedoresRoute: FornecedoresRoute,
   InteligenciaRoute: InteligenciaRoute,
   MateriaisRoute: MateriaisRoute,
   OrcamentosRoute: OrcamentosRoute,

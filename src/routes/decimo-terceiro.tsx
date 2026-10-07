@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PageHeader } from "@/components/page-header";
+import { DiamondLock } from "@/components/diamond-lock";
 import { Card } from "@/components/ui/card";
 import { useLocalState, brl } from "@/lib/storage";
 import { CONTAS_KEY, totalContasDoMes, type Conta } from "@/lib/contas";
@@ -27,6 +28,16 @@ type Pedido = { valor?: number; valorEntrega?: number; status?: string; entrega?
 type Lanc = { tipo: "entrada" | "saida"; data: string; valor: number; categoria?: string };
 
 function DecimoTerceiroPage() {
+  return (
+    <DiamondLock
+      title="Seu décimo terceiro, calculado pelo seu negócio"
+      description="Veja quanto o seu ateliê pode pagar de décimo terceiro para você no fim do ano."
+      preview={<DecimoConteudo />}
+    />
+  );
+}
+
+function DecimoConteudo() {
   const [pedidos] = useLocalState<Pedido[]>("lcp:pedidos", []);
   const [caixa] = useLocalState<Lanc[]>("lcp:caixa:lancamentos", []);
   const [contas] = useLocalState<Conta[]>(CONTAS_KEY, []);
