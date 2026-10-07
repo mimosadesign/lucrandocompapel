@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MoneyInput } from "@/components/money-input";
 import { useLocalState, brl } from "@/lib/storage";
-import { useUser } from "@/lib/auth";
+import { useUser, useIsUnlimited, openDiamondDialog } from "@/lib/auth";
 
 export const Route = createFileRoute("/tabela-precos")({
   head: () => ({
@@ -64,6 +64,7 @@ const espec = (l: Linha) => (l.especValor ? `${l.especTipo}: ${l.especValor}` : 
 
 function TabelaPrecosPage() {
   const [tabelas, setTabelas] = useLocalState<Tabela[]>("lcp:tabelasPrecos", []);
+  const unlimited = useIsUnlimited();
   const [abertaId, setAbertaId] = useState<string | null>(null);
   const [ver, setVer] = useState(false);
   const aberta = tabelas.find((t) => t.id === abertaId) || null;
@@ -72,6 +73,11 @@ function TabelaPrecosPage() {
     setTabelas((prev) => prev.map((x) => (x.id === t.id ? { ...t, atualizadaEm: new Date().toISOString() } : x)));
   }
   function criar() {
+    if (!unlimited && tabelas.length >= 6) {
+      toast.error("O plano gratuito permite até 6 tabelas. Assine o Diamante para criar tabelas ilimitadas.");
+      openDiamondDialog();
+      return;
+    }
     const t: Tabela = { id: crypto.randomUUID(), nome: "Nova tabela", linhas: [novaLinha()], atualizadaEm: new Date().toISOString() };
     setTabelas((p) => [t, ...p]);
     setAbertaId(t.id);

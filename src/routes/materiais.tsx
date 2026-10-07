@@ -59,17 +59,28 @@ function brl(value: number) {
 function MateriaisPage() {
   const [materiais, setMateriais] = useLocalState<Material[]>(STORAGE_KEY, []);
   const [busca, setBusca] = useState("");
+  const [ordem, setOrdem] = useState<"az" | "za" | "recentes" | "antigos" | "estoqueMenor" | "estoqueMaior">("az");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
   const unlimited = useIsUnlimited();
 
-  const filtrados = useMemo(
-    () =>
-      materiais.filter((m) =>
-        m.nome.toLowerCase().includes(busca.toLowerCase()),
-      ),
-    [materiais, busca],
-  );
+  const filtrados = useMemo(() => {
+    const lista = materiais
+      .map((m, i) => ({ m, i }))
+      .filter(({ m }) => m.nome.toLowerCase().includes(busca.toLowerCase()));
+    lista.sort((a, b) => {
+      switch (ordem) {
+        case "az": return a.m.nome.localeCompare(b.m.nome, "pt-BR");
+        case "za": return b.m.nome.localeCompare(a.m.nome, "pt-BR");
+        // a lista é gravada na ordem de cadastro: índice maior = cadastrado depois
+        case "recentes": return b.i - a.i;
+        case "antigos": return a.i - b.i;
+        case "estoqueMenor": return (a.m.estoque || 0) - (b.m.estoque || 0);
+        case "estoqueMaior": return (b.m.estoque || 0) - (a.m.estoque || 0);
+      }
+    });
+    return lista.map((x) => x.m);
+  }, [materiais, busca, ordem]);
 
   function abrirNovo() {
     setEditing({
@@ -159,6 +170,19 @@ function MateriaisPage() {
             className="h-11 rounded-full border-border/70 bg-card pl-11"
           />
         </div>
+        <select
+          value={ordem}
+          onChange={(e) => setOrdem(e.target.value as typeof ordem)}
+          aria-label="Ordenar materiais"
+          className="h-11 rounded-full border border-border/70 bg-card px-4 text-sm"
+        >
+          <option value="az">Nome (A → Z)</option>
+          <option value="za">Nome (Z → A)</option>
+          <option value="recentes">Cadastro mais recente</option>
+          <option value="antigos">Cadastro mais antigo</option>
+          <option value="estoqueMenor">Menor estoque</option>
+          <option value="estoqueMaior">Maior estoque</option>
+        </select>
         <Badge className="rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground">
           {materiais.length} / 25 materiais (plano gratuito)
         </Badge>
