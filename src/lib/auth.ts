@@ -200,6 +200,7 @@ export function useEntitlement() {
   const [sub, setSub] = useState<SubscriptionRow | null>(null);
   const [subReady, setSubReady] = useState(false);
   const [dbLifetime, setDbLifetime] = useState(false);
+  const [planoVencido, setPlanoVencido] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -224,10 +225,14 @@ export function useEntitlement() {
         .eq("email", user.email.toLowerCase())
         .maybeSingle();
       if (!active) return;
-      if (!data) return setDbLifetime(false);
+      if (!data) {
+        setPlanoVencido(false);
+        return setDbLifetime(false);
+      }
       const row = data as { duration?: string; expires_at?: string | null };
       const ok = planoAtivo(row.duration, row.expires_at);
       setDbLifetime(ok);
+      setPlanoVencido(!ok);
       // Retira o Diamante no exato momento do vencimento, mesmo com o app aberto.
       if (ok && row.expires_at) {
         const ms = new Date(row.expires_at).getTime() - Date.now();
@@ -279,6 +284,7 @@ export function useEntitlement() {
     isLifetime: lifetime,
     isUnlimited,
     trialExpired,
+    planoVencido: planoVencido && !lifetime && !isPaid,
     ready: ready && subReady,
   };
 }

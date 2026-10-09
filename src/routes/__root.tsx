@@ -147,7 +147,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function TrialExpiredDialog() {
-  const { trialExpired } = useEntitlement();
+  const { trialExpired, planoVencido } = useEntitlement();
   const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);
 
@@ -168,7 +168,7 @@ function TrialExpiredDialog() {
     }
   }
 
-  if (!trialExpired || dismissed) return null;
+  if ((!trialExpired && !planoVencido) || dismissed) return null;
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4">
       <div className="relative w-full max-w-md rounded-3xl bg-card p-6 shadow-2xl text-center">
@@ -184,10 +184,12 @@ function TrialExpiredDialog() {
           <span className="text-2xl">💎</span>
         </div>
         <h2 className="mt-4 font-display text-xl font-semibold">
-          Seus 25 dias de teste grátis acabaram
+          {planoVencido ? "Seu Plano Diamante venceu" : "Seus 25 dias de teste grátis acabaram"}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Continue crescendo com o Plano Diamante por apenas
+          {planoVencido
+            ? "Sua conta voltou para o plano gratuito. Seus dados continuam salvos — renove o Diamante para liberar tudo de novo por apenas"
+            : "Continue crescendo com o Plano Diamante por apenas"}
           <span className="font-semibold text-foreground"> R$ 18,00/mês</span> —
           menos de <span className="font-semibold text-foreground">R$ 0,60 por dia</span> para
           desbloquear tudo de novo.
@@ -200,7 +202,7 @@ function TrialExpiredDialog() {
             navigate({ to: "/assinar" });
           }}
         >
-          Assinar Diamante agora
+          {planoVencido ? "Renovar Diamante agora" : "Assinar Diamante agora"}
         </Button>
         <Button
           variant="ghost"
