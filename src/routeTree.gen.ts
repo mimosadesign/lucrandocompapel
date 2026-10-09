@@ -9,184 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AgendaProducaoRouteImport } from './routes/agenda-producao'
-import { Route as AlertasRouteImport } from './routes/alertas'
-import { Route as AssinarRouteImport } from './routes/assinar'
-import { Route as AssistenteRouteImport } from './routes/assistente'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as CaixaRouteImport } from './routes/caixa'
-import { Route as CalculadorasRouteImport } from './routes/calculadoras'
-import { Route as CatalogoRouteImport } from './routes/catalogo'
-import { Route as ClientesRouteImport } from './routes/clientes'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as ContasRouteImport } from './routes/contas'
-import { Route as CustosRouteImport } from './routes/custos'
-import { Route as DatasClientesRouteImport } from './routes/datas-clientes'
-import { Route as DecimoTerceiroRouteImport } from './routes/decimo-terceiro'
-import { Route as EnviosRouteImport } from './routes/envios'
-import { Route as ExecutivoRouteImport } from './routes/executivo'
-import { Route as FaturamentoRouteImport } from './routes/faturamento'
-import { Route as FichaTecnicaRouteImport } from './routes/ficha-tecnica'
-import { Route as FornecedoresRouteImport } from './routes/fornecedores'
-import { Route as InteligenciaRouteImport } from './routes/inteligencia'
-import { Route as MateriaisRouteImport } from './routes/materiais'
-import { Route as OrcamentosRouteImport } from './routes/orcamentos'
-import { Route as PedidosRouteImport } from './routes/pedidos'
-import { Route as PerfilRouteImport } from './routes/perfil'
-import { Route as PrecificacaoRouteImport } from './routes/precificacao'
-import { Route as PrecificarItemRouteImport } from './routes/precificar-item'
-import { Route as ProdutosRouteImport } from './routes/produtos'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TabelaPrecosRouteImport } from './routes/tabela-precos'
-import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as PrecificarItemRouteImport } from './routes/precificar-item'
+import { Route as PrecificacaoRouteImport } from './routes/precificacao'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PedidosRouteImport } from './routes/pedidos'
+import { Route as OrcamentosRouteImport } from './routes/orcamentos'
+import { Route as MateriaisRouteImport } from './routes/materiais'
+import { Route as InteligenciaRouteImport } from './routes/inteligencia'
+import { Route as FornecedoresRouteImport } from './routes/fornecedores'
+import { Route as FichaTecnicaRouteImport } from './routes/ficha-tecnica'
+import { Route as FaturamentoRouteImport } from './routes/faturamento'
+import { Route as ExecutivoRouteImport } from './routes/executivo'
+import { Route as EnviosRouteImport } from './routes/envios'
+import { Route as DecimoTerceiroRouteImport } from './routes/decimo-terceiro'
+import { Route as DatasClientesRouteImport } from './routes/datas-clientes'
+import { Route as CustosRouteImport } from './routes/custos'
+import { Route as ContasRouteImport } from './routes/contas'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as CatalogoRouteImport } from './routes/catalogo'
+import { Route as CalculadorasRouteImport } from './routes/calculadoras'
+import { Route as CaixaRouteImport } from './routes/caixa'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AssistenteRouteImport } from './routes/assistente'
+import { Route as AssinarRouteImport } from './routes/assinar'
+import { Route as AlertasRouteImport } from './routes/alertas'
+import { Route as AgendaProducaoRouteImport } from './routes/agenda-producao'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as CDataRouteImport } from './routes/c.$data'
+import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgendaProducaoRoute = AgendaProducaoRouteImport.update({
-  id: '/agenda-producao',
-  path: '/agenda-producao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AlertasRoute = AlertasRouteImport.update({
-  id: '/alertas',
-  path: '/alertas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssinarRoute = AssinarRouteImport.update({
-  id: '/assinar',
-  path: '/assinar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssistenteRoute = AssistenteRouteImport.update({
-  id: '/assistente',
-  path: '/assistente',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CaixaRoute = CaixaRouteImport.update({
-  id: '/caixa',
-  path: '/caixa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalculadorasRoute = CalculadorasRouteImport.update({
-  id: '/calculadoras',
-  path: '/calculadoras',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CatalogoRoute = CatalogoRouteImport.update({
-  id: '/catalogo',
-  path: '/catalogo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientesRoute = ClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContasRoute = ContasRouteImport.update({
-  id: '/contas',
-  path: '/contas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CustosRoute = CustosRouteImport.update({
-  id: '/custos',
-  path: '/custos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DatasClientesRoute = DatasClientesRouteImport.update({
-  id: '/datas-clientes',
-  path: '/datas-clientes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DecimoTerceiroRoute = DecimoTerceiroRouteImport.update({
-  id: '/decimo-terceiro',
-  path: '/decimo-terceiro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EnviosRoute = EnviosRouteImport.update({
-  id: '/envios',
-  path: '/envios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExecutivoRoute = ExecutivoRouteImport.update({
-  id: '/executivo',
-  path: '/executivo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaturamentoRoute = FaturamentoRouteImport.update({
-  id: '/faturamento',
-  path: '/faturamento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FichaTecnicaRoute = FichaTecnicaRouteImport.update({
-  id: '/ficha-tecnica',
-  path: '/ficha-tecnica',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FornecedoresRoute = FornecedoresRouteImport.update({
-  id: '/fornecedores',
-  path: '/fornecedores',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InteligenciaRoute = InteligenciaRouteImport.update({
-  id: '/inteligencia',
-  path: '/inteligencia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MateriaisRoute = MateriaisRouteImport.update({
-  id: '/materiais',
-  path: '/materiais',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrcamentosRoute = OrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PedidosRoute = PedidosRouteImport.update({
-  id: '/pedidos',
-  path: '/pedidos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerfilRoute = PerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrecificacaoRoute = PrecificacaoRouteImport.update({
-  id: '/precificacao',
-  path: '/precificacao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrecificarItemRoute = PrecificarItemRouteImport.update({
-  id: '/precificar-item',
-  path: '/precificar-item',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutosRoute = ProdutosRouteImport.update({
-  id: '/produtos',
-  path: '/produtos',
+const TabelaPrecosRoute = TabelaPrecosRouteImport.update({
+  id: '/tabela-precos',
+  path: '/tabela-precos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -194,20 +54,160 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TabelaPrecosRoute = TabelaPrecosRouteImport.update({
-  id: '/tabela-precos',
-  path: '/tabela-precos',
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecificarItemRoute = PrecificarItemRouteImport.update({
+  id: '/precificar-item',
+  path: '/precificar-item',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecificacaoRoute = PrecificacaoRouteImport.update({
+  id: '/precificacao',
+  path: '/precificacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PedidosRoute = PedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentosRoute = OrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MateriaisRoute = MateriaisRouteImport.update({
+  id: '/materiais',
+  path: '/materiais',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InteligenciaRoute = InteligenciaRouteImport.update({
+  id: '/inteligencia',
+  path: '/inteligencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FornecedoresRoute = FornecedoresRouteImport.update({
+  id: '/fornecedores',
+  path: '/fornecedores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FichaTecnicaRoute = FichaTecnicaRouteImport.update({
+  id: '/ficha-tecnica',
+  path: '/ficha-tecnica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaturamentoRoute = FaturamentoRouteImport.update({
+  id: '/faturamento',
+  path: '/faturamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutivoRoute = ExecutivoRouteImport.update({
+  id: '/executivo',
+  path: '/executivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnviosRoute = EnviosRouteImport.update({
+  id: '/envios',
+  path: '/envios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecimoTerceiroRoute = DecimoTerceiroRouteImport.update({
+  id: '/decimo-terceiro',
+  path: '/decimo-terceiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatasClientesRoute = DatasClientesRouteImport.update({
+  id: '/datas-clientes',
+  path: '/datas-clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustosRoute = CustosRouteImport.update({
+  id: '/custos',
+  path: '/custos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContasRoute = ContasRouteImport.update({
+  id: '/contas',
+  path: '/contas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogoRoute = CatalogoRouteImport.update({
+  id: '/catalogo',
+  path: '/catalogo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalculadorasRoute = CalculadorasRouteImport.update({
+  id: '/calculadoras',
+  path: '/calculadoras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaixaRoute = CaixaRouteImport.update({
+  id: '/caixa',
+  path: '/caixa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistenteRoute = AssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssinarRoute = AssinarRouteImport.update({
+  id: '/assinar',
+  path: '/assinar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertasRoute = AlertasRouteImport.update({
+  id: '/alertas',
+  path: '/alertas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendaProducaoRoute = AgendaProducaoRouteImport.update({
+  id: '/agenda-producao',
+  path: '/agenda-producao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CDataRoute = CDataRouteImport.update({
+  id: '/c/$data',
+  path: '/c/$data',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssinarSucessoRoute = AssinarSucessoRouteImport.update({
   id: '/sucesso',
   path: '/sucesso',
   getParentRoute: () => AssinarRoute,
-} as any)
-const CDataRoute = CDataRouteImport.update({
-  id: '/c/$data',
-  path: '/c/$data',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
   id: '/api/public/mercadopago',
@@ -473,207 +473,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agenda-producao': {
-      id: '/agenda-producao'
-      path: '/agenda-producao'
-      fullPath: '/agenda-producao'
-      preLoaderRoute: typeof AgendaProducaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/alertas': {
-      id: '/alertas'
-      path: '/alertas'
-      fullPath: '/alertas'
-      preLoaderRoute: typeof AlertasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assinar': {
-      id: '/assinar'
-      path: '/assinar'
-      fullPath: '/assinar'
-      preLoaderRoute: typeof AssinarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assistente': {
-      id: '/assistente'
-      path: '/assistente'
-      fullPath: '/assistente'
-      preLoaderRoute: typeof AssistenteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/caixa': {
-      id: '/caixa'
-      path: '/caixa'
-      fullPath: '/caixa'
-      preLoaderRoute: typeof CaixaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calculadoras': {
-      id: '/calculadoras'
-      path: '/calculadoras'
-      fullPath: '/calculadoras'
-      preLoaderRoute: typeof CalculadorasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/catalogo': {
-      id: '/catalogo'
-      path: '/catalogo'
-      fullPath: '/catalogo'
-      preLoaderRoute: typeof CatalogoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clientes': {
-      id: '/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof ClientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contas': {
-      id: '/contas'
-      path: '/contas'
-      fullPath: '/contas'
-      preLoaderRoute: typeof ContasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/custos': {
-      id: '/custos'
-      path: '/custos'
-      fullPath: '/custos'
-      preLoaderRoute: typeof CustosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/datas-clientes': {
-      id: '/datas-clientes'
-      path: '/datas-clientes'
-      fullPath: '/datas-clientes'
-      preLoaderRoute: typeof DatasClientesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/decimo-terceiro': {
-      id: '/decimo-terceiro'
-      path: '/decimo-terceiro'
-      fullPath: '/decimo-terceiro'
-      preLoaderRoute: typeof DecimoTerceiroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/envios': {
-      id: '/envios'
-      path: '/envios'
-      fullPath: '/envios'
-      preLoaderRoute: typeof EnviosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/executivo': {
-      id: '/executivo'
-      path: '/executivo'
-      fullPath: '/executivo'
-      preLoaderRoute: typeof ExecutivoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faturamento': {
-      id: '/faturamento'
-      path: '/faturamento'
-      fullPath: '/faturamento'
-      preLoaderRoute: typeof FaturamentoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ficha-tecnica': {
-      id: '/ficha-tecnica'
-      path: '/ficha-tecnica'
-      fullPath: '/ficha-tecnica'
-      preLoaderRoute: typeof FichaTecnicaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fornecedores': {
-      id: '/fornecedores'
-      path: '/fornecedores'
-      fullPath: '/fornecedores'
-      preLoaderRoute: typeof FornecedoresRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inteligencia': {
-      id: '/inteligencia'
-      path: '/inteligencia'
-      fullPath: '/inteligencia'
-      preLoaderRoute: typeof InteligenciaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/materiais': {
-      id: '/materiais'
-      path: '/materiais'
-      fullPath: '/materiais'
-      preLoaderRoute: typeof MateriaisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orcamentos': {
-      id: '/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/orcamentos'
-      preLoaderRoute: typeof OrcamentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pedidos': {
-      id: '/pedidos'
-      path: '/pedidos'
-      fullPath: '/pedidos'
-      preLoaderRoute: typeof PedidosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/perfil': {
-      id: '/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof PerfilRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/precificacao': {
-      id: '/precificacao'
-      path: '/precificacao'
-      fullPath: '/precificacao'
-      preLoaderRoute: typeof PrecificacaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/precificar-item': {
-      id: '/precificar-item'
-      path: '/precificar-item'
-      fullPath: '/precificar-item'
-      preLoaderRoute: typeof PrecificarItemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/produtos': {
-      id: '/produtos'
-      path: '/produtos'
-      fullPath: '/produtos'
-      preLoaderRoute: typeof ProdutosRouteImport
+    '/tabela-precos': {
+      id: '/tabela-precos'
+      path: '/tabela-precos'
+      fullPath: '/tabela-precos'
+      preLoaderRoute: typeof TabelaPrecosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -683,11 +487,214 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tabela-precos': {
-      id: '/tabela-precos'
-      path: '/tabela-precos'
-      fullPath: '/tabela-precos'
-      preLoaderRoute: typeof TabelaPrecosRouteImport
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precificar-item': {
+      id: '/precificar-item'
+      path: '/precificar-item'
+      fullPath: '/precificar-item'
+      preLoaderRoute: typeof PrecificarItemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precificacao': {
+      id: '/precificacao'
+      path: '/precificacao'
+      fullPath: '/precificacao'
+      preLoaderRoute: typeof PrecificacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pedidos': {
+      id: '/pedidos'
+      path: '/pedidos'
+      fullPath: '/pedidos'
+      preLoaderRoute: typeof PedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orcamentos': {
+      id: '/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/orcamentos'
+      preLoaderRoute: typeof OrcamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/materiais': {
+      id: '/materiais'
+      path: '/materiais'
+      fullPath: '/materiais'
+      preLoaderRoute: typeof MateriaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inteligencia': {
+      id: '/inteligencia'
+      path: '/inteligencia'
+      fullPath: '/inteligencia'
+      preLoaderRoute: typeof InteligenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fornecedores': {
+      id: '/fornecedores'
+      path: '/fornecedores'
+      fullPath: '/fornecedores'
+      preLoaderRoute: typeof FornecedoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ficha-tecnica': {
+      id: '/ficha-tecnica'
+      path: '/ficha-tecnica'
+      fullPath: '/ficha-tecnica'
+      preLoaderRoute: typeof FichaTecnicaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faturamento': {
+      id: '/faturamento'
+      path: '/faturamento'
+      fullPath: '/faturamento'
+      preLoaderRoute: typeof FaturamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executivo': {
+      id: '/executivo'
+      path: '/executivo'
+      fullPath: '/executivo'
+      preLoaderRoute: typeof ExecutivoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/envios': {
+      id: '/envios'
+      path: '/envios'
+      fullPath: '/envios'
+      preLoaderRoute: typeof EnviosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decimo-terceiro': {
+      id: '/decimo-terceiro'
+      path: '/decimo-terceiro'
+      fullPath: '/decimo-terceiro'
+      preLoaderRoute: typeof DecimoTerceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/datas-clientes': {
+      id: '/datas-clientes'
+      path: '/datas-clientes'
+      fullPath: '/datas-clientes'
+      preLoaderRoute: typeof DatasClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/custos': {
+      id: '/custos'
+      path: '/custos'
+      fullPath: '/custos'
+      preLoaderRoute: typeof CustosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contas': {
+      id: '/contas'
+      path: '/contas'
+      fullPath: '/contas'
+      preLoaderRoute: typeof ContasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogo': {
+      id: '/catalogo'
+      path: '/catalogo'
+      fullPath: '/catalogo'
+      preLoaderRoute: typeof CatalogoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calculadoras': {
+      id: '/calculadoras'
+      path: '/calculadoras'
+      fullPath: '/calculadoras'
+      preLoaderRoute: typeof CalculadorasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/caixa': {
+      id: '/caixa'
+      path: '/caixa'
+      fullPath: '/caixa'
+      preLoaderRoute: typeof CaixaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistente': {
+      id: '/assistente'
+      path: '/assistente'
+      fullPath: '/assistente'
+      preLoaderRoute: typeof AssistenteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assinar': {
+      id: '/assinar'
+      path: '/assinar'
+      fullPath: '/assinar'
+      preLoaderRoute: typeof AssinarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alertas': {
+      id: '/alertas'
+      path: '/alertas'
+      fullPath: '/alertas'
+      preLoaderRoute: typeof AlertasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agenda-producao': {
+      id: '/agenda-producao'
+      path: '/agenda-producao'
+      fullPath: '/agenda-producao'
+      preLoaderRoute: typeof AgendaProducaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$data': {
+      id: '/c/$data'
+      path: '/c/$data'
+      fullPath: '/c/$data'
+      preLoaderRoute: typeof CDataRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/assinar/sucesso': {
@@ -696,13 +703,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/assinar/sucesso'
       preLoaderRoute: typeof AssinarSucessoRouteImport
       parentRoute: typeof AssinarRoute
-    }
-    '/c/$data': {
-      id: '/c/$data'
-      path: '/c/$data'
-      fullPath: '/c/$data'
-      preLoaderRoute: typeof CDataRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/public/mercadopago': {
       id: '/api/public/mercadopago'
