@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import { setStorageUser } from "@/lib/storage";
+import { planoAtivo } from "@/lib/plano";
 
 const TRIAL_DAYS = 25;
 
@@ -214,7 +215,8 @@ export function useEntitlement() {
       setSub(s);
       setSubReady(true);
     })();
-    void (async () => {
+    let expTimer: ReturnType<typeof setTimeout> | undefined;
+    const checarPlano = async () => {
       if (!user.email) return;
       const { data } = await supabase
         .from("lifetime_emails")
@@ -224,11 +226,20 @@ export function useEntitlement() {
       if (!active) return;
       if (!data) return setDbLifetime(false);
       const row = data as { duration?: string; expires_at?: string | null };
-      const dur = row.duration ?? "lifetime";
-      if (dur === "lifetime") return setDbLifetime(true);
-      const exp = row.expires_at ? new Date(row.expires_at).getTime() : 0;
-      setDbLifetime(exp > Date.now());
-    })();
+      const ok = planoAtivo(row.duration, row.expires_at);
+      setDbLifetime(ok);
+      // Retira o Diamante no exato momento do vencimento, mesmo com o app aberto.
+      if (ok && row.expires_at) {
+        const ms = new Date(row.expires_at).getTime() - Date.now();
+        if (expTimer) clearTimeout(expTimer);
+        if (ms < 2_000_000_000) expTimer = setTimeout(() => void checarPlano(), ms + 1000);
+      }
+    };
+    void checarPlano();
+    // Rechecagem periódica e ao voltar para o app: libera assim que o pagamento for aprovado.
+    const intervalo = setInterval(() => void checarPlano(), 60_000);
+    const onFocus = () => void checarPlano();
+    window.addEventListener("focus", onFocus);
     const channel = supabase
       .channel(`sub-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on(
@@ -244,6 +255,9 @@ export function useEntitlement() {
       .subscribe();
     return () => {
       active = false;
+      if (expTimer) clearTimeout(expTimer);
+      clearInterval(intervalo);
+      window.removeEventListener("focus", onFocus);
       void supabase.removeChannel(channel);
     };
   }, [user?.id, user?.email]);
