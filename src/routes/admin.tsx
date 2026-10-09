@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin")({
     return (
       <div className="p-6">
         <h1 className="text-lg font-semibold">Não foi possível carregar o painel</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{error instanceof Error ? error.message : String(error)}</p>
         <Button
           className="mt-4"
           onClick={() => {
