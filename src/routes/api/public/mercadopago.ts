@@ -35,6 +35,7 @@ export const Route = createFileRoute("/api/public/mercadopago")({
         const pay = (await res.json()) as {
           status?: string;
           external_reference?: string;
+          transaction_amount?: number;
           metadata?: { email?: string; plano?: string };
         };
 
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/api/public/mercadopago")({
         if (!ref) return new Response("ok");
         const { data: pedido } = await supabaseAdmin
           .from("payment_orders")
-          .select("id, email, plan, status")
+          .select("id, email, plan, status, amount")
           .eq("id", ref)
           .maybeSingle();
         if (!pedido) return new Response("ok");
@@ -56,18 +57,32 @@ export const Route = createFileRoute("/api/public/mercadopago")({
         }
         if (pedido.status === "approved") return new Response("ok");
 
-        const duration = pedido.plan === "lifetime" ? "lifetime" : pedido.plan === "3m" ? "3m" : "1m";
-        let expires_at: string | null = null;
-        if (duration !== "lifetime") {
-          const d = new Date();
-          d.setDate(d.getDate() + (duration === "3m" ? 90 : 30));
-          expires_at = d.toISOString();
+        // O valor pago precisa bater com o valor do plano escolhido.
+        if (Number(pay.transaction_amount ?? 0) + 0.01 < Number(pedido.amount)) {
+          await supabaseAdmin
+            .from("payment_orders")
+            .update({ status: "amount_mismatch", provider_ref: String(paymentId), updated_at: new Date().toISOString() })
+            .eq("id", pedido.id);
+          return new Response("ok");
         }
+
+        const { novaExpiracao } = await import("@/lib/plano");
+        const duration = pedido.plan === "lifetime" ? "lifetime" : pedido.plan === "3m" ? "3m" : "1m";
+        const email = pedido.email.toLowerCase();
+        const { data: atual } = await supabaseAdmin
+          .from("lifetime_emails")
+          .select("duration, expires_at")
+          .eq("email", email)
+          .maybeSingle();
+        // Quem já é vitalício continua vitalício.
+        const jaVitalicio = atual && (atual.duration ?? "lifetime") === "lifetime";
+        const finalDuration = jaVitalicio ? "lifetime" : duration;
+        const expires_at = novaExpiracao(finalDuration, atual?.expires_at ?? null);
 
         await supabaseAdmin.from("lifetime_emails").upsert(
           {
-            email: pedido.email.toLowerCase(),
-            duration,
+            email,
+            duration: finalDuration,
             expires_at,
             note: `Mercado Pago · pagamento ${paymentId}`,
           },
