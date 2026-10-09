@@ -202,7 +202,7 @@ function TrialExpiredDialog() {
             navigate({ to: "/assinar" });
           }}
         >
-          Assinar Diamante agora
+          {planoVencido ? "Renovar Diamante agora" : "Assinar Diamante agora"}
         </Button>
         <Button
           variant="ghost"
