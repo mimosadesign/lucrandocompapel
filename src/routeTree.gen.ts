@@ -42,6 +42,10 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TabelaPrecosRouteImport } from './routes/tabela-precos'
 import { Route as AssinarSucessoRouteImport } from './routes/assinar.sucesso'
 import { Route as CDataRouteImport } from './routes/c.$data'
+import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
+import { Route as LegalPrivacidadeRouteImport } from './routes/legal.privacidade'
+import { Route as LegalReembolsoRouteImport } from './routes/legal.reembolso'
+import { Route as LegalTermosRouteImport } from './routes/legal.termos'
 import { Route as ApiPublicMercadopagoRouteImport } from './routes/api/public/mercadopago'
 
 const IndexRoute = IndexRouteImport.update({
@@ -209,6 +213,26 @@ const CDataRoute = CDataRouteImport.update({
   path: '/c/$data',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/legal/cookies',
+  path: '/legal/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacidadeRoute = LegalPrivacidadeRouteImport.update({
+  id: '/legal/privacidade',
+  path: '/legal/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalReembolsoRoute = LegalReembolsoRouteImport.update({
+  id: '/legal/reembolso',
+  path: '/legal/reembolso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermosRoute = LegalTermosRouteImport.update({
+  id: '/legal/termos',
+  path: '/legal/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMercadopagoRoute = ApiPublicMercadopagoRouteImport.update({
   id: '/api/public/mercadopago',
   path: '/api/public/mercadopago',
@@ -249,6 +273,10 @@ export interface FileRoutesByFullPath {
   '/tabela-precos': typeof TabelaPrecosRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/reembolso': typeof LegalReembolsoRoute
+  '/legal/termos': typeof LegalTermosRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
 export interface FileRoutesByTo {
@@ -285,6 +313,10 @@ export interface FileRoutesByTo {
   '/tabela-precos': typeof TabelaPrecosRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/reembolso': typeof LegalReembolsoRoute
+  '/legal/termos': typeof LegalTermosRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
 export interface FileRoutesById {
@@ -322,6 +354,10 @@ export interface FileRoutesById {
   '/tabela-precos': typeof TabelaPrecosRoute
   '/assinar/sucesso': typeof AssinarSucessoRoute
   '/c/$data': typeof CDataRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/privacidade': typeof LegalPrivacidadeRoute
+  '/legal/reembolso': typeof LegalReembolsoRoute
+  '/legal/termos': typeof LegalTermosRoute
   '/api/public/mercadopago': typeof ApiPublicMercadopagoRoute
 }
 export interface FileRouteTypes {
@@ -360,6 +396,10 @@ export interface FileRouteTypes {
     | '/tabela-precos'
     | '/assinar/sucesso'
     | '/c/$data'
+    | '/legal/cookies'
+    | '/legal/privacidade'
+    | '/legal/reembolso'
+    | '/legal/termos'
     | '/api/public/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -396,6 +436,10 @@ export interface FileRouteTypes {
     | '/tabela-precos'
     | '/assinar/sucesso'
     | '/c/$data'
+    | '/legal/cookies'
+    | '/legal/privacidade'
+    | '/legal/reembolso'
+    | '/legal/termos'
     | '/api/public/mercadopago'
   id:
     | '__root__'
@@ -432,6 +476,10 @@ export interface FileRouteTypes {
     | '/tabela-precos'
     | '/assinar/sucesso'
     | '/c/$data'
+    | '/legal/cookies'
+    | '/legal/privacidade'
+    | '/legal/reembolso'
+    | '/legal/termos'
     | '/api/public/mercadopago'
   fileRoutesById: FileRoutesById
 }
@@ -468,6 +516,10 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TabelaPrecosRoute: typeof TabelaPrecosRoute
   CDataRoute: typeof CDataRoute
+  LegalCookiesRoute: typeof LegalCookiesRoute
+  LegalPrivacidadeRoute: typeof LegalPrivacidadeRoute
+  LegalReembolsoRoute: typeof LegalReembolsoRoute
+  LegalTermosRoute: typeof LegalTermosRoute
   ApiPublicMercadopagoRoute: typeof ApiPublicMercadopagoRoute
 }
 
@@ -704,6 +756,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CDataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/cookies': {
+      id: '/legal/cookies'
+      path: '/legal/cookies'
+      fullPath: '/legal/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacidade': {
+      id: '/legal/privacidade'
+      path: '/legal/privacidade'
+      fullPath: '/legal/privacidade'
+      preLoaderRoute: typeof LegalPrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/reembolso': {
+      id: '/legal/reembolso'
+      path: '/legal/reembolso'
+      fullPath: '/legal/reembolso'
+      preLoaderRoute: typeof LegalReembolsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/termos': {
+      id: '/legal/termos'
+      path: '/legal/termos'
+      fullPath: '/legal/termos'
+      preLoaderRoute: typeof LegalTermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mercadopago': {
       id: '/api/public/mercadopago'
       path: '/api/public/mercadopago'
@@ -758,6 +838,10 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TabelaPrecosRoute: TabelaPrecosRoute,
   CDataRoute: CDataRoute,
+  LegalCookiesRoute: LegalCookiesRoute,
+  LegalPrivacidadeRoute: LegalPrivacidadeRoute,
+  LegalReembolsoRoute: LegalReembolsoRoute,
+  LegalTermosRoute: LegalTermosRoute,
   ApiPublicMercadopagoRoute: ApiPublicMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
