@@ -158,8 +158,9 @@ function AuthPage() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div>
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Nome</Label>
+                <Label htmlFor="f-nome" className="text-xs uppercase tracking-wide text-muted-foreground">Nome</Label>
                 <Input
+                  id="f-nome"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome"
@@ -169,9 +170,10 @@ function AuthPage() {
               </div>
             )}
             <div>
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">E-mail</Label>
+              <Label htmlFor="f-email" className="text-xs uppercase tracking-wide text-muted-foreground">E-mail</Label>
               <Input
                 type="email"
+                id="f-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="voce@email.com"
@@ -181,9 +183,10 @@ function AuthPage() {
             </div>
             {mode !== "forgot" && (
               <div>
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Senha</Label>
+                <Label htmlFor="f-senha" className="text-xs uppercase tracking-wide text-muted-foreground">Senha</Label>
                 <Input
                   type="password"
+                  id="f-senha"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
