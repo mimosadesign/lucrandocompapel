@@ -22,6 +22,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DiamondButton } from "@/components/diamond-button";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { CookieNotice } from "@/components/cookie-notice";
 
 function NotFoundComponent() {
   return (
@@ -298,6 +299,7 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isPublicRoute =
     pathname.startsWith("/auth") ||
+    pathname.startsWith("/legal") ||
     pathname.startsWith("/reset-password") ||
     pathname.startsWith("/c/");
   const { user, ready } = useUser();
@@ -327,6 +329,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {isPublicRoute ? <Outlet /> : ready && user ? <AppLayout /> : <div className="min-h-screen bg-background" />}
       <Toaster />
+      {!pathname.startsWith("/c/") && <CookieNotice />}
     </QueryClientProvider>
   );
 }

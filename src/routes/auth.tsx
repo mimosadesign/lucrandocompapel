@@ -31,6 +31,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aceite, setAceite] = useState(false);
 
   // Se já estiver logado, manda para o início.
   useEffect(() => {
@@ -45,6 +46,10 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (!aceite) {
+          toast.error("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
+          return;
+        }
         const parsed = signupSchema.safeParse({ nome, email, senha });
         if (!parsed.success) {
           toast.error(parsed.error.issues[0]?.message ?? "Dados inválidos");
@@ -153,8 +158,9 @@ function AuthPage() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             {mode === "signup" && (
               <div>
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Nome</Label>
+                <Label htmlFor="f-nome" className="text-xs uppercase tracking-wide text-muted-foreground">Nome</Label>
                 <Input
+                  id="f-nome"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome"
@@ -164,9 +170,10 @@ function AuthPage() {
               </div>
             )}
             <div>
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">E-mail</Label>
+              <Label htmlFor="f-email" className="text-xs uppercase tracking-wide text-muted-foreground">E-mail</Label>
               <Input
                 type="email"
+                id="f-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="voce@email.com"
@@ -176,9 +183,10 @@ function AuthPage() {
             </div>
             {mode !== "forgot" && (
               <div>
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">Senha</Label>
+                <Label htmlFor="f-senha" className="text-xs uppercase tracking-wide text-muted-foreground">Senha</Label>
                 <Input
                   type="password"
+                  id="f-senha"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
@@ -189,6 +197,22 @@ function AuthPage() {
                   <p className="mt-1 text-xs text-muted-foreground">Mínimo de 8 caracteres.</p>
                 )}
               </div>
+            )}
+            {mode === "signup" && (
+              <label className="flex items-start gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={aceite}
+                  onChange={(e) => setAceite(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary"
+                />
+                <span>
+                  Tenho 18 anos ou mais e li e aceito os{" "}
+                  <a href="/legal/termos" target="_blank" rel="noopener" className="underline text-foreground">Termos de Uso</a>
+                  {" "}e a{" "}
+                  <a href="/legal/privacidade" target="_blank" rel="noopener" className="underline text-foreground">Política de Privacidade</a>.
+                </span>
+              </label>
             )}
             <Button type="submit" className="w-full rounded-full h-11" disabled={loading}>
               {loading
