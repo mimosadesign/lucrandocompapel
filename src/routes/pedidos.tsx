@@ -68,26 +68,8 @@ function PedidosPage() {
   const [editing, setEditing] = useState<Pedido | null>(null);
   const [producaoPedidoId, setProducaoPedidoId] = useState<string | null>(null);
   const { isUnlimited } = useEntitlement();
-  const [lastReset, setLastReset] = useLocalState<string>("lcp:pedidos:lastReset", "");
-
-  // Reset mensal (plano gratuito)
-  useEffect(() => {
-    if (isUnlimited) return;
-    const now = new Date();
-    const chave = `${now.getFullYear()}-${now.getMonth()}`;
-    if (lastReset === chave) return;
-    setPedidos((prev) =>
-      prev.filter((p) => {
-        const ref = p.criadoEm || p.entrega;
-        if (!ref) return true;
-        const d = new Date(ref);
-        if (isNaN(d.getTime())) return true;
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      }),
-    );
-    setLastReset(chave);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isUnlimited, lastReset]);
+  // O limite mensal do plano gratuito é contado só pelos pedidos do mês atual;
+  // pedidos antigos NUNCA são apagados.
 
   // Gera automaticamente pedidos recorrentes mensais no dia 1º
   useEffect(() => {
