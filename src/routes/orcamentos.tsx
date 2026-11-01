@@ -142,29 +142,7 @@ function OrcamentosPage() {
       ];
     });
   }
-  const [lastReset, setLastReset] = useLocalState<string>(
-    "lcp:orcamentos:lastReset",
-    "",
-  );
-
-
-  // Plano gratuito: no dia 1º do novo mês, remove orçamentos de meses anteriores
-  // para liberar novamente o limite de 20/mês.
-  useEffect(() => {
-    if (isUnlimited) return;
-    const now = new Date();
-    const chave = `${now.getFullYear()}-${now.getMonth()}`;
-    if (lastReset === chave) return;
-    setSalvos((prev) =>
-      prev.filter((o) => {
-        const d = new Date(o.criadoEm);
-        if (isNaN(d.getTime())) return true;
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      }),
-    );
-    setLastReset(chave);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isUnlimited, lastReset]);
+  // O limite de 20/mês conta só orçamentos do mês atual; antigos nunca são apagados.
 
   const orcamentosMesAtual = useMemo(() => {
     const now = new Date();
