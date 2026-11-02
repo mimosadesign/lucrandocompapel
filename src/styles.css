@@ -174,3 +174,17 @@
 @utility btn-pill {
   border-radius: 999px;
 }
+
+/* App instalado (iOS/Android): nada fica embaixo da "orelha" nem da barra inicial. */
+@layer base {
+  html {
+    background-color: var(--color-background);
+  }
+
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

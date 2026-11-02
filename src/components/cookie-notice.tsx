@@ -15,7 +15,7 @@ export function CookieNotice() {
   }, []);
   if (!show) return null;
   return (
-    <div role="region" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-3 z-[70] mx-auto flex max-w-xl flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-card-foreground shadow-lg sm:flex-row sm:items-center">
+    <div role="region" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-[70] mx-auto flex max-w-xl flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-sm text-card-foreground shadow-lg sm:flex-row sm:items-center">
       <p className="flex-1">
         Usamos só o armazenamento essencial para manter seu login e seus dados. Nada de rastreamento.{" "}
         <Link to="/legal/cookies" className="underline">Saiba mais</Link>
@@ -26,6 +26,7 @@ export function CookieNotice() {
         onClick={() => {
           try { localStorage.setItem(KEY, "1"); } catch { /* ignore */ }
           setShow(false);
+          window.dispatchEvent(new Event("lcp:cookies-aceito"));
         }}
       >
         Entendi
