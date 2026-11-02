@@ -136,7 +136,7 @@ export function InstallAppNotice() {
         <p className="font-medium">
           {platform === "android"
             ? "Instale o Lucrando no seu celular"
-            : "Instale o Lucrando no seu iPhone"}
+            : "Instale o Lucrando no seu iPhone ou iPad"}
         </p>
         {platform === "android" && (
           <p className="mt-1 text-muted-foreground">
@@ -146,7 +146,7 @@ export function InstallAppNotice() {
         {platform === "ios" && <IOSSteps />}
         {platform === "ios-outro" && (
           <p className="mt-1 text-muted-foreground">
-            No iPhone, a instalação só funciona pelo <span className="font-medium text-foreground">Safari</span>.
+            No iPhone e no iPad, a instalação só funciona pelo <span className="font-medium text-foreground">Safari</span>.
             Abra este endereço no Safari e toque em{" "}
             <span className="inline-flex items-center gap-1 font-medium text-foreground">
               Compartilhar <Share className="h-3.5 w-3.5" />
@@ -221,7 +221,7 @@ export function InstallAppDialog() {
           <div className="space-y-4">
             {platform === "ios" && (
               <div>
-                <p className="text-sm font-medium">No iPhone (Safari)</p>
+                <p className="text-sm font-medium">No iPhone ou iPad (Safari)</p>
                 <IOSSteps />
               </div>
             )}
@@ -255,7 +255,7 @@ export function InstallAppDialog() {
             )}
             {platform === "nada" && (
               <p className="text-sm text-muted-foreground">
-                Este navegador não oferece instalação automática. No iPhone, use o Safari e escolha{" "}
+                Este navegador não oferece instalação automática. No iPhone e no iPad, use o Safari e escolha{" "}
                 <span className="font-medium text-foreground">Adicionar à Tela de Início</span>. No
                 Android, abra o menu do Chrome e escolha{" "}
                 <span className="font-medium text-foreground">Instalar app</span>.
