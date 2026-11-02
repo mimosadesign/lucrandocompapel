@@ -16,7 +16,6 @@ import {
   promptInstall,
   subscribeInstallState,
 } from "@/lib/pwa";
-import { toast } from "sonner";
 
 const DISMISS_KEY = "lcp:installAviso";
 const COOKIE_KEY = "lcp:avisoCookies";
@@ -274,13 +273,3 @@ export function InstallAppDialog() {
   );
 }
 
-/** Botão usado no menu lateral. */
-export function InstallMenuItem({ onPick }: { onPick: () => void }) {
-  return (
-    <Button variant="ghost" className="w-full justify-start rounded-full" onClick={onPick}>
-      <Download className="mr-2 h-4 w-4" /> Instalar o App
-    </Button>
-  );
-}
-
-export { toast };
