@@ -23,6 +23,8 @@ import { DiamondButton } from "@/components/diamond-button";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { CookieNotice } from "@/components/cookie-notice";
+import { InstallAppDialog, InstallAppNotice } from "@/components/install-app";
+import { registerAppServiceWorker } from "@/lib/pwa";
 
 function NotFoundComponent() {
   return (
@@ -90,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Lucrando com Papel" },
       {
         name: "description",
@@ -116,8 +118,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/app-icon-512.png" },
-      { rel: "icon", href: "/app-icon-512.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon-152x152.png", sizes: "152x152" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon-167x167.png", sizes: "167x167" },
+      { rel: "icon", href: "/app-icon-192.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -312,17 +316,9 @@ function RootComponent() {
     }
   }, [ready, user, isPublicRoute, navigate]);
 
-  // PWA: instala o service worker para o app poder ser adicionado à tela inicial.
+  // PWA: registra o worker só no app publicado (nunca no preview), para não prender caches velhos.
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-    const onLoad = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        /* ignore */
-      });
-    };
-    if (document.readyState === "complete") onLoad();
-    else window.addEventListener("load", onLoad);
-    return () => window.removeEventListener("load", onLoad);
+    registerAppServiceWorker();
   }, []);
 
   return (
@@ -330,6 +326,8 @@ function RootComponent() {
       {isPublicRoute ? <Outlet /> : ready && user ? <AppLayout /> : <div className="min-h-screen bg-background" />}
       <Toaster />
       {!pathname.startsWith("/c/") && <CookieNotice />}
+      {!pathname.startsWith("/c/") && <InstallAppNotice />}
+      <InstallAppDialog />
     </QueryClientProvider>
   );
 }

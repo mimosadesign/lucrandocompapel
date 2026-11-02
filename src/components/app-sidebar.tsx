@@ -28,9 +28,11 @@ import {
   FileSpreadsheet,
   PackageCheck,
   CalendarDays,
+  Download,
 } from "lucide-react";
 import logoUrl from "@/assets/logo.png";
 import { useIsAdmin } from "@/lib/auth";
+import { openInstallDialog } from "@/components/install-app";
 
 import {
   Sidebar,
@@ -191,6 +193,12 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={openInstallDialog} className="rounded-full">
+                  <Download className="h-4 w-4" />
+                  <span>Instalar o App</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
