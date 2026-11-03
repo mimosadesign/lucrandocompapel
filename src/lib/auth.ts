@@ -10,6 +10,11 @@ const TRIAL_DAYS = 25;
 const LIFETIME_EMAILS = new Set<string>([
   "mimosavacadesign@gmail.com",
   "marcelle.s.lima1@gmail.com",
+  "edilaine_sousa@yahoo.com.br",
+  "artecriativa1208@gmail.com",
+  "thaisajfo@icloud.com",
+  "primeirotracopersonalizados@gmail.com",
+  "lindamaria9202@gmail.com",
 ]);
 
 // Contas com acesso ao painel administrativo (métricas, lista de usuários)
@@ -217,19 +222,35 @@ export function useEntitlement() {
       setSubReady(true);
     })();
     let expTimer: ReturnType<typeof setTimeout> | undefined;
-    const checarPlano = async () => {
+    const cacheKey = `lcp:plano:${user.id}`;
+    // Usa o último plano conhecido enquanto a nuvem responde (ou se ela estiver lenta/fora).
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (raw) {
+        const c = JSON.parse(raw) as { duration?: string; expires_at?: string | null };
+        if (planoAtivo(c.duration, c.expires_at)) setDbLifetime(true);
+      }
+    } catch { /* ignore */ }
+    const checarPlano = async (tentativa = 0): Promise<void> => {
       if (!user.email) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("lifetime_emails")
         .select("email, duration, expires_at")
         .eq("email", user.email.toLowerCase())
         .maybeSingle();
       if (!active) return;
+      if (error) {
+        // Falha de rede/servidor: nunca retira o Diamante por erro. Tenta de novo.
+        if (tentativa < 5) setTimeout(() => void checarPlano(tentativa + 1), 3000 * (tentativa + 1));
+        return;
+      }
       if (!data) {
+        try { localStorage.removeItem(cacheKey); } catch { /* ignore */ }
         setPlanoVencido(false);
         return setDbLifetime(false);
       }
       const row = data as { duration?: string; expires_at?: string | null };
+      try { localStorage.setItem(cacheKey, JSON.stringify({ duration: row.duration, expires_at: row.expires_at ?? null })); } catch { /* ignore */ }
       const ok = planoAtivo(row.duration, row.expires_at);
       setDbLifetime(ok);
       setPlanoVencido(!ok);
