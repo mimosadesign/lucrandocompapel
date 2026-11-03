@@ -10,6 +10,11 @@ const TRIAL_DAYS = 25;
 const LIFETIME_EMAILS = new Set<string>([
   "mimosavacadesign@gmail.com",
   "marcelle.s.lima1@gmail.com",
+  "edilaine_sousa@yahoo.com.br",
+  "artecriativa1208@gmail.com",
+  "thaisajfo@icloud.com",
+  "primeirotracopersonalizados@gmail.com",
+  "lindamaria9202@gmail.com",
 ]);
 
 // Contas com acesso ao painel administrativo (métricas, lista de usuários)
