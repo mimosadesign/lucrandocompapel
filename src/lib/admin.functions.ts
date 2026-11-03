@@ -5,7 +5,9 @@ const ADMIN_EMAILS = new Set<string>([
   "mimosavacadesign@gmail.com",
 ]);
 
-function assertAdmin(email: string | undefined) {
+const ADMIN_USER_IDS = new Set(["d8d50106-a524-49e5-8f99-fe81d9149a83"]);
+function assertAdmin(email: string | undefined, userId?: string) {
+  if (!userId || !ADMIN_USER_IDS.has(userId)) throw new Response("Forbidden", { status: 403 });
   const e = email?.toLowerCase();
   if (!e || !ADMIN_EMAILS.has(e)) {
     throw new Response("Forbidden", { status: 403 });
@@ -63,7 +65,7 @@ function computeExpiresAt(duration: GrantDuration): string | null {
 export const getAdminMetrics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminMetrics> => {
-    assertAdmin(context.claims?.email as string | undefined);
+    assertAdmin(context.claims?.email as string | undefined, context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -195,7 +197,7 @@ export const grantLifetimeAccess = createServerFn({ method: "POST" })
     return { email, note: data.note?.trim() || null, duration };
   })
   .handler(async ({ context, data }) => {
-    assertAdmin(context.claims?.email as string | undefined);
+    assertAdmin(context.claims?.email as string | undefined, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const expires_at = computeExpiresAt(data.duration);
     const { error } = await supabaseAdmin
@@ -222,7 +224,7 @@ export const revokeLifetimeAccess = createServerFn({ method: "POST" })
     return { email };
   })
   .handler(async ({ context, data }) => {
-    assertAdmin(context.claims?.email as string | undefined);
+    assertAdmin(context.claims?.email as string | undefined, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("lifetime_emails")
