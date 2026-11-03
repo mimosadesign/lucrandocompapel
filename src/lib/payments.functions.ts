@@ -3,7 +3,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const ADMIN_EMAILS = new Set<string>(["mimosavacadesign@gmail.com"]);
 
-function assertAdmin(email: string | undefined) {
+const ADMIN_USER_IDS = new Set(["d8d50106-a524-49e5-8f99-fe81d9149a83"]);
+function assertAdmin(email: string | undefined, userId?: string) {
+  if (!userId || !ADMIN_USER_IDS.has(userId)) throw new Response("Forbidden", { status: 403 });
   const e = email?.toLowerCase();
   if (!e || !ADMIN_EMAILS.has(e)) throw new Response("Forbidden", { status: 403 });
 }
@@ -26,7 +28,7 @@ function mask(token: string | null) {
 export const getPaymentSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    assertAdmin(context.claims?.email as string | undefined);
+    assertAdmin(context.claims?.email as string | undefined, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("payment_settings")
@@ -52,7 +54,7 @@ export const savePaymentSettings = createServerFn({ method: "POST" })
     return { provider: input.provider, token: (input.token ?? "").trim() };
   })
   .handler(async ({ context, data }) => {
-    assertAdmin(context.claims?.email as string | undefined);
+    assertAdmin(context.claims?.email as string | undefined, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const patch: Record<string, unknown> = {
@@ -127,7 +129,8 @@ export const criarPagamentoMercadoPago = createServerFn({ method: "POST" })
     }
 
     const plano = PLANOS[data.plano];
-    const base = data.origem || "https://lucrandocompapel.lovable.app";
+    const permitidos = /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i;
+    const base = data.origem && permitidos.test(data.origem) ? data.origem : "https://lucrandocompapel.lovable.app";
 
     const { data: pedido, error: pedidoErr } = await supabaseAdmin
       .from("payment_orders")
