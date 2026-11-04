@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { planoAtivo } from "@/lib/plano";
 
 export type ResumoNegocio = {
   faturamentoMes: number;
@@ -23,20 +24,59 @@ Dê respostas curtas (até 6 linhas), com no máximo 3 recomendações práticas
 Se faltar dado no resumo, diga com clareza o que a usuária precisa cadastrar no app para você conseguir responder.
 Nunca invente números que não estejam no resumo.`;
 
+const num = (v: unknown) => (typeof v === "number" && isFinite(v) ? v : 0);
+const texto = (v: unknown, max = 60) => String(v ?? "").replace(/[\r\n]+/g, " ").slice(0, max);
+
 export const perguntarConsultora = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     (data: { pergunta: string; resumo: ResumoNegocio; historico?: MensagemIA[] }) => {
       const pergunta = (data?.pergunta ?? "").toString().trim().slice(0, 800);
       if (!pergunta) throw new Error("Escreva sua dúvida.");
-      return {
-        pergunta,
-        resumo: data.resumo,
-        historico: (data.historico ?? []).slice(-8),
+      const r = (data?.resumo ?? {}) as Partial<ResumoNegocio>;
+      const resumo: ResumoNegocio = {
+        faturamentoMes: num(r.faturamentoMes),
+        faturamentoMesAnterior: num(r.faturamentoMesAnterior),
+        pedidosMes: num(r.pedidosMes),
+        ticketMedio: num(r.ticketMedio),
+        margemMedia: num(r.margemMedia),
+        valorHora: num(r.valorHora),
+        meta: num(r.meta),
+        aReceber: num(r.aReceber),
+        topProdutos: (Array.isArray(r.topProdutos) ? r.topProdutos : [])
+          .slice(0, 5)
+          .map((p) => ({ nome: texto(p?.nome), margem: num(p?.margem) })),
+        materiaisEmFalta: (Array.isArray(r.materiaisEmFalta) ? r.materiaisEmFalta : [])
+          .slice(0, 10)
+          .map((m) => texto(m)),
       };
+      // Só aceita conversa da usuária e da consultora — nunca instruções de sistema.
+      const historico = (Array.isArray(data?.historico) ? data.historico : [])
+        .filter((m) => m && (m.role === "user" || m.role === "assistant"))
+        .slice(-8)
+        .map((m) => ({ role: m.role, content: String(m.content ?? "").slice(0, 1500) }));
+      return { pergunta, resumo, historico };
     },
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Assistente é exclusivo do Diamante: confere o plano no servidor.
+    const { userId, supabase } = context;
+    const [{ data: sub }, { data: plano }] = await Promise.all([
+      supabase
+        .from("subscriptions")
+        .select("status,current_period_end")
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"])
+        .maybeSingle(),
+      supabase.from("lifetime_emails").select("duration,expires_at").maybeSingle(),
+    ]);
+    const assinaturaOk =
+      !!sub && (!sub.current_period_end || new Date(sub.current_period_end).getTime() > Date.now());
+    const planoOk = !!plano && planoAtivo(plano.duration, plano.expires_at);
+    if (!assinaturaOk && !planoOk) {
+      throw new Error("O assistente financeiro é exclusivo do plano Diamante.");
+    }
+
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("Assistente indisponível no momento.");
 
