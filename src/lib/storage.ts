@@ -239,7 +239,7 @@ async function flushPush() {
       }
       const nextRaw = JSON.stringify(value);
       finalRaw.set(key, nextRaw);
-      if (nextRaw !== raw) {
+      if (nextRaw !== raw && localStorage.getItem(scopedKey(key, uid)) === raw) {
         localStorage.setItem(scopedKey(key, uid), nextRaw);
         localChanged = true;
       }
@@ -324,7 +324,10 @@ export async function syncFromCloud() {
     const remoteKeys = new Set<string>();
     let changed = false;
     const rescueKey = `u:${uid}:${RESCUE_KEY}`;
-    const needsRescue = localStorage.getItem(rescueKey) !== "1";
+    const tombRemote = new Map<string, unknown>();
+    for (const row of (data ?? []) as { key: string; value: unknown }[]) {
+      if (row.key.startsWith(TOMB_PREFIX)) tombRemote.set(row.key, row.value);
+    }
 
     for (const row of (data ?? []) as {
       key: string;
@@ -338,27 +341,25 @@ export async function syncFromCloud() {
       const localRaw = localStorage.getItem(full);
       const remoteRaw = JSON.stringify(row.value);
 
-      // Resgata cadastros feitos por versões antigas que gravavam apenas no aparelho.
-      if (needsRescue && localRaw !== null && !localAt && localRaw !== remoteRaw) {
-        try {
-          const localValue = JSON.parse(localRaw) as unknown;
-          if (Array.isArray(localValue) && Array.isArray(row.value)) {
-            const byId = new Map<string, unknown>();
-            for (const item of row.value) {
-              if (item && typeof item === "object" && "id" in item) byId.set(String(item.id), item);
-            }
-            for (const item of localValue) {
-              if (item && typeof item === "object" && "id" in item) byId.set(String(item.id), item);
-            }
-            const merged = JSON.stringify([...byId.values()]);
-            localStorage.setItem(full, merged);
-            pending.set(row.key, merged);
-            meta[row.key] = new Date().toISOString();
+      // Listas de cadastros: soma aparelho + nuvem, nunca descarta itens.
+      if (MERGE_KEYS.test(row.key) && isIdList(row.value)) {
+        const localValue = safeParse(localRaw);
+        if (localRaw !== null && localRaw !== remoteRaw && isIdList(localValue)) {
+          const localNewer = !!localAt && new Date(localAt) > new Date(remoteAt);
+          const tombs = readTombs(row.key, uid);
+          const remoteTombs = tombRemote.get(TOMB_PREFIX + row.key);
+          if (Array.isArray(remoteTombs)) remoteTombs.forEach((id) => tombs.add(String(id)));
+          const merged = localNewer
+            ? mergeLists(localValue, row.value, tombs)
+            : mergeLists(row.value, localValue, tombs);
+          const mergedRaw = JSON.stringify(merged);
+          if (mergedRaw !== localRaw) {
+            localStorage.setItem(full, mergedRaw);
             changed = true;
-            continue;
           }
-        } catch {
-          /* use remote value below */
+          if (mergedRaw !== remoteRaw) pending.set(row.key, mergedRaw);
+          meta[row.key] = localNewer ? localAt : remoteAt;
+          continue;
         }
       }
 
@@ -522,7 +523,9 @@ export function writeLocal<T>(key: string, value: T) {
   if (typeof window === "undefined") return;
   try {
     const raw = JSON.stringify(value);
-    localStorage.setItem(scopedKey(key), raw);
+    const full = scopedKey(key);
+    recordDeletions(key, localStorage.getItem(full), value);
+    localStorage.setItem(full, raw);
     queuePush(key, raw);
     notify();
   } catch {
