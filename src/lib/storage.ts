@@ -112,51 +112,170 @@ function isSyncable(key: string) {
   );
 }
 
+/* ------------------ proteção contra perda de cadastros ----------------- *
+ * Listas de cadastros (materiais, pedidos, orçamentos...) nunca são
+ * substituídas por inteiro: os itens do aparelho e da nuvem são somados
+ * pelo "id". Um item só some quando a pessoa realmente o exclui — a
+ * exclusão fica anotada numa lista de "excluídos" que também sincroniza.
+ * --------------------------------------------------------------------- */
+
+export const TOMB_PREFIX = "lcp:tomb:";
+/** Mesma lista usada pela proteção do servidor. */
+export const MERGE_KEYS =
+  /^lcp:(materiais|produtos|pedidos|orcamentos|clientes:extras|caixa:lancamentos|caixa:vendas|precItens|tabelasPrecos|formulas|fornecedores|fichasTecnicas|agendaProducao|datasClientes|contas|custos:maquinas|custos:ferramentas|custos:indiretos)$/;
+
+type Item = { id: unknown } & Record<string, unknown>;
+
+function isIdList(v: unknown): v is Item[] {
+  return Array.isArray(v) && v.every((i) => i && typeof i === "object" && !Array.isArray(i) && "id" in i);
+}
+
+function safeParse(raw: string | null): unknown {
+  if (raw === null) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
+
+function readTombs(key: string, uid: string | null = currentUid): Set<string> {
+  const v = safeParse(localStorage.getItem(scopedKey(TOMB_PREFIX + key, uid)));
+  return new Set(Array.isArray(v) ? v.map(String) : []);
+}
+
+function writeTombs(key: string, tombs: Set<string>, push = true) {
+  const list = [...tombs].slice(-3000);
+  const raw = JSON.stringify(list);
+  localStorage.setItem(scopedKey(TOMB_PREFIX + key), raw);
+  if (push) queuePush(TOMB_PREFIX + key, raw);
+}
+
+/** Soma duas listas pelo id; itens excluídos de verdade ficam de fora. */
+export function mergeLists(primary: Item[], secondary: Item[], tombs: Set<string>): Item[] {
+  const out: Item[] = [];
+  const seen = new Set<string>();
+  for (const item of [...primary, ...secondary]) {
+    const id = String(item.id);
+    if (seen.has(id) || tombs.has(id)) continue;
+    seen.add(id);
+    out.push(item);
+  }
+  return out;
+}
+
+/** Anota quais itens a pessoa excluiu ao salvar uma lista. */
+function recordDeletions(key: string, prevRaw: string | null, nextValue: unknown) {
+  if (!MERGE_KEYS.test(key) || !currentUid) return;
+  const prev = safeParse(prevRaw);
+  if (!isIdList(prev) || !isIdList(nextValue)) return;
+  const nextIds = new Set(nextValue.map((i) => String(i.id)));
+  const tombs = readTombs(key);
+  let changed = false;
+  for (const item of prev) {
+    const id = String(item.id);
+    if (!nextIds.has(id) && !tombs.has(id)) {
+      tombs.add(id);
+      changed = true;
+    }
+  }
+  for (const id of nextIds) {
+    if (tombs.delete(id)) changed = true;
+  }
+  if (changed) writeTombs(key, tombs);
+}
+
 /* --------------------------- envio (push) --------------------------- */
 
 const pending = new Map<string, string>(); // key -> valor JSON
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
+let pushing = false;
 
 async function flushPush() {
   pushTimer = null;
   const uid = currentUid;
   if (!uid || pending.size === 0) return;
-  const snapshot = [...pending.entries()];
-  const { data: authData } = await supabase.auth.getUser();
-  if (authData.user?.id !== uid) {
-    schedulePush(2000);
+  if (pushing) {
+    schedulePush(500);
     return;
   }
-  const rows = snapshot.map(([key, raw]) => {
-    let value: unknown = null;
-    try {
-      value = JSON.parse(raw);
-    } catch {
-      value = raw;
+  pushing = true;
+  const snapshot = [...pending.entries()];
+  try {
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData.user?.id !== uid) {
+      schedulePush(2000);
+      return;
     }
-    return {
+
+    // Lê o que já está na nuvem para somar, nunca apagar, os cadastros de outro aparelho.
+    const mergeable = snapshot.map(([k]) => k).filter((k) => MERGE_KEYS.test(k));
+    const remote = new Map<string, unknown>();
+    if (mergeable.length > 0) {
+      const { data, error } = await supabase
+        .from("user_data")
+        .select("key,value")
+        .eq("user_id", uid)
+        .in("key", [...mergeable, ...mergeable.map((k) => TOMB_PREFIX + k)]);
+      if (error) throw error;
+      for (const row of data ?? []) remote.set(row.key, row.value);
+    }
+
+    let localChanged = false;
+    const finalRaw = new Map<string, string>();
+    for (const [key, raw] of snapshot) {
+      let value = safeParse(raw);
+      if (key.startsWith(TOMB_PREFIX)) {
+        const r = remote.get(key);
+        if (Array.isArray(value) && Array.isArray(r)) {
+          value = [...new Set([...r.map(String), ...value.map(String)])].slice(-3000);
+        }
+      } else if (MERGE_KEYS.test(key) && isIdList(value)) {
+        const r = remote.get(key);
+        const remoteTombs = remote.get(TOMB_PREFIX + key);
+        const tombs = readTombs(key, uid);
+        if (Array.isArray(remoteTombs)) remoteTombs.forEach((id) => tombs.add(String(id)));
+        if (isIdList(r)) value = mergeLists(value, r, tombs);
+      }
+      const nextRaw = JSON.stringify(value);
+      finalRaw.set(key, nextRaw);
+      if (nextRaw !== raw) {
+        localStorage.setItem(scopedKey(key, uid), nextRaw);
+        localChanged = true;
+      }
+    }
+
+    // Excluídos sobem primeiro, para a nuvem saber o que pode sair.
+    const toRow = (key: string) => ({
       user_id: uid,
       key,
-      value: value as never,
-    };
-  });
-  try {
-    const { data, error } = await supabase
-      .from("user_data")
-      .upsert(rows, { onConflict: "user_id,key" })
-      .select("key,updated_at");
-    if (error) throw error;
+      value: safeParse(finalRaw.get(key) ?? "null") as never,
+    });
+    const keys = snapshot.map(([k]) => k);
+    const tombRows = keys.filter((k) => k.startsWith(TOMB_PREFIX)).map(toRow);
+    const dataRows = keys.filter((k) => !k.startsWith(TOMB_PREFIX)).map(toRow);
     const meta = readMeta(uid);
-    for (const row of data ?? []) meta[row.key] = row.updated_at;
+    for (const rows of [tombRows, dataRows]) {
+      if (rows.length === 0) continue;
+      const { data, error } = await supabase
+        .from("user_data")
+        .upsert(rows, { onConflict: "user_id,key" })
+        .select("key,updated_at");
+      if (error) throw error;
+      for (const row of data ?? []) meta[row.key] = row.updated_at;
+    }
     writeMeta(meta, uid);
     for (const [key, raw] of snapshot) {
       if (pending.get(key) === raw) pending.delete(key);
     }
     persistPending(uid);
+    if (localChanged) notify();
   } catch (e) {
     console.warn("sync push falhou", e);
     persistPending(uid);
     schedulePush(3000);
+  } finally {
+    pushing = false;
   }
 }
 
