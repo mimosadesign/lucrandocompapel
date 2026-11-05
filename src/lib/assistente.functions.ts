@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { planoAtivo } from "@/lib/plano";
+import { confirmedGrantActive, subscriptionActive, trialRemaining } from "@/lib/entitlement";
 
 export type ResumoNegocio = {
   faturamentoMes: number;
@@ -61,19 +61,26 @@ export const perguntarConsultora = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     // Assistente é exclusivo do Diamante: confere o plano no servidor.
     const { userId, supabase } = context;
-    const [{ data: sub }, { data: plano }] = await Promise.all([
+    const { data: auth, error: authError } = await supabase.auth.getUser();
+    if (authError || auth.user?.id !== userId) throw new Error("Entre novamente na sua conta.");
+    const email = auth.user.email?.toLowerCase() ?? "";
+    const [subsResult, grantResult, profileResult] = await Promise.all([
       supabase
         .from("subscriptions")
         .select("status,current_period_end")
         .eq("user_id", userId)
-        .in("status", ["active", "trialing"])
-        .maybeSingle(),
-      supabase.from("lifetime_emails").select("duration,expires_at").maybeSingle(),
+        .order("created_at", { ascending: false })
+        .limit(1).maybeSingle(),
+      supabase.from("lifetime_emails").select("duration,expires_at").eq("email", email).maybeSingle(),
+      supabase.from("profiles").select("trial_start").eq("id", userId).maybeSingle(),
     ]);
-    const assinaturaOk =
-      !!sub && (!sub.current_period_end || new Date(sub.current_period_end).getTime() > Date.now());
-    const planoOk = !!plano && planoAtivo(plano.duration, plano.expires_at);
-    if (!assinaturaOk && !planoOk) {
+    if (subsResult.error || grantResult.error || profileResult.error) {
+      throw new Error("Não consegui confirmar seu acesso agora. Tente novamente em instantes.");
+    }
+    const assinaturaOk = subscriptionActive(subsResult.data);
+    const planoOk = confirmedGrantActive(!!auth.user.email_confirmed_at, grantResult.data);
+    const testeOk = trialRemaining(profileResult.data?.trial_start) > 0;
+    if (!assinaturaOk && !planoOk && !testeOk) {
       throw new Error("O assistente financeiro é exclusivo do plano Diamante.");
     }
 
