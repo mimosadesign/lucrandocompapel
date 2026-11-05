@@ -129,8 +129,7 @@ export const criarPagamentoMercadoPago = createServerFn({ method: "POST" })
     }
 
     const plano = PLANOS[data.plano];
-    const permitidos = /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i;
-    const base = data.origem && permitidos.test(data.origem) ? data.origem : "https://lucrandocompapel.lovable.app";
+    const base = "https://lucrandocompapel.lovable.app";
 
     const { data: pedido, error: pedidoErr } = await supabaseAdmin
       .from("payment_orders")

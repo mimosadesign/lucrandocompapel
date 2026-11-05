@@ -3,8 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import { setStorageUser } from "@/lib/storage";
 import { planoAtivo } from "@/lib/plano";
-
-const TRIAL_DAYS = 25;
+import { subscriptionActive, trialRemaining } from "@/lib/entitlement";
 
 // Contas com acesso vitalício (sem cobrança / sem expiração de trial)
 const LIFETIME_EMAILS = new Set<string>([
@@ -51,6 +50,7 @@ export type Profile = {
 export type AppUser = {
   id: string;
   email: string;
+  emailConfirmed: boolean;
   nome: string;
   trialStart: string;
   profile: Profile | null;
@@ -75,6 +75,7 @@ function toAppUser(authUser: AuthUser | null, profile: Profile | null): AppUser 
   return {
     id: authUser.id,
     email: authUser.email ?? "",
+    emailConfirmed: !!authUser.email_confirmed_at,
     nome,
     trialStart,
     profile,
@@ -82,11 +83,7 @@ function toAppUser(authUser: AuthUser | null, profile: Profile | null): AppUser 
 }
 
 export function trialDaysLeft(u: { trialStart?: string } | null | undefined): number {
-  if (!u?.trialStart) return 0;
-  const start = new Date(u.trialStart).getTime();
-  if (!isFinite(start)) return 0;
-  const elapsed = (Date.now() - start) / (1000 * 60 * 60 * 24);
-  return Math.max(0, Math.ceil(TRIAL_DAYS - elapsed));
+  return trialRemaining(u?.trialStart);
 }
 
 export function isTrialActive(u: { trialStart?: string } | null | undefined): boolean {
@@ -94,14 +91,7 @@ export function isTrialActive(u: { trialStart?: string } | null | undefined): bo
 }
 
 function isSubActive(sub: SubscriptionRow | null | undefined): boolean {
-  if (!sub) return false;
-  const end = sub.current_period_end ? new Date(sub.current_period_end).getTime() : null;
-  const now = Date.now();
-  if (["active", "trialing", "past_due"].includes(sub.status)) {
-    return end === null || end > now;
-  }
-  if (sub.status === "canceled" && end && end > now) return true;
-  return false;
+  return subscriptionActive(sub);
 }
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
@@ -215,6 +205,10 @@ export function useEntitlement() {
       return;
     }
     let active = true;
+    setSub(null);
+    setSubReady(false);
+    setDbLifetime(false);
+    setPlanoVencido(false);
     void (async () => {
       const s = await fetchSubscription(user.id);
       if (!active) return;
@@ -228,11 +222,11 @@ export function useEntitlement() {
       const raw = localStorage.getItem(cacheKey);
       if (raw) {
         const c = JSON.parse(raw) as { duration?: string; expires_at?: string | null };
-        if (planoAtivo(c.duration, c.expires_at)) setDbLifetime(true);
+        if (user.emailConfirmed && planoAtivo(c.duration, c.expires_at)) setDbLifetime(true);
       }
     } catch { /* ignore */ }
     const checarPlano = async (tentativa = 0): Promise<void> => {
-      if (!user.email) return;
+      if (!user.email || !user.emailConfirmed) return;
       const { data, error } = await supabase
         .from("lifetime_emails")
         .select("email, duration, expires_at")
@@ -241,7 +235,7 @@ export function useEntitlement() {
       if (!active) return;
       if (error) {
         // Falha de rede/servidor: nunca retira o Diamante por erro. Tenta de novo.
-        if (tentativa < 5) setTimeout(() => void checarPlano(tentativa + 1), 3000 * (tentativa + 1));
+        if (tentativa < 5) setTimeout(() => { if (active) void checarPlano(tentativa + 1); }, 3000 * (tentativa + 1));
         return;
       }
       if (!data) {
@@ -286,9 +280,9 @@ export function useEntitlement() {
       window.removeEventListener("focus", onFocus);
       void supabase.removeChannel(channel);
     };
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, user?.emailConfirmed]);
 
-  const lifetime = hasLifetimeAccess(user?.email) || dbLifetime;
+  const lifetime = !!user?.emailConfirmed && (hasLifetimeAccess(user.email) || dbLifetime);
   const inTrial = lifetime ? true : isTrialActive(user);
   const daysLeft = lifetime ? 9999 : trialDaysLeft(user);
   const isPaid = lifetime ? true : isSubActive(sub);

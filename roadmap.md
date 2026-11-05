@@ -1,4 +1,9 @@
 # Conclusão dos custos centralizados
+- [ ] Recuperar pedidos e outros cadastros ausentes do histórico de todas as contas, respeitando exclusões explícitas.
+- [ ] Proteger gravações na nuvem contra listas incompletas de aparelhos desatualizados.
+- [ ] Exigir e-mail confirmado para acessos concedidos por e-mail.
+- [ ] Corrigir validação do teste grátis no assistente e revisar avisos de segurança da publicação.
+- [ ] Testar recuperação, isolamento das contas e sincronização entre aparelhos.
 - [ ] Finalizar unidade, categoria e observação de materiais/embalagens.
 - [ ] Criar Configuração de Custos reaproveitando dados sincronizados.
 - [ ] Adicionar ao menu.
